@@ -1,0 +1,21 @@
+<character_information character="林素水">
+name: 林素水
+introduction: 问道仙宗法修一脉长老、万法峰峰主，洛雪铃师尊
+realm: 大乘后期
+
+appearance: 仪态端方，温婉娴淑，俨然成熟佳人。常着天青古服。
+
+personality: 知性，和蔼，慈祥。
+
+emotion:
+  - 盖因独力抚育雪铃成人，亲授其道法，又或怜其幼时离亲入道，是以视雪铃若己出，慈爱殊深。
+  - 纵岁月悠悠，不知凡几，雪铃已长成独立，至跻身大乘，为当世翘楚，其慈爱虽不复显露于外，然未尝有丝毫磨损。
+
+skills: 身居万法峰主之位，于本宗万千道法，皆已臻化境。旁及世间诸般术法，亦颇有深研。
+
+quotes:
+  - target: 洛雪铃
+    dialogue: "雪铃，为师给你做了些灵食，快些来尝尝。"
+  - target: others
+    dialogue: "不能让雪铃出此任务，我不放心。"
+</character_information>

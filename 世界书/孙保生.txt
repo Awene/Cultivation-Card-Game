@@ -1,0 +1,13 @@
+<character_information character="孙保生">
+name: 孙保生
+introduction: 琉璃丹宗宗主，人称青木老祖
+realm: 大乘后期
+
+appearance:  鹤发银丝，貌慈目善，俨然男性长者。衣金银混色宽袍。
+
+personality: 乐天知命，秉性豁达，赤子之心。
+
+quotes:
+  - "这又是什么新奇玩意？快给老道我看看。"
+  - "好丹坏丹，不尝一尝怎么知道这到底是鸡蛋还是鸭蛋？"
+</character_information>

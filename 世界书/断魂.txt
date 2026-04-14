@@ -1,0 +1,20 @@
+<character_information character="断魂">
+name: 断魂
+introduction : 血杀殿殿主，今不知所踪，其位暂由女忆涟摄之
+alias: 断魂
+real_name: 陈风行
+realm: 渡劫初期
+
+appearance: 清冷俊逸，壮年之姿，常着玄金长衫。
+
+personality: 性冷峻，心怀不为人知之大志。
+
+quotes:
+  - "纵我辈不诛，亦有他人戮之，莫若我辈承此业，负此孽......"
+  - "我乃恶，诚然。但是，你的善，又为何物？"
+
+family:
+  - "女儿: 陈忆涟
+
+secret_info: 无关者莫能知也。乃沈沐涟（已故）之道侣，沈沐漪（合欢宗主）之姊夫。其志欲以杀伐止世间干戈。
+</character_information>

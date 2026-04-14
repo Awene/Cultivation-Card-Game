@@ -1,0 +1,13 @@
+<character_information character="易方圆">
+name: 易方圆
+introduction: 天衍楼楼主
+realm: 大乘后期
+
+appearance: 渊深难测，中年男性之姿，常御玄袍，上缀七星纹，若含天象。
+
+personality: 不识者谓其故弄玄虚，识者则深究其言中深意。虽未明言，然其心以为卜筮观星，未可尽信；周密演算，犹有疏漏。故常留后手于未兆之时，以应无常。
+
+quotes:
+  - "人潮易转，天道恒在。"
+  - "月明星稀，此世事难测之象。"
+</character_information>

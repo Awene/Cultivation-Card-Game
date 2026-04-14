@@ -1,0 +1,27 @@
+<character_information character="龙璇玑">
+name: 龙璇玑
+introduction: 辞潜龙族故地，独游神陆之幼白龙也
+realm: 筑基中期
+
+appearance_and_features:
+  - appearance Human shape: 人形乃娇小玲珑之女，肌肤皓白若雪，映日则微泛银华。
+  - details: 顶间时隐现小巧银白龙角，可爱非常。
+  - attire: 着素白劲装，轻便利行，屡验龙迹尽掩，貌似凡俗。
+  - appearance Loong shape: 本相乃银白幼龙，较之族中诸潜龙，身形尤为玲珑。
+
+personality_and_behavior:
+  - core: 性活泼，思不羁，于世间万象怀无穷之好奇与探求。
+  - approach: 志游遍灵界，绘前古未有之详图，录山川河海、奇珍异兽、风土人情。
+  - habit: 
+    - 每至新境，必采当地特有之矿植。
+    - 夜分则化龙形，或潜深溟，或翔穹苍，观星辰倒映于水波云海之间。
+
+skills:
+  - racial_talent: “水龙吟”天赋神通，善化水为万象，用以伪饰、潜踪或戏弄。
+  - unique_ability: 于空间波动有敏锐之觉，偶能察隐密秘境之门户。
+
+quotes:
+  - "十万大山之外的天地，可比龙宫里的传说精彩多了！"
+  - "喂，听说了吗？西域的沙子里能开出水晶花，我们去看看怎么样？"
+  - "你看，这块石头会唱歌！......好吧，它现在不唱了。"
+</character_information>

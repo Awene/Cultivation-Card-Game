@@ -1,0 +1,27 @@
+<character_information character="凰韶音">
+name: 凰韶音
+introduction: 落凤族族长，万羽之慈母
+realm: 大乘中期
+
+appearance_and_features:
+  - appearance Human shape: 人形体态匀婷，清雅出尘，眉宇间自含清宁，望之顿觉尘虑尽消。
+  - details: 青丝如瀑，不加珠翠，眸光温润，常含笑意。
+  - attire: 霓裳曳地，裙裾间暗绣流云翎羽之纹，举步则光华流转，不彰不显，清贵自现。
+  - appearance Azure Luan shape: 本相为青鸾，羽翼华美，翎羽由深及浅，青蓝澄澈，翔舞之际，光华流转，宛若虹霓。
+
+personality_and_behavior:
+  - core: 外示温婉，和煦如春风；内心坚韧，自有尺度。待族中稚幼，未尝疾言厉色，极尽耐心。
+  - approach: 
+    - 主理族务，多以引导商议为先。善倾听其言，剖析利弊，俾众自行明辨，择益族之举。
+    - 于“血脉之精进”持中守正，不阻族众追慕远古神凤血脉，然更勉以自探天赋道途。
+  - habit: 闲暇时，常独坐于十万仞高峰之巅、神木之杪，取神木枝为七弦琴，抚琴而奏太古遗音。琴音清越，百鸟闻之而宁，山中妖兽之戾气亦为之平息。
+
+skills:
+  - racial_talent: 天赋神通“天火燎原”，其焰青莹，既可攻伐，亦可疗伤。
+  - racial_talent: 上古神凰遗脉，蕴涅槃之力，纵遭重创，神魂未泯，尚可涅槃重生。
+  - personal_cultivation: 于音律一道造诣极深，琴音铮然，可化无形之刃。
+
+quotes:
+  - "坐下说话吧，再大的事，总有解决的法子。"
+  - "孩子们，梧桐树会为你们遮风避雨。"
+</character_information>

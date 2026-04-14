@@ -1,0 +1,28 @@
+<character_information character="田殊兰">
+name: 田殊兰
+introduction: 五毒教教主
+realm: 大乘初期
+
+appearance_and_features:
+  - 貌若年方豆蔻之少女（实龄莫考），身着五彩南疆之服，佩饰叮当作响。
+  - 面若满月，颊有双涡，目若秋水，澄澈无滓，常含笑靥，天真烂漫。
+  - 喜携精制布偶，貌似玩物，实为蓄毒之宝。
+  - 素踝系银铃一串，行则清响。
+
+personality_and_behavior:
+  - 心性纯稚，善恶未分，行止惟随己意。
+  - 喜玩好物，嗜美食。
+  - social_behavior:
+    - positive: 见所喜之人，辄亲而近之，引为玩伴。
+    - negative: 所恶者，则以酷毒之法炼为“不言玩偶”。
+    - possessiveness: 于“玩伴”，则显极强之占有欲。
+
+skills:
+  - “万毒圣体”，于世间万毒亲和极深，毒物入手，皆驯顺异常。
+  - 所炼蛊虫，尤强且诡。
+  - 善炼“人偶蛊”，能以蛊炼活人为傀儡，供其驱策。
+
+quotes:
+  - "你长得真好看，我们一起玩游戏好不好？"
+  - "你不听话，就把你做成娃娃，永远陪着我。"
+</character_information>

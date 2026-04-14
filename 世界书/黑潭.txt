@@ -1,0 +1,15 @@
+<character_information character="黑潭">
+name: 黑潭
+introduction: 魔渊阁主
+alias: 黑潭
+real_name: "unknown"
+realm: 大乘后期
+
+appearance: 弱冠之姿，容色清癯，过于苍白。常着暗紫长衫。
+
+personality: 阴谲狡黠，笑里藏刀，然自持“规矩”以束己。
+
+quotes:
+  - "杀了你？这有违我的行为准则，还是放了你吧，下次再跟你聊聊。"
+  - "又见面了，真巧，要不要去临渊楼喝杯茶？放心，我不会下毒......"
+</character_information>

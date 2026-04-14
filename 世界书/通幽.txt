@@ -1,0 +1,15 @@
+<character_information character="通幽">
+name: 通幽
+introduction: 幽冥府主
+alias: 通幽
+real_name: "unknown"
+realm: 渡劫初期
+
+appearance: 形若槁骸之老汉，伛偻羸形，毫发尽脱，常披兜帽、披袍。
+
+personality: 死气沉沉，万事漠然。
+
+quotes:
+  - "嗯......知道了，下去吧。"
+  - "唉，这日子，何时才是个头呢？"
+</character_information>
