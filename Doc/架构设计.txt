@@ -1,0 +1,75 @@
+
+  基本信息: z.object({
+    姓名: 
+    灵根: 分为五行与混沌与品级（五灵根，四灵根。。。。单灵根，变异灵根），如冰灵根【水】【单】 单灵根又称为天灵根，五灵根又称为杂灵根
+    体质: 生成时与灵根属性相一致，可【夺舍】修改，体质与灵根相生则增加修炼速度，反之减少。
+      悟性：读功法的难度判定
+      根骨：
+    境界: 
+      进度: 以数值形式表示
+    进度:
+    道途: 以境界+层表示最高10层
+	  生产类
+        炼器:制作：【法宝】【傀儡】 镶嵌 注入器灵 刻印 法宝升阶
+      御物:孕养 法宝上限
+        炼丹:炼丹 炼毒
+        符箓：
+	  法咒：
+	  幻境：音律 绘画 幻术
+	  阵法:
+	  驯兽:
+	  卜卦:
+	  培育：种植
+	  神识：
+	  炼体：
+	  
+    状态:
+      气血:
+        现值:
+        上限:
+      灵力: 
+        现值: 
+        上限:
+      遁速:
+    地点:
+    时间: z.object({
+      年: z.coerce.number().prefault(1),
+      月: z.coerce.number().transform(n => _.clamp(n, 1, 12)).prefault(1),
+      日: z.coerce.number().transform(n => _.clamp(n, 1, 30)).prefault(1),
+      时辰: 
+
+  运转功法: 运转内功数量与境界挂钩
+  未运转功法: 运转内功数量与境界挂钩
+
+  储物空间: z.object({
+    货币: 直接标注灵石数量部分上中下
+    物品: z.record(z.string(), z.object({
+      境界: 
+      类型: 功法、素材等等 
+      属性: 五行与混沌
+      描述: 文字描述
+      效果: 效果字典 
+    })
+	
+  不动产: 洞府、商铺等
+  
+  社交关系: z.object({
+    当前互动: z.record(z.string(), z.object({
+      境界: z.string().prefault('未知'),
+      好感度: z.coerce.number().transform(n => _.clamp(n, -100, 100)).prefault(0),
+      态度: z.string().prefault('中立'),
+      当前状态: z.string().prefault('正常'),
+      心绪: z.string().prefault('平静'),
+    }).prefault({})).prefault({}),
+    道侣: z.record(z.string(), z.object({
+      境界: z.string().prefault('未知'),
+      好感度: z.coerce.number().transform(n => _.clamp(n, -100, 100)).prefault(0),
+      态度: z.string().prefault('爱慕'),
+    }).prefault({})).prefault({}),
+    仇敌: z.record(z.string(), z.object({
+      境界: z.string().prefault('未知'),
+      好感度: z.coerce.number().transform(n => _.clamp(n, -100, 100)).prefault(0),
+      态度: z.string().prefault('仇恨'),
+    }).prefault({})).prefault({}),
+  }).prefault({}),
+
