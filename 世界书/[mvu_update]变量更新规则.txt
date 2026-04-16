@@ -121,10 +121,9 @@
       type: |-
         {
           [物品名: string]: {
-            类型: string; // 丹药/符箓/素材/武器/防具/饰品/其他
+            类型: string; // 丹药/符箓/素材/武器/防具/饰品/秘籍/其他
             境界: string;
             五行: string;
-            消耗: string;
             标签: string[];
             数量: number;
             效果: { [效果名: string]: string };
@@ -149,8 +148,7 @@
             描述: string;
             位置: string; // 默认值为"储物袋"
             // 战斗属性:
-            气血: number; // 灵兽/傀儡的单个气血值，法宝无此项
-            灵气: number; // 法宝的单个祭出灵气，灵兽/傀儡无此项
+            ${气血|灵气}: number; // [灵兽/傀儡:气血; 法宝:灵气]
             遁速: number;
             命中: number;
             攻击力: number;
