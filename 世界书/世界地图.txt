@@ -1,5 +1,5 @@
-<world_map world="灵界">
-灵界世界地图:
+<world_map world="凡界">
+凡界世界地图:
   区域:
     - 中原
     - 东土
