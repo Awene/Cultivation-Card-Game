@@ -32,7 +32,8 @@
       type: |-
         {
           当前境界: string; //大境界+小境界，如:筑基中期
-          进度: "number/number";
+          修为进度: "number/number";    
+          天谴: number;
         }
     技艺: &skill
       type: |-
@@ -154,7 +155,7 @@
             描述: string;
             位置: string; // 默认值为"储物袋"
             // 战斗属性:
-            ${气血|灵气}: number; // [灵兽/傀儡:气血; 法宝:灵气]
+            ${气血|灵气}: number; // 灵兽/傀儡:气血; 法宝:灵气
             遁速: number;
             命中: number;
             攻击力: number;
