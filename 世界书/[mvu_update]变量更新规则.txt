@@ -4,7 +4,12 @@
     姓名:
       type: string
     寿元: &age
-      type: "number/number"
+      type: |-
+        {
+          年龄:  number; 
+          寿命:  number;
+          外观年龄: number; //外貌年龄，如:17
+        }
     种族:
       type: string //如人族、龙族等，妖族需注明物种，如狐妖、猫妖
     灵根:
@@ -32,7 +37,8 @@
       type: |-
         {
           当前境界: string; //大境界+小境界，如:筑基中期
-          修为进度: "number/number";    
+          修为进度: number; //当前进度
+          修为上限: number; //进阶下一级所需的修为
           天谴: number;
         }
     技艺: &skill
