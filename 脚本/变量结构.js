@@ -221,13 +221,15 @@ export const Schema = z.object({
       z.string(),
       z
         .object({
-          运行中: z.boolean().prefault(false),
+          使用中: z.boolean().prefault(false),
           品质: z.enum(["凡", "黄", "玄", "地", "天"]).prefault("凡"),
           境界: z.string().prefault("凡人"),
           五行: z
             .enum(["金", "木", "水", "火", "土", "阴", "阳", "混沌"])
             .prefault("金"),
-          类型: z.string().prefault("心法"),
+          类型: z
+            .enum(["心法", "攻击", "咒法", "身法", "护体", "其他"])
+            .prefault("心法"),
           消耗: z.string().prefault("无"),
           标签: z.array(z.string()).prefault([]),
           效果: z.record(z.string(), z.string()).prefault({}),
@@ -299,7 +301,7 @@ export const Schema = z.object({
           z.string(),
           z
             .object({
-              出战: z.boolean().prefault(false),
+              使用中: z.boolean().prefault(false),
               品质: z.enum(["凡", "黄", "玄", "地", "天"]).prefault("凡"),
               境界: z.string().prefault("凡人"),
               五行: z
@@ -351,7 +353,7 @@ export const Schema = z.object({
           z.string(),
           z
             .object({
-              出战: z.boolean().prefault(false),
+              使用中: z.boolean().prefault(false),
               品质: z.enum(["凡", "黄", "玄", "地", "天"]).prefault("凡"),
               境界: z.string().prefault("凡人"),
               五行: z
@@ -403,7 +405,7 @@ export const Schema = z.object({
           z.string(),
           z
             .object({
-              出战: z.boolean().prefault(false),
+              使用中: z.boolean().prefault(false),
               品质: z.enum(["凡", "黄", "玄", "地", "天"]).prefault("凡"),
               境界: z.string().prefault("凡人"),
               五行: z
@@ -478,8 +480,46 @@ export const Schema = z.object({
                 .prefault(18),
             })
             .prefault({}),
-          灵根: z.string().prefault("未知"),
-          体质: z.string().prefault("未知"),
+          灵根: z
+            .object({
+              名称: z.string().prefault("凡品灵根"),
+              灵根五行: z
+                .array(
+                  z.enum(["金", "木", "水", "火", "土", "阴", "阳", "混沌"]),
+                )
+                .prefault([]),
+              灵根品阶: z
+                .enum([
+                  "单灵根",
+                  "双灵根",
+                  "三灵根",
+                  "四灵根",
+                  "五灵根",
+                  "无灵根",
+                ])
+                .prefault("无灵根"),
+            })
+            .prefault({}),
+          体质: z
+            .object({
+              名称: z.string().prefault("凡体"),
+              描述: z.string().prefault(""),
+              悟性: z.coerce
+                .number()
+                .transform((n) => _.clamp(n, 0, Infinity))
+                .prefault(0),
+              根骨: z.coerce
+                .number()
+                .transform((n) => _.clamp(n, 0, Infinity))
+                .prefault(0),
+              气感: z.coerce
+                .number()
+                .transform((n) => _.clamp(n, 0, Infinity))
+                .prefault(0),
+            })
+            .prefault({}),
+          元阴: z.boolean().optional().prefault(undefined),
+          元阳: z.boolean().optional().prefault(undefined),
           技艺: z
             .object({
               生产类: z
@@ -594,13 +634,15 @@ export const Schema = z.object({
               z.string(),
               z
                 .object({
-                  运行中: z.boolean().prefault(false),
+                  使用中: z.boolean().prefault(false),
                   品质: z.enum(["凡", "黄", "玄", "地", "天"]).prefault("凡"),
                   境界: z.string().prefault("凡人"),
                   五行: z
                     .enum(["金", "木", "水", "火", "土", "阴", "阳", "混沌"])
                     .prefault("金"),
-                  类型: z.string().prefault("心法"),
+                  类型: z
+                    .enum(["心法", "攻击", "咒法", "身法", "护体", "其他"])
+                    .prefault("心法"),
                   消耗: z.string().prefault("无"),
                   标签: z.array(z.string()).prefault([]),
                   效果: z.record(z.string(), z.string()).prefault({}),
@@ -681,7 +723,7 @@ export const Schema = z.object({
                   z.string(),
                   z
                     .object({
-                      出战: z.boolean().prefault(false),
+                      使用中: z.boolean().prefault(false),
                       品质: z
                         .enum(["凡", "黄", "玄", "地", "天"])
                         .prefault("凡"),
@@ -744,7 +786,7 @@ export const Schema = z.object({
                   z.string(),
                   z
                     .object({
-                      出战: z.boolean().prefault(false),
+                      使用中: z.boolean().prefault(false),
                       品质: z
                         .enum(["凡", "黄", "玄", "地", "天"])
                         .prefault("凡"),
@@ -807,7 +849,7 @@ export const Schema = z.object({
                   z.string(),
                   z
                     .object({
-                      出战: z.boolean().prefault(false),
+                      使用中: z.boolean().prefault(false),
                       品质: z
                         .enum(["凡", "黄", "玄", "地", "天"])
                         .prefault("凡"),
