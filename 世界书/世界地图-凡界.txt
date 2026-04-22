@@ -1,0 +1,27 @@
+<world_map world="凡界">
+凡界世界地图:
+```mermaid
+graph TD
+    subgraph 无尽海域[无尽海域 - 环绕包围整个凡界大陆]
+        direction TB
+        North[北境]
+        West[西域] <--> Central{中原} <--> East[东土]
+        South[南疆]
+        North <--> Central
+        Central <--> South
+        North -.- West
+        North -.- East
+        South -.- West
+        South -.- East
+    end
+```
+跨越单大域时间:
+  L=0 (凡人/练气期): 遁速极慢，跨越一域需 300~500 年（常人终其一生难以跨域）
+  L=1 (筑基期): 跨越一域需 30~50 年
+  L=2 (金丹期): 跨越一域需 3~5 年
+  L=3 (元婴期): 跨越一域需 3~6 月
+  L=4 (化神期): 跨越一域仅需 10~15 天
+叙述指导:
+  低阶修士（金丹及以下）跨域绝不会采用常规飞行，必须借用【跨域传送阵】
+  若无传送阵，低阶修士的跨域之行无异于愚公移山；元婴以上大能则可凭借自身遁光游历四方
+</world_map>
