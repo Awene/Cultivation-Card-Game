@@ -104,9 +104,7 @@
     递归:
       不可被其他条目激活: false
       不可激活其他条目: true
-    内容: |-
-      <ranking_system world="灵界">
-      </ranking_system>
+    文件: 世界书\世界设定-品阶
 
   - 名称: 世界设定-灵根
     启用: true
@@ -119,9 +117,7 @@
     递归:
       不可被其他条目激活: false
       不可激活其他条目: true
-    内容: |-
-      <divine_artifacts world="灵界">
-      </divine_artifacts>
+    文件: 世界书\世界设定-灵根
 
   - 名称: 世界设定-体质
     启用: true
@@ -134,9 +130,7 @@
     递归:
       不可被其他条目激活: false
       不可激活其他条目: true
-    内容: |-
-      <divine_artifacts world="灵界">
-      </divine_artifacts>
+    文件: 世界书\世界设定-体质
 
   - 名称: 世界设定-功法
     启用: true
@@ -149,9 +143,7 @@
     递归:
       不可被其他条目激活: false
       不可激活其他条目: true
-    内容: |-
-      <divine_artifacts world="灵界">
-      </divine_artifacts>
+    文件: 世界书\世界设定-功法
 
   - 名称: 世界设定-装备物品
     启用: true
@@ -164,9 +156,7 @@
     递归:
       不可被其他条目激活: false
       不可激活其他条目: true
-    内容: |-
-      <divine_artifacts world="灵界">
-      </divine_artifacts>
+    文件: 世界书\世界设定-装备物品
 
   - 名称: 世界设定-战斗技艺
     启用: true
@@ -179,9 +169,7 @@
     递归:
       不可被其他条目激活: false
       不可激活其他条目: true
-    内容: |-
-      <divine_artifacts world="灵界">
-      </divine_artifacts>
+    文件: 世界书\世界设定-战斗技艺
 
   - 名称: 世界设定-生产技艺
     启用: true
@@ -194,9 +182,7 @@
     递归:
       不可被其他条目激活: false
       不可激活其他条目: true
-    内容: |-
-      <divine_artifacts world="灵界">
-      </divine_artifacts>
+    文件: 世界书\世界设定-生产技艺
 
   - 名称: ➤背景设定-end
     启用: true
