@@ -1,0 +1,467 @@
+```
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>行动面板美化 - 通用模板</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Noto Serif SC', serif;
+        color: #e8d5b7;
+        background: #1a1a2e;
+      }
+      #output-container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 0 10px;
+      }
+
+      /* 通用面板样式 */
+      .action-panel {
+        background: linear-gradient(180deg, rgba(40, 30, 50, 0.95) 0%, rgba(20, 15, 35, 0.98) 100%);
+        border: 2px solid;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+      .action-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, currentColor, transparent);
+      }
+
+      /* 根据面板类型动态设置颜色 */
+      .action-panel.battle {
+        border-color: #fc8181;
+        --panel-color: #fc8181;
+      }
+      .action-panel.craft {
+        border-color: #68d391;
+        --panel-color: #68d391;
+      }
+      .action-panel.cultivation {
+        border-color: #90cdf4;
+        --panel-color: #90cdf4;
+      }
+      .action-panel.breakthrough {
+        border-color: #f6ad55;
+        --panel-color: #f6ad55;
+      }
+      .action-panel.insight {
+        border-color: #b794f4;
+        --panel-color: #b794f4;
+      }
+      .action-panel.judge {
+        border-color: #63b3ed;
+        --panel-color: #63b3ed;
+      }
+
+      .panel-header {
+        background: linear-gradient(
+          90deg,
+          rgba(60, 40, 60, 0.8) 0%,
+          rgba(80, 60, 80, 0.8) 50%,
+          rgba(60, 40, 60, 0.8) 100%
+        );
+        padding: 14px 18px;
+        border-bottom: 1px solid;
+        border-color: var(--panel-color);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.2s ease;
+      }
+      .panel-header:hover {
+        background: linear-gradient(
+          90deg,
+          rgba(80, 60, 80, 0.9) 0%,
+          rgba(100, 80, 100, 0.9) 50%,
+          rgba(80, 60, 80, 0.9) 100%
+        );
+      }
+      .panel-header i.panel-icon {
+        font-size: 1.3em;
+        color: var(--panel-color);
+        text-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+      }
+      .panel-title {
+        font-family: 'Cinzel', 'Noto Serif SC', serif;
+        font-size: 1.15em;
+        font-weight: 700;
+        color: var(--panel-color);
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        letter-spacing: 2px;
+        flex: 1;
+      }
+      .panel-toggle {
+        color: var(--panel-color);
+        transition: transform 0.3s ease;
+      }
+      .panel-header.collapsed .panel-toggle {
+        transform: rotate(-90deg);
+      }
+
+      .panel-content {
+        padding: 14px;
+        transition:
+          max-height 0.3s ease,
+          padding 0.3s ease,
+          opacity 0.3s ease;
+        overflow: hidden;
+      }
+      .panel-content.collapsed {
+        max-height: 0;
+        padding: 0 14px;
+        opacity: 0;
+      }
+
+      .data-row {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid;
+        border-color: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+        line-height: 1.6;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+      }
+      .data-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 0.9em;
+        font-weight: 600;
+        margin: 0 2px;
+        white-space: normal;
+        word-break: break-word;
+        max-width: 100%;
+        vertical-align: middle;
+      }
+
+      /* 通用标签颜色 */
+      .tag-success {
+        background: #2f855a;
+        color: #fff;
+      }
+      .tag-fail {
+        background: #c53030;
+        color: #fff;
+      }
+      .tag-critical-success {
+        background: #ffd700;
+        color: #000;
+        font-weight: 700;
+      }
+      .tag-critical-fail {
+        background: #6b21a8;
+        color: #fff;
+      }
+
+      .tag-quality-凡 {
+        background: #4a5568;
+        color: #cbd5e0;
+      }
+      .tag-quality-黄 {
+        background: #d69e2e;
+        color: #fff;
+      }
+      .tag-quality-玄 {
+        background: #3182ce;
+        color: #fff;
+      }
+      .tag-quality-地 {
+        background: #805ad5;
+        color: #fff;
+      }
+      .tag-quality-天 {
+        background: #c53030;
+        color: #fff;
+        text-shadow: 0 0 8px rgba(197, 48, 48, 0.5);
+      }
+
+      .tag-type {
+        background: #553c9a;
+        color: #e9d8fd;
+      }
+      .tag-attr {
+        background: #2c5282;
+        color: #bee3f8;
+      }
+      .tag-effect {
+        background: #44337a;
+        color: #e9d8fd;
+      }
+      .tag-label {
+        background: #2d3748;
+        color: #cbd5e0;
+      }
+
+      .field-label {
+        color: var(--panel-color);
+        font-weight: 700;
+        margin-right: 4px;
+      }
+      .stat-value {
+        color: #fbd38d;
+        font-weight: 700;
+      }
+
+      @media (max-width: 600px) {
+        .panel-header {
+          padding: 12px 14px;
+        }
+        .panel-title {
+          font-size: 1em;
+          letter-spacing: 1px;
+        }
+        .panel-content {
+          padding: 12px;
+        }
+        .data-row {
+          font-size: 0.9em;
+          padding: 8px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="output-container">
+      <div id="content"></div>
+    </div>
+
+    <script>
+      // 面板类型配置
+      const PanelConfig = {
+        战况总览: { type: 'battle', icon: 'fa-solid fa-scroll' },
+        行动顺序: { type: 'battle', icon: 'fa-solid fa-hourglass-half' },
+        攻击行动: { type: 'battle', icon: 'fa-solid fa-crosshairs' },
+        伤害基准计算: { type: 'battle', icon: 'fa-solid fa-calculator' },
+        结算清单: { type: 'battle', icon: 'fa-solid fa-list-check' },
+        战术动作: { type: 'battle', icon: 'fa-solid fa-chess-knight' },
+        战意判定: { type: 'battle', icon: 'fa-solid fa-heart-crack' },
+        战斗结算: { type: 'battle', icon: 'fa-solid fa-flag-checkered' },
+
+        生产准备: { type: 'craft', icon: 'fa-solid fa-hammer' },
+        制作检定: { type: 'craft', icon: 'fa-solid fa-flask' },
+        生产结算: { type: 'craft', icon: 'fa-solid fa-box-open' },
+
+        修为状态总览: { type: 'cultivation', icon: 'fa-solid fa-book' },
+        修为获取: { type: 'cultivation', icon: 'fa-solid fa-star' },
+
+        突破判定: { type: 'breakthrough', icon: 'fa-solid fa-bolt' },
+        历劫: { type: 'breakthrough', icon: 'fa-solid fa-fire' },
+        突破结算: { type: 'breakthrough', icon: 'fa-solid fa-crown' },
+
+        参悟检定: { type: 'insight', icon: 'fa-solid fa-brain' },
+        参悟结果: { type: 'insight', icon: 'fa-solid fa-lightbulb' },
+        大成奖励: { type: 'insight', icon: 'fa-solid fa-gift' },
+
+        判定检查: { type: 'judge', icon: 'fa-solid fa-scale-balanced' },
+        判定结果: { type: 'judge', icon: 'fa-solid fa-dice-d20' },
+      };
+
+      /**
+       * 从文本中提取 action_info 面板
+       * @param {string} text - 包含 action_info 标签的文本
+       * @returns {Array} 面板数组
+       */
+      function extractActionInfo(text) {
+        const regex = /<action_info>((?:(?!<\/?action_info>)[\s\S])*?)<\/action_info>/gs;
+        const matches = [];
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+          const content = match[1].trim();
+          matches.push(parsePanelContent(content));
+        }
+
+        return matches;
+      }
+
+      /**
+       * 解析面板内容
+       * @param {string} content - 面板内容
+       * @returns {Object} 解析后的面板对象
+       */
+      function parsePanelContent(content) {
+        const lines = _.chain(content).split('\n').map(_.trim).compact().value();
+
+        const sections = [];
+        let currentSection = null;
+
+        _.forEach(lines, line => {
+          const titleMatch = line.match(/^\{(.+?)\}$/);
+          if (titleMatch) {
+            if (currentSection) sections.push(currentSection);
+            currentSection = { title: titleMatch[1], rows: [] };
+          } else if (_.startsWith(line, '|') && _.endsWith(line, '|') && currentSection) {
+            const rowContent = line.slice(1, -1).trim();
+            if (rowContent) currentSection.rows.push(rowContent);
+          }
+        });
+
+        if (currentSection) sections.push(currentSection);
+        return { sections };
+      }
+
+      /**
+       * 美化单行数据
+       * @param {string} row - 数据行
+       * @returns {string} 美化后的 HTML
+       */
+      function beautifyRow(row) {
+        let html = _.escape(row);
+
+        // 品质标签
+        ['凡', '黄', '玄', '地', '天'].forEach(q => {
+          html = html.replace(
+            new RegExp(`品质:\\s*${q}`, 'g'),
+            `<span class="field-label">品质:</span> <span class="tag tag-quality-${q}"><i class="fa-solid fa-star"></i> ${q}</span>`,
+          );
+        });
+
+        // 结果标签
+        html = html.replace(
+          /结果:\s*大成功/g,
+          `<span class="field-label">结果:</span> <span class="tag tag-critical-success"><i class="fa-solid fa-star"></i> 大成功</span>`,
+        );
+        html = html.replace(
+          /结果:\s*成功/g,
+          `<span class="field-label">结果:</span> <span class="tag tag-success"><i class="fa-solid fa-check"></i> 成功</span>`,
+        );
+        html = html.replace(
+          /结果:\s*失败/g,
+          `<span class="field-label">结果:</span> <span class="tag tag-fail"><i class="fa-solid fa-times"></i> 失败</span>`,
+        );
+        html = html.replace(
+          /结果:\s*大失败/g,
+          `<span class="field-label">结果:</span> <span class="tag tag-critical-fail"><i class="fa-solid fa-skull"></i> 大失败</span>`,
+        );
+
+        // 状态标签
+        html = html.replace(
+          /状态:\s*制作成功/g,
+          `<span class="field-label">状态:</span> <span class="tag tag-success"><i class="fa-solid fa-check"></i> 制作成功</span>`,
+        );
+        html = html.replace(
+          /状态:\s*制作失败/g,
+          `<span class="field-label">状态:</span> <span class="tag tag-fail"><i class="fa-solid fa-times"></i> 制作失败</span>`,
+        );
+
+        // 通用标签映射
+        const tagMappings = [
+          { pattern: /类型:\s*([^|]+)/g, label: '类型', icon: 'fa-solid fa-tag', className: 'tag-type' },
+          {
+            pattern: /方法:\s*([^|]+)/g,
+            label: '方法',
+            icon: 'fa-solid fa-wand-magic-sparkles',
+            className: 'tag-type',
+          },
+          { pattern: /检定类型:\s*([^|]+)/g, label: '检定类型', icon: 'fa-solid fa-tag', className: 'tag-type' },
+          { pattern: /难度:\s*([^|]+)/g, label: '难度', icon: 'fa-solid fa-chart-line', className: 'tag-attr' },
+          { pattern: /当前境界:\s*([^|]+)/g, label: '当前境界', icon: 'fa-solid fa-crown', className: 'tag-attr' },
+          { pattern: /目标境界:\s*([^|]+)/g, label: '目标境界', icon: 'fa-solid fa-crown', className: 'tag-attr' },
+          { pattern: /攻方:\s*([^|]+)/g, label: '攻方', icon: 'fa-solid fa-hand-fist', className: 'tag-attr' },
+          { pattern: /守方:\s*([^|]+)/g, label: '守方', icon: 'fa-solid fa-shield', className: 'tag-attr' },
+          { pattern: /投入物:\s*([^|]+)/g, label: '投入物', icon: 'fa-solid fa-boxes-stacked', className: 'tag-attr' },
+          { pattern: /产出:\s*([^|]+)/g, label: '产出', icon: 'fa-solid fa-box-open', className: 'tag-attr' },
+        ];
+
+        tagMappings.forEach(({ pattern, label, icon, className }) => {
+          html = html.replace(
+            pattern,
+            (m, val) =>
+              `<span class="field-label">${label}:</span> <span class="tag ${className}"><i class="${icon}"></i> ${val.trim()}</span>`,
+          );
+        });
+
+        return html;
+      }
+
+      /**
+       * 渲染面板
+       * @param {Array} panels - 面板数组
+       * @param {string} containerSelector - 容器选择器
+       */
+      function renderPanels(panels, containerSelector) {
+        const $container = $(containerSelector);
+        $container.empty();
+
+        _.forEach(panels, panel => {
+          _.forEach(panel.sections, section => {
+            const config = PanelConfig[section.title] || { type: 'battle', icon: 'fa-solid fa-scroll' };
+            const $panel = $(`
+            <div class="action-panel ${config.type}">
+              <div class="panel-header">
+                <i class="panel-icon ${config.icon}"></i>
+                <span class="panel-title">${section.title}</span>
+                <i class="panel-toggle fa-solid fa-chevron-down"></i>
+              </div>
+              <div class="panel-content"></div>
+            </div>
+          `);
+
+            const $content = $panel.find('.panel-content');
+            _.forEach(section.rows, row => {
+              const $row = $(`<div class="data-row">${beautifyRow(row)}</div>`);
+              $content.append($row);
+            });
+
+            $panel.find('.panel-header').on('click', function () {
+              $(this).toggleClass('collapsed');
+              $(this).next('.panel-content').toggleClass('collapsed');
+            });
+
+            $container.append($panel);
+          });
+        });
+      }
+
+      /**
+       * 主函数 - 处理文本中的所有 action_info 面板
+       * @param {string} text - 包含 action_info 标签的文本
+       */
+      function processActionInfo(text) {
+        const panels = extractActionInfo(text);
+        renderPanels(panels, '#content');
+      }
+
+      // 页面加载完成后执行
+      $(() => {
+        // 示例文本 - 替换为实际的文本内容
+        const mockText = `$0`;
+        processActionInfo(mockText);
+      });
+    </script>
+  </body>
+</html>
+```
