@@ -1,7 +1,6 @@
 <character_information character="林素水">
 name: 林素水
 introduction: 问道仙宗法修一脉长老、万法峰峰主，洛雪铃师尊
-realm: 大乘后期
 
 appearance: 仪态端方，温婉娴淑，俨然成熟佳人。常着天青古服。
 

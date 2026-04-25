@@ -1,7 +1,6 @@
 <character_information character="陆霜岚">
 name: 陆霜岚
 introduction: 玉女宗宗主
-realm: 大乘后期
 
 appearance_and_features:
   appearance: "容色倾国倾城，隐透出尘，静谧谐和，令人对之，心神自敛。"

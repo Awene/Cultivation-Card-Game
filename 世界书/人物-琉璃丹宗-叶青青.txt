@@ -1,8 +1,6 @@
 <character_information character="叶青青">
 name: "叶青青"
 introduction: "琉璃丹宗新晋炼丹奇才，青木老祖膝下最幼弟子"
-realm: "筑基初期"
-
 appearance:
   face: "其形也，皎若朝霞，灼若芙蕖。玉琢冰雕之容，浅笑则梨涡乍现，清纯可人。"
   features: "双眸炯炯，若秋水含星，顾盼之间，尽显天真好奇之态。青丝如瀑，乌黑光亮，垂至腰际。身畔常萦药草清芬，若有若无。"

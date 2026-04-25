@@ -1,8 +1,6 @@
 <character_information character="凰韶音">
 name: 凰韶音
 introduction: 落凤族族长，万羽之慈母
-realm: 大乘中期
-
 appearance_and_features:
   - appearance Human shape: 人形体态匀婷，清雅出尘，眉宇间自含清宁，望之顿觉尘虑尽消。
   - details: 青丝如瀑，不加珠翠，眸光温润，常含笑意。

@@ -1,7 +1,6 @@
 <character_information character="石谦勇">
 name: 石谦勇
 introduction: 血杀殿右护法
-realm: 大乘中期
 
 appearance: 悍彪躯，体貌魁梧，衣敝布袍。炼体之士，持阔刃大刀，高可齐人。
 

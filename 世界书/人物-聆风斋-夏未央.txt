@@ -1,8 +1,6 @@
 <character_information character="夏未央">
 name: "夏未央"
 introduction: "聆风斋内门弟子，主修清音律一脉，性温婉若水，同门低阶皆愿亲近，咸称之为解语师姐"
-realm: "筑基后期"
-
 appearance:
   face: "婉容淑女之貌，面若鹅卵，肤如凝脂，眉目含情，未言先笑，使人顿生亲近之心。"
   features: "气质温润如玉，体态窈窕若柳，步履轻盈，行时裙裾微动，静立若娇花照水。"

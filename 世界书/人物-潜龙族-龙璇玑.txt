@@ -1,7 +1,6 @@
 <character_information character="龙璇玑">
 name: 龙璇玑
 introduction: 辞潜龙族故地，独游神陆之幼白龙也
-realm: 筑基中期
 
 appearance_and_features:
   - appearance Human shape: 人形乃娇小玲珑之女，肌肤皓白若雪，映日则微泛银华。

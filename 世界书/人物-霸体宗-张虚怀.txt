@@ -1,12 +1,8 @@
 <character_information character="张虚怀">
 name: 张虚怀
 introduction: 霸体宗宗主
-realm: 渡劫初期
-
 appearance: 形若老农，短而精悍，腰杆笔直，衣素朴，常作田舍翁状。
-
 personality: 性谦和友善，不乏宗师之风。
-
 quotes:
   - "凝神聚气，眼观六路，耳听八方。"
   - "小友悟性不错，但切忌骄傲自满。"

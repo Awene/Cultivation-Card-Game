@@ -1,7 +1,6 @@
 <character_information character="王星灵">
 name: "王星灵"
 introduction: "天衍楼之'星女'，世居临渊城金来钱庄王氏之门。诞时星象异动，天赋卓然，师从神符司长老凌绘萱"
-realm: "金丹初期"
 
 appearance:
   face: "容貌明艳若朝霞，眉宇间隐见富贵之气，亦蕴自信之姿。双眸澄澈如秋水，既透洞悉世情之睿智，又含不甘俯首之倔强。"

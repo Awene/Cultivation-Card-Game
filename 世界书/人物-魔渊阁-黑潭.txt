@@ -2,8 +2,6 @@
 name: 黑潭
 introduction: 魔渊阁主
 alias: 黑潭
-real_name: "unknown"
-realm: 大乘后期
 
 appearance: 弱冠之姿，容色清癯，过于苍白。常着暗紫长衫。
 

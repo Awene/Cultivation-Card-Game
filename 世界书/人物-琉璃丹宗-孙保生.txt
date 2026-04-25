@@ -1,8 +1,6 @@
 <character_information character="孙保生">
 name: 孙保生
 introduction: 琉璃丹宗宗主，人称青木老祖
-realm: 大乘后期
-
 appearance:  鹤发银丝，貌慈目善，俨然男性长者。衣金银混色宽袍。
 
 personality: 乐天知命，秉性豁达，赤子之心。

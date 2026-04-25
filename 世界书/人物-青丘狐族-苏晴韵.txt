@@ -1,7 +1,6 @@
 <character_information character="苏晴韵">
 name: 苏晴韵
 introduction: 青丘狐族族长
-realm: 大乘中期
 
 appearance_and_features:
   - appearance Human shape: 人形态时顾盼生辉，双眸若秋水含波，眼角微染桃花初绽之浅红。举止娴雅从容，步履轻盈，尽显柔媚之态，然亦蕴族长端庄威仪。

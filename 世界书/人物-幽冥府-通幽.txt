@@ -3,7 +3,6 @@ name: 通幽
 introduction: 幽冥府主
 alias: 通幽
 real_name: "unknown"
-realm: 渡劫初期
 
 appearance: 形若槁骸之老汉，伛偻羸形，毫发尽脱，常披兜帽、披袍。
 

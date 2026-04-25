@@ -1,8 +1,6 @@
 <character_information character="白羽弦">
 name: "白羽弦"
 introduction: "聆风斋现任斋主"
-realm: "大乘中期"
-
 appearance:
   face: "容非惊鸿之艳，然愈观愈耐寻味。五官柔和无棱，常垂眸聆世，偶启目时，眼底如古井无波，照见人心幽微处。"
   features: "体态清癯纤秀，似孤松下幽兰独绽。"

@@ -1,7 +1,6 @@
 <character_information character="南宫梦">
 name: "南宫梦"
 introduction: "血杀殿左护法。殿主既隐，一心辅佐少主陈忆涟"
-realm: "大乘中期"
 
 appearance:
   face: "容色端方成熟，眉目间隐有风霜沉淀之韵。眼角一点朱红泪痣，宛若雪中寒梅，为其清冷之姿，平添三分妩媚。神色淡然自持。"

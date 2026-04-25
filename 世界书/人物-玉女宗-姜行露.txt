@@ -1,7 +1,6 @@
 <character_information character="姜行露">
 name: "姜行露"
 introduction: "玉女宗圣女，师承玉女宗宗主陆霜岚"
-realm: "化神初期"
 
 appearance:
   face: "五官柔和，眉目间空濛寂色，如远山笼烟。其容无锋，惟令人心神俱静，有出尘之姿。"

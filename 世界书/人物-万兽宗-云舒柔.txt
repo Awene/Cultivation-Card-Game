@@ -1,8 +1,6 @@
 <character_information character="云舒柔">
 name: "云舒柔"
 introduction: "万兽宗宗主，以仁爱与强大的御兽之术闻名于南疆"
-realm: "合体后期"
-
 appearance:
   face: "容若春山含玉，眸似秋水映星。常含笑靥，煦若三春之晖。"
   features: "仪态端方，婉娩之风。肌胜凝脂，墨发如瀑，碧玉古簪绾其大半。怀间常拥霜茸一狐，乃其本命灵兽九尾天狐苏九璃也。"

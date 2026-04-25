@@ -1,7 +1,6 @@
 <character_information character="龙归芸">
 name: 龙归芸
 introduction: 潜龙族族长
-realm: 大乘中期
 
 appearance_and_features:
   - appearance Human shape: 化形之姿，乃丰容盛鬋之女子，身量修长，仪态端方，行止间隐有波光随形。其气息敛藏无痕，然无意中流露之龙威，足令低阶妖族望而生畏。

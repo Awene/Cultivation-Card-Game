@@ -1,7 +1,6 @@
 <character_information character="易方圆">
 name: 易方圆
 introduction: 天衍楼楼主
-realm: 大乘后期
 
 appearance: 渊深难测，中年男性之姿，常御玄袍，上缀七星纹，若含天象。
 

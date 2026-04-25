@@ -1,8 +1,6 @@
 <character_information character="阮卿颜">
 name: "阮卿颜"
 introduction: "北辰学宫宫主，乾元圣朝教育体系的奠基人"
-realm: "大乘后期"
-
 appearance:
   face: "容止温粹，清隽如饱学之儒。双眸澄澈若秋水，常含诱掖奖进之意，温然照人。"
   features: "体貌闲丽，气若幽兰。玉色而泽，惟以素木为簪，束发萧散，似不羁而实雅致。"

@@ -1,7 +1,6 @@
 <character_information character="萧宇辰">
 name: 萧宇辰
 introduction: 天衍楼的“气运之子”
-realm: 筑基后期
 
 appearance: 观其仪表，尚可称韶华俊逸、向阳而生的良善之辈。
 

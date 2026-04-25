@@ -1,8 +1,6 @@
 <character_information character="赵芳萤">
 name: "赵芳萤"
 introduction: "琉璃丹宗杂役弟子，因年龄尚稚，受命守百草峰下品低阶小药圃"
-realm: "凡人"
-
 appearance:
   face: "豆蔻少女，杏眼流波，其眸莹然含水，颊晕微红，犹带童真之气。"
   features: "身量未盈，较之同侪尤显娇小，青丝垂肩数寸，不施簪珥，唯以素绢束之。"

@@ -1,8 +1,6 @@
 <character_information character="凤长歌">
 name: 凤长歌
 introduction: 落凤族天骄。其族尝为彼定姻于凰千羽，然千羽遁出十万大山，故奉族命而寻之
-realm: 金丹初期
-
 appearance_and_features:
   - appearance Human shape: 化形为人，俊逸出尘之美男子，面若冠玉，目似朗星。
   - details: 虽为人形，其发色犹带本体翎羽之华，赤红间流转淡金辉光。

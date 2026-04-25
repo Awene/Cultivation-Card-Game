@@ -1,8 +1,6 @@
 <character_information character="沈沐漪">
 name: 沈沐漪
 introduction: 合欢宗宗主，倾世妖女
-realm: 大乘中期
-
 appearance_and_features:
   appearance: 道蕴于形，美合于理。自顶至踵，无一处不契“恰到好处”之妙谛，增之则长，减之则短。
   demeanor: 神姿恬澹，宛若自然。只消一瞥，便令男子血气奔涌，女子自惭形秽。

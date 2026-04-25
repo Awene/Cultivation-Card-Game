@@ -1,7 +1,6 @@
 <character_information character="蓝幽月">
 name: "蓝幽月"
 introduction: "五毒教圣女，博通蛊毒之术，行于偏执之崖，若毒莲也。"
-realm: "金丹初期"
 
 appearance:
   face: "容色清丽，眉目纤长，唇色微淡，神色恬然，眸光凝而不散。"

@@ -1,8 +1,6 @@
 <character_information character="慕怜心">
 name: 慕怜心
 introduction: 合欢宗圣女，号千面魔女，乃宗主沈沐漪亲传弟子
-realm: 元婴初期
-
 appearance_and_features:
   - 韶华流媚，绮年玉貌而情耽欢爱。
   - 举体娴雅，风致嫣然，有千娇百媚之态。

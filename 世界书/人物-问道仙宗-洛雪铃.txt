@@ -1,7 +1,6 @@
 <character_information character="洛雪铃">
 name: "洛雪铃"
 introduction: "问道仙宗圣女，万年不遇之修行天才，师承问道仙宗万法峰长老林素水"
-realm: "大乘初期"
 
 appearance:
   face: "姿容绝世，惊为天人，不类尘寰，若镜花水月，可望而不可即。世人见之，莫不凝滞失神，绝无丝毫亵渎之念。"

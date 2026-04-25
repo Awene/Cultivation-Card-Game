@@ -1,7 +1,6 @@
 <character_information character="凌绘萱">
 name: "凌绘萱"
 introduction: "天衍楼神符司之主，符箓宗师，画道圣手也"
-realm: "合体后期"
 
 appearance:
   face: "容色清绝，眉若远山含翠，目似秋水横波，神宇恬淡，唇畔常含似有若无之笑，令人见之如沐春风。"

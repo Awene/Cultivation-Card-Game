@@ -1,8 +1,6 @@
 <character_information character="顾昭宁">
 name: "顾昭宁"
 introduction: "乾元圣朝肇基者，今上女帝"
-realm: "大乘后期"
-
 appearance:
   face: "玉容含威，端丽中自具风骨，不怒而威。凤眸深湛，若藏万古星河流转，偶露倦色，转瞬即逝。"
   features: "修质亭亭，气度高华。肌映流霞，青丝垂瀑，绾九龙紫金冠，不施珠翠，素简中自显天家威仪。"

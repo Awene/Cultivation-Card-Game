@@ -1,7 +1,6 @@
 <character_information character="陈忆涟">
 name: "陈忆涟"
 introduction: "血杀殿少主，断魂（血杀殿主）之女，因断魂不知所踪，暂代血杀殿主"
-realm: "合体后期"
 
 appearance:
   face: "容色冷艳，孤傲出尘，神色漠然，眉宇间隐有肃杀之气。"

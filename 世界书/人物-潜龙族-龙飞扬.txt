@@ -1,8 +1,6 @@
 <character_information character="龙飞扬">
 name: 龙飞扬
 introduction: 潜龙族天骄
-realm: 金丹中期
-
 appearance_and_features:
   - appearance Human shape: 人形之躯，乃挺拔如松之青年男性，眉宇间凝思若有所悟。皮肉隐透青光，映日流转。
   - details: 气息沉静内敛，无潜龙族常显之威。

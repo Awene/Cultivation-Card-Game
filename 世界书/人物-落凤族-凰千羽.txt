@@ -1,8 +1,6 @@
 <character_information character="凰千羽">
 name: 凰千羽
 introduction: 落凤族今仅见七彩凤凰。因不满族中与凤长歌结为伴侣之命，遂遁出十万大山，现游历四方
-realm: 筑基初期
-
 appearance_and_features:
   - appearance Human shape: 人形时为清丽脱俗之少女，身姿轻盈，眉眼间有出尘之致。
   - details: 双眸映光则流转虹霓之彩，墨黑长发遇晖则隐泛七色华光。

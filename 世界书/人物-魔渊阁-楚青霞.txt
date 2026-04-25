@@ -1,8 +1,6 @@
 <character_information character="楚青霞">
 name: 楚青霞
 introduction: 人称魅影婆婆，魔渊阁最神秘之长老，鲜有人睹其真容。乃楚晚烟之师尊。
-realm: 合体后期
-
 appearance:
   - 真容常为黑雾所笼，唯隐约可见一伛偻老妪之形，其身短小。
   - 常着深灰长袍，足以覆全身。

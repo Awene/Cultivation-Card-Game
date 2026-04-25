@@ -1,11 +1,8 @@
 <character_information character="莫决云">
 name: 莫决云
 introduction: 天玄剑宗宗主
-
 appearance: 英姿凛然，成年男性之相，着朴素灰白色修身长衫。
-
 personality: 性严毅，寡言笑，逾矩之事必斥之。
-
 quotes:
   - "光天化日之下，在宗门广场醉到不省人事，成何体统？"
   - "不可，此事不合规矩，当重新考虑。"

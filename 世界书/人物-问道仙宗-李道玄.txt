@@ -1,8 +1,6 @@
 <character_information character="李道玄">
 name: 李道玄
 introduction: 问道仙宗宗主
-realm: 渡劫中期
-
 appearance: 貌若一般中年男性，形无奇处。服黑白道袍，绣太极图纹。
 
 personality: 终日熙熙而含笑，蔼然可亲。逢儒则雅，遇俗则俚，言无常轨。

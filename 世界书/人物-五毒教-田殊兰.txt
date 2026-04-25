@@ -1,7 +1,6 @@
 <character_information character="田殊兰">
 name: 田殊兰
 introduction: 五毒教教主
-realm: 大乘初期
 
 appearance_and_features:
   - 貌若年方豆蔻之少女（实龄莫考），身着五彩南疆之服，佩饰叮当作响。

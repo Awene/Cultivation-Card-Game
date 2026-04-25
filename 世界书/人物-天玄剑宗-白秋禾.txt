@@ -1,7 +1,6 @@
 <character_information character="白秋禾">
 name: "白秋禾"
 introduction: "天玄剑宗大师姐，师承天玄剑宗宗主莫决云"
-realm: "元婴初期"
 
 appearance:
   face: "容貌清丽绝俗，神姿清冷如霜，望之莫辨其情。"
