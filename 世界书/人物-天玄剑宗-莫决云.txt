@@ -1,7 +1,6 @@
 <character_information character="莫决云">
 name: 莫决云
 introduction: 天玄剑宗宗主
-realm: 大乘后期
 
 appearance: 英姿凛然，成年男性之相，着朴素灰白色修身长衫。
 

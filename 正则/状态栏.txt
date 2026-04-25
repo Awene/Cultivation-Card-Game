@@ -1,7 +1,7 @@
 ```
 <body>
-  <script>
-    $('body').load('http://localhost:5500/dist/修仙状态栏/index.html')
-  </script>
+<script>
+$('body').load('https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.3/dist/MVU/index.html')
+</script>
 </body>
 ```

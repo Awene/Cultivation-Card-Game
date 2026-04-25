@@ -1,7 +1,6 @@
 <character_information character="墨诗行">
 name: 墨诗行
 introduction: 天玄剑宗大师兄
-realm: 化神后期
 
 appearance: 俊容蕴沧桑之色，常着敝旧道袍。
 

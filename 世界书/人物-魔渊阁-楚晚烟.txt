@@ -1,7 +1,6 @@
 <character_information character="楚晚烟">
 name: "楚晚烟"
 introduction: "魔渊阁后起之秀，师承第七层层主魅影婆婆，偏喜乔作正道仙子，游戏人间。"
-realm: "金丹初期"
 
 appearance:
   face: "清纯与妩媚并济。眉眼顾盼之间，流光溢彩，摄人心魄。"
