@@ -1,0 +1,1312 @@
+```
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>正文美化 · 修真叙事</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ================== 主题变量 ================== */
+      :root,
+      [data-theme='dark'] {
+        --rb-bg: #1a1a2e;
+        --rb-paper: linear-gradient(180deg, rgba(45, 40, 60, 0.95) 0%, rgba(30, 25, 45, 0.98) 100%);
+        --rb-paper-flat: rgba(45, 40, 60, 0.92);
+        --rb-text: #e8d5b7;
+        --rb-text-muted: #a89888;
+        --rb-text-soft: #c5b696;
+        --rb-accent: #a89968;
+        --rb-accent-glow: rgba(168, 153, 104, 0.45);
+        --rb-border: #a89968;
+        --rb-border-soft: rgba(168, 153, 104, 0.4);
+        --rb-narration-bg: rgba(255, 255, 255, 0.03);
+        --rb-narration-border: rgba(168, 153, 104, 0.18);
+        --rb-toolbar-bg: rgba(20, 15, 35, 0.92);
+        --rb-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+        --rb-shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.25);
+        --rb-bubble-bg: linear-gradient(135deg, rgba(70, 60, 90, 0.65) 0%, rgba(50, 40, 70, 0.85) 100%);
+        --rb-bubble-border: rgba(168, 153, 104, 0.55);
+      }
+
+      [data-theme='light'] {
+        --rb-bg: #f5efe1;
+        --rb-paper: linear-gradient(180deg, #fffef9 0%, #f7f1e3 100%);
+        --rb-paper-flat: #fffef9;
+        --rb-text: #2a2520;
+        --rb-text-muted: #8b8275;
+        --rb-text-soft: #5a5249;
+        --rb-accent: #a07f48;
+        --rb-accent-glow: rgba(160, 127, 72, 0.35);
+        --rb-border: #c9a96e;
+        --rb-border-soft: rgba(201, 169, 110, 0.45);
+        --rb-narration-bg: rgba(201, 169, 110, 0.08);
+        --rb-narration-border: rgba(201, 169, 110, 0.3);
+        --rb-toolbar-bg: rgba(247, 241, 227, 0.95);
+        --rb-shadow: 0 6px 24px -8px rgba(42, 37, 32, 0.22);
+        --rb-shadow-soft: 0 2px 8px rgba(42, 37, 32, 0.12);
+        --rb-bubble-bg: linear-gradient(135deg, #faf5e8 0%, #f0e7d0 100%);
+        --rb-bubble-border: rgba(201, 169, 110, 0.6);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Noto Serif SC', 'STKaiti', 'KaiTi', serif;
+        color: var(--rb-text);
+        background: var(--rb-bg);
+        min-height: 100vh;
+        line-height: 1.9;
+        font-size: 16px;
+        transition:
+          background 0.25s ease,
+          color 0.25s ease;
+      }
+
+      /* ================== 顶部工具栏 ================== */
+      .rb-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 18px;
+        background: var(--rb-toolbar-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--rb-border-soft);
+      }
+      .rb-logo {
+        font-family: 'Cinzel', 'Noto Serif SC', serif;
+        font-size: 1.1em;
+        letter-spacing: 3px;
+        color: var(--rb-accent);
+        flex: 1;
+      }
+      .rb-logo .rb-logo-icon {
+        margin-right: 6px;
+      }
+      .rb-controls {
+        display: flex;
+        gap: 6px;
+      }
+      .rb-btn {
+        background: transparent;
+        border: 1px solid var(--rb-border-soft);
+        color: var(--rb-text);
+        padding: 4px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        font-size: 13px;
+        letter-spacing: 1px;
+        transition: all 0.18s ease;
+      }
+      .rb-btn:hover {
+        background: var(--rb-accent);
+        color: var(--rb-bg);
+        border-color: var(--rb-accent);
+      }
+      .rb-btn.active {
+        background: var(--rb-accent);
+        color: var(--rb-bg);
+        border-color: var(--rb-accent);
+      }
+
+      /* ================== 设置面板 ================== */
+      .rb-settings {
+        position: fixed;
+        top: 56px;
+        right: 14px;
+        width: min(92vw, 340px);
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        background: var(--rb-paper-flat);
+        border: 1px solid var(--rb-border);
+        border-radius: 10px;
+        padding: 14px;
+        box-shadow: var(--rb-shadow);
+        display: none;
+        z-index: 60;
+      }
+      .rb-settings.active {
+        display: block;
+      }
+      .rb-settings-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--rb-border-soft);
+      }
+      .rb-settings-row:last-of-type {
+        border-bottom: none;
+      }
+      .rb-settings-label {
+        flex: 1;
+        font-size: 13px;
+        color: var(--rb-text-soft);
+        letter-spacing: 1px;
+      }
+      .rb-toggle {
+        width: 36px;
+        height: 20px;
+        background: var(--rb-border-soft);
+        border-radius: 10px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+      .rb-toggle.active {
+        background: var(--rb-accent);
+      }
+      .rb-toggle::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: var(--rb-paper-flat);
+        border-radius: 50%;
+        transition: transform 0.2s ease;
+      }
+      .rb-toggle.active::after {
+        transform: translateX(16px);
+      }
+
+      .rb-section-title {
+        font-family: 'Cinzel', 'Noto Serif SC', serif;
+        font-size: 13px;
+        letter-spacing: 3px;
+        color: var(--rb-accent);
+        padding: 12px 0 6px;
+        border-bottom: 1px solid var(--rb-border-soft);
+        margin-bottom: 6px;
+      }
+
+      /* —— 角色管理 —— */
+      .rb-char-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 4px;
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      [data-theme='dark'] .rb-char-tabs {
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .rb-char-tab {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--rb-text-muted);
+        padding: 6px;
+        font-size: 12px;
+        letter-spacing: 1px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.18s ease;
+      }
+      .rb-char-tab.active {
+        background: var(--rb-accent);
+        color: var(--rb-bg);
+      }
+      .rb-char-content {
+        display: none;
+      }
+      .rb-char-content.active {
+        display: block;
+      }
+      .rb-char-hint {
+        font-size: 11px;
+        color: var(--rb-text-muted);
+        margin-bottom: 6px;
+        line-height: 1.6;
+      }
+      .rb-char-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .rb-char-empty {
+        font-size: 11.5px;
+        color: var(--rb-text-muted);
+        text-align: center;
+        padding: 8px 0;
+      }
+      .rb-char-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border: 1px solid var(--rb-border-soft);
+        border-radius: 6px;
+        background: var(--rb-narration-bg);
+      }
+      .rb-char-avatar-small {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--rb-border-soft);
+      }
+      .rb-char-avatar-placeholder-small {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--rb-narration-bg);
+        border: 1px dashed var(--rb-border-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--rb-text-muted);
+        font-size: 14px;
+      }
+      .rb-color-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 1px solid var(--rb-border-soft);
+      }
+      .rb-char-name {
+        flex: 1;
+        font-size: 13px;
+        color: var(--rb-text);
+      }
+      .rb-char-action {
+        background: transparent;
+        border: 1px solid var(--rb-border-soft);
+        color: var(--rb-text-soft);
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .rb-char-action:hover {
+        background: var(--rb-accent);
+        color: var(--rb-bg);
+        border-color: var(--rb-accent);
+      }
+      .rb-char-action.in-chat {
+        background: var(--rb-accent-glow);
+        color: var(--rb-text);
+        cursor: default;
+      }
+      .rb-char-builtin {
+        font-size: 10.5px;
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: rgba(168, 153, 104, 0.2);
+        color: var(--rb-accent);
+      }
+      .rb-char-delete {
+        background: transparent;
+        border: none;
+        color: var(--rb-text-muted);
+        font-size: 14px;
+        cursor: pointer;
+        padding: 0 4px;
+      }
+      .rb-char-delete:hover {
+        color: #c53030;
+      }
+
+      .rb-char-form {
+        background: var(--rb-narration-bg);
+        border: 1px dashed var(--rb-border);
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 6px;
+        display: none;
+      }
+      .rb-char-form.active {
+        display: block;
+      }
+      .rb-char-form input[type='text'] {
+        width: 100%;
+        background: var(--rb-paper-flat);
+        border: 1px solid var(--rb-border-soft);
+        border-radius: 6px;
+        padding: 6px 8px;
+        color: var(--rb-text);
+        font-family: inherit;
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+      .rb-char-form input[type='text']:focus {
+        border-color: var(--rb-accent);
+        outline: none;
+      }
+      .rb-form-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .rb-form-row label {
+        font-size: 11.5px;
+        color: var(--rb-text-muted);
+      }
+      .rb-form-row input[type='color'] {
+        width: 36px;
+        height: 24px;
+        background: transparent;
+        border: 1px solid var(--rb-border-soft);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .rb-avatar-preview {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px dashed var(--rb-border-soft);
+        display: none;
+      }
+      .rb-upload-btn {
+        background: transparent;
+        border: 1px solid var(--rb-border-soft);
+        color: var(--rb-text);
+        padding: 4px 10px;
+        font-size: 11.5px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .rb-upload-btn:hover {
+        border-color: var(--rb-accent);
+        color: var(--rb-accent);
+      }
+      .rb-form-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        margin-top: 8px;
+      }
+      .rb-form-actions .rb-btn {
+        font-size: 11.5px;
+        padding: 4px 12px;
+      }
+      .rb-add-btn {
+        width: 100%;
+        margin-top: 8px;
+        background: transparent;
+        border: 1px dashed var(--rb-border);
+        color: var(--rb-accent);
+        padding: 6px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+        letter-spacing: 1px;
+      }
+      .rb-add-btn:hover {
+        background: var(--rb-narration-bg);
+      }
+
+      /* ================== 正文容器 ================== */
+      .rb-container {
+        max-width: 880px;
+        margin: 22px auto;
+        padding: 0 14px;
+      }
+      .rb-content {
+        background: var(--rb-paper);
+        border: 2px solid var(--rb-border);
+        border-radius: 14px;
+        padding: 28px 32px;
+        box-shadow: var(--rb-shadow);
+        position: relative;
+        font-size: var(--rb-reading-font, 17px);
+      }
+      .rb-content::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--rb-accent), transparent);
+      }
+
+      /* —— 旁白 / 叙事段落 —— */
+      .rb-narration {
+        margin: 14px 0;
+        padding: 8px 14px;
+        background: var(--rb-narration-bg);
+        border-left: 3px solid var(--rb-accent);
+        border-radius: 4px;
+        color: var(--rb-text-soft);
+        font-size: 0.96em;
+        line-height: 1.95;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      /* —— 对话气泡 —— */
+      .rb-dialogue {
+        margin: 18px 0;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .rb-dlg-avatar {
+        flex-shrink: 0;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--rb-bubble-border);
+        background: var(--rb-paper-flat);
+        box-shadow: var(--rb-shadow-soft);
+      }
+      .rb-dlg-avatar-placeholder {
+        flex-shrink: 0;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 2px dashed var(--rb-border-soft);
+        background: var(--rb-narration-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--rb-text-muted);
+        font-size: 22px;
+      }
+      .rb-dlg-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .rb-dlg-name {
+        font-family: 'Cinzel', 'Noto Serif SC', serif;
+        font-size: 0.95em;
+        letter-spacing: 2px;
+        margin-bottom: 4px;
+      }
+      .rb-dlg-name .rb-dlg-name-initial {
+        font-weight: 700;
+        font-size: 1.08em;
+      }
+      .rb-dlg-bubble {
+        background: var(--rb-bubble-bg);
+        border: 1px solid var(--rb-bubble-border);
+        border-radius: 12px;
+        padding: 10px 14px;
+        color: var(--rb-text);
+        line-height: 1.85;
+        position: relative;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .rb-dlg-bubble::before {
+        content: '';
+        position: absolute;
+        left: -7px;
+        top: 14px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 6px 7px 6px 0;
+        border-color: transparent var(--rb-bubble-border) transparent transparent;
+      }
+
+      /* —— Toast —— */
+      .rb-toast {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--rb-accent);
+        color: var(--rb-bg);
+        padding: 8px 18px;
+        border-radius: 18px;
+        font-size: 13px;
+        letter-spacing: 1px;
+        z-index: 100;
+        box-shadow: var(--rb-shadow);
+        animation: rb-fade-in 0.2s ease-out;
+      }
+      @keyframes rb-fade-in {
+        from {
+          opacity: 0;
+          transform: translate(-50%, 8px);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .rb-content {
+          padding: 18px 16px;
+        }
+        .rb-dlg-avatar,
+        .rb-dlg-avatar-placeholder {
+          width: 44px;
+          height: 44px;
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="dark">
+    <div class="rb-toolbar">
+      <span class="rb-logo"><span class="rb-logo-icon">📜</span>正文卷·修真叙事</span>
+      <div class="rb-controls">
+        <button class="rb-btn" id="themeToggle" title="切换日/夜模式">🌙 夜</button>
+        <button class="rb-btn" id="settingsBtn" title="设置">⚙ 设置</button>
+      </div>
+    </div>
+
+    <div class="rb-settings" id="settingsPanel">
+      <div class="rb-settings-row">
+        <span class="rb-settings-label">正文字号</span>
+        <button class="rb-btn" onclick="adjustFontSize(-1)" style="padding: 2px 8px;">−</button>
+        <button class="rb-btn" onclick="adjustFontSize(1)" style="padding: 2px 8px;">+</button>
+      </div>
+
+      <div class="rb-section-title">🎭 对白美化角色</div>
+      <div class="rb-char-tabs">
+        <button class="rb-char-tab active" id="tabBtnCache" onclick="switchCharTab('cache')">📦 缓存库</button>
+        <button class="rb-char-tab" id="tabBtnChat" onclick="switchCharTab('chat')">💬 当前聊天</button>
+      </div>
+
+      <div class="rb-char-content active" id="tabCache">
+        <div class="rb-char-hint">缓存库角色保存在本机浏览器，跨聊天可用；点「写入」推送到当前聊天的 MVU 变量。</div>
+        <div class="rb-char-list" id="cacheCharList"></div>
+
+        <div class="rb-char-form" id="customCharForm">
+          <input type="text" id="customCharNameInput" placeholder="角色名称" maxlength="20" />
+          <div class="rb-form-row">
+            <img class="rb-avatar-preview" id="customCharAvatarPreview" alt="预览" />
+            <button class="rb-upload-btn" id="customCharUploadBtn">📷 上传头像</button>
+            <input type="file" id="customCharFileInput" accept="image/*" style="display: none;" />
+          </div>
+          <div class="rb-form-row">
+            <label>首字染色</label>
+            <input type="color" id="customCharColorInput" value="#a89968" />
+          </div>
+          <div class="rb-form-actions">
+            <button class="rb-btn" onclick="cancelAddCustomChar()">取消</button>
+            <button class="rb-btn active" onclick="confirmAddCustomChar()">添加到缓存</button>
+          </div>
+        </div>
+
+        <button class="rb-add-btn" id="customCharAddBtn" onclick="showAddCustomCharForm()">+ 新建自定义角色</button>
+      </div>
+
+      <div class="rb-char-content" id="tabChat">
+        <div class="rb-char-hint">以下角色已写入当前聊天的 MVU 变量（路径：系统配置/对白美化），仅在此聊天文件中生效。</div>
+        <div class="rb-char-list" id="chatCharList"></div>
+      </div>
+    </div>
+
+    <div class="rb-container">
+      <div class="rb-content" id="readingContent">$1</div>
+    </div>
+
+    <script>
+      // ============== 内置角色配置 ==============
+      // 名称 → { color, avatar?, given_name, aliases? }
+      // 内置角色取自世界书 NPC，未提供头像时显示占位符；用户可通过缓存库为他们补充头像。
+      const CHARACTER_CONFIG = {
+        // 天玄剑宗
+        莫决云: { color: '#7d8ec1', given_name: '莫决云', aliases: ['莫决云', '宗主', '莫宗主'] },
+        墨诗行: { color: '#9aa5d8', given_name: '墨诗行', aliases: ['墨诗行', '大师兄'] },
+        白秋禾: { color: '#b8c4e0', given_name: '白秋禾', aliases: ['白秋禾'] },
+        // 问道仙宗
+        李道玄: { color: '#c8a045', given_name: '李道玄', aliases: ['李道玄'] },
+        林素水: { color: '#7da9c8', given_name: '林素水', aliases: ['林素水'] },
+        洛雪铃: { color: '#9ec0d6', given_name: '洛雪铃', aliases: ['洛雪铃'] },
+        // 琉璃丹宗
+        孟丹尘: { color: '#d8a070', given_name: '孟丹尘', aliases: ['孟丹尘'] },
+        叶青青: { color: '#88b878', given_name: '叶青青', aliases: ['叶青青'] },
+        孙保生: { color: '#a89060', given_name: '孙保生', aliases: ['孙保生'] },
+        赵芳萤: { color: '#c890b0', given_name: '赵芳萤', aliases: ['赵芳萤', '萤儿', '芳萤'] },
+        // 聆风斋
+        夏未央: { color: '#b890c0', given_name: '夏未央', aliases: ['夏未央', '未央'] },
+        白羽弦: { color: '#c8b4d0', given_name: '白羽弦', aliases: ['白羽弦'] },
+        // 千机门
+        公输冶: { color: '#a09078', given_name: '公输冶', aliases: ['公输冶'] },
+        // 北辰学宫
+        阮卿颜: { color: '#b89878', given_name: '阮卿颜', aliases: ['阮卿颜'] },
+        // 乾元圣朝
+        顾昭宁: { color: '#c89858', given_name: '顾昭宁', aliases: ['顾昭宁'] },
+        // 霸体宗
+        张虚怀: { color: '#a87858', given_name: '张虚怀', aliases: ['张虚怀'] },
+        // 天衍楼
+        凌绘萱: { color: '#b894c4', given_name: '凌绘萱', aliases: ['凌绘萱'] },
+        易方圆: { color: '#a09080', given_name: '易方圆', aliases: ['易方圆'] },
+        王星灵: { color: '#7898d0', given_name: '王星灵', aliases: ['王星灵'] },
+        萧宇辰: { color: '#7898b8', given_name: '萧宇辰', aliases: ['萧宇辰'] },
+        // 合欢宗
+        南浅濛: { color: '#d878a0', given_name: '南浅濛', aliases: ['南浅濛', '浅濛'] },
+        慕怜心: { color: '#e0a0c0', given_name: '慕怜心', aliases: ['慕怜心'] },
+        沈沐漪: { color: '#d098b8', given_name: '沈沐漪', aliases: ['沈沐漪'] },
+        周玉郎: { color: '#a880c0', given_name: '周玉郎', aliases: ['周玉郎'] },
+        // 玉女宗
+        姜行露: { color: '#a8c0d0', given_name: '姜行露', aliases: ['姜行露'] },
+        陆霜岚: { color: '#88b8c8', given_name: '陆霜岚', aliases: ['陆霜岚'] },
+        // 万兽宗
+        云舒柔: { color: '#88a878', given_name: '云舒柔', aliases: ['云舒柔'] },
+        // 五毒教
+        蓝幽月: { color: '#7868a8', given_name: '蓝幽月', aliases: ['蓝幽月'] },
+        田殊兰: { color: '#88a058', given_name: '田殊兰', aliases: ['田殊兰'] },
+        // 幽冥府
+        通幽: { color: '#605878', given_name: '通幽', aliases: ['通幽'] },
+        // 血杀殿
+        南宫梦: { color: '#c83048', given_name: '南宫梦', aliases: ['南宫梦'] },
+        断魂: { color: '#a83048', given_name: '断魂', aliases: ['断魂'] },
+        石谦勇: { color: '#a04848', given_name: '石谦勇', aliases: ['石谦勇'] },
+        陈忆涟: { color: '#c87898', given_name: '陈忆涟', aliases: ['陈忆涟'] },
+        // 魔渊阁
+        楚晚烟: { color: '#a87890', given_name: '楚晚烟', aliases: ['楚晚烟', '晚烟'] },
+        楚青霞: { color: '#9070a0', given_name: '楚青霞', aliases: ['楚青霞'] },
+        黑潭: { color: '#384858', given_name: '黑潭', aliases: ['黑潭'] },
+        // 青丘狐族
+        苏九璃: { color: '#d8a888', given_name: '苏九璃', aliases: ['苏九璃'] },
+        苏凝香: { color: '#e0b898', given_name: '苏凝香', aliases: ['苏凝香', '凝香'] },
+        苏晴韵: { color: '#d0a890', given_name: '苏晴韵', aliases: ['苏晴韵'] },
+        // 落凤族
+        凤长歌: { color: '#c86858', given_name: '凤长歌', aliases: ['凤长歌'] },
+        凰千羽: { color: '#d88878', given_name: '凰千羽', aliases: ['凰千羽'] },
+        凰韶音: { color: '#d09888', given_name: '凰韶音', aliases: ['凰韶音'] },
+        // 潜龙族
+        龙归芸: { color: '#5878a8', given_name: '龙归芸', aliases: ['龙归芸'] },
+        龙璇玑: { color: '#7898c8', given_name: '龙璇玑', aliases: ['龙璇玑'] },
+        龙飞扬: { color: '#6888b8', given_name: '龙飞扬', aliases: ['龙飞扬'] },
+      };
+      const BUILTIN_CHAR_NAMES = Object.keys(CHARACTER_CONFIG);
+
+      // ============== localStorage ==============
+      const THEME_KEY = 'rb-theme';
+      const FONT_SIZE_KEY = 'rb-font-size';
+      const CHAR_CACHE_KEY = 'rb-char-cache'; // { name: { color } }
+      const AVATAR_CACHE_PREFIX = 'rb-char-avatar-';
+
+      // ============== MVU 接入层 ==============
+      const mvuState = { ready: false, mvu: null };
+      function checkMvu() {
+        try {
+          const win = window.parent || window;
+          if (typeof win.Mvu === 'object' && typeof win.Mvu.getMvuData === 'function') {
+            mvuState.mvu = win.Mvu;
+            mvuState.ready = true;
+            return true;
+          }
+        } catch (e) {
+          /* ignore */
+        }
+        mvuState.ready = false;
+        mvuState.mvu = null;
+        return false;
+      }
+
+      function fetchLatestMvuData() {
+        let data = {};
+        try {
+          if (mvuState.ready || checkMvu()) {
+            const m = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+            if (m && m.stat_data && Object.keys(m.stat_data).length) {
+              data = m.stat_data;
+            } else {
+              const c = mvuState.mvu.getMvuData({ type: 'chat' });
+              if (c && c.stat_data) data = c.stat_data;
+            }
+          }
+        } catch (e) {
+          console.warn('[正文美化] MVU 读取失败:', e);
+        }
+        return data;
+      }
+
+      function writeMvuPath(path, value) {
+        try {
+          if (!mvuState.ready && !checkMvu()) return false;
+          const data = mvuState.mvu.getMvuData({ type: 'message', message_id: 'latest' });
+          if (!data || !data.stat_data) return false;
+          const parts = path.split('/').filter(Boolean);
+          let obj = data.stat_data;
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!obj[parts[i]] || typeof obj[parts[i]] !== 'object') obj[parts[i]] = {};
+            obj = obj[parts[i]];
+          }
+          obj[parts[parts.length - 1]] = value;
+          mvuState.mvu.replaceMvuData(data, { type: 'message', message_id: 'latest' });
+          return true;
+        } catch (e) {
+          console.warn('[正文美化] MVU 写入失败:', e);
+          return false;
+        }
+      }
+
+      function getDialogueBeautifyList() {
+        try {
+          const d = fetchLatestMvuData();
+          const list = d && d.系统配置 ? d.系统配置.对白美化 : null;
+          if (Array.isArray(list)) return list;
+        } catch (e) {
+          /* ignore */
+        }
+        return [];
+      }
+      function setDialogueBeautifyList(list) {
+        return writeMvuPath('系统配置/对白美化', list);
+      }
+
+      // ============== 缓存读写 ==============
+      function getAllCachedChars() {
+        try {
+          const raw = localStorage.getItem(CHAR_CACHE_KEY);
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+          return {};
+        }
+      }
+      function saveCachedChars(chars) {
+        try {
+          localStorage.setItem(CHAR_CACHE_KEY, JSON.stringify(chars));
+        } catch (e) {
+          console.warn('缓存写入失败:', e);
+        }
+      }
+      function saveAvatarToCache(name, dataUrl) {
+        try {
+          localStorage.setItem(AVATAR_CACHE_PREFIX + name, dataUrl);
+        } catch (e) {
+          console.warn('头像缓存失败:', e);
+        }
+      }
+      function getAvatarFromCache(name) {
+        try {
+          return localStorage.getItem(AVATAR_CACHE_PREFIX + name) || '';
+        } catch (e) {
+          return '';
+        }
+      }
+      function removeAvatarFromCache(name) {
+        try {
+          localStorage.removeItem(AVATAR_CACHE_PREFIX + name);
+        } catch (e) {
+          /* ignore */
+        }
+      }
+
+      // ============== 自定义角色注入 ==============
+      function injectCharCSS(name, color) {
+        if (!color) return;
+        const id = 'rb-char-css-' + name;
+        const old = document.getElementById(id);
+        if (old) old.remove();
+        const style = document.createElement('style');
+        style.id = id;
+        const safe = name.replace(/["'\\]/g, '');
+        style.textContent =
+          `.rb-dialogue[data-char="${safe}"] .rb-dlg-name { color: ${color}; }\n` +
+          `.rb-dialogue[data-char="${safe}"] .rb-dlg-bubble { border-color: ${color}; }\n` +
+          `.rb-dialogue[data-char="${safe}"] .rb-dlg-bubble::before { border-right-color: ${color}; }\n` +
+          `.rb-dialogue[data-char="${safe}"] .rb-dlg-avatar, .rb-dialogue[data-char="${safe}"] .rb-dlg-avatar-placeholder { border-color: ${color}; }`;
+        document.head.appendChild(style);
+      }
+
+      /** 把缓存库 + MVU 列表中的非内置角色注入 CHARACTER_CONFIG */
+      function loadCustomCharsIntoConfig() {
+        const cached = getAllCachedChars();
+        const mvuList = getDialogueBeautifyList();
+        const allNames = new Set([...Object.keys(cached), ...mvuList]);
+        allNames.forEach(name => {
+          if (BUILTIN_CHAR_NAMES.includes(name)) return;
+          const info = cached[name] || {};
+          const avatar = getAvatarFromCache(name);
+          CHARACTER_CONFIG[name] = {
+            color: info.color || '#a89968',
+            avatar: avatar || '',
+            given_name: name,
+            aliases: [name],
+            _custom: true,
+          };
+          if (info.color) injectCharCSS(name, info.color);
+        });
+        // 内置角色配色注入
+        BUILTIN_CHAR_NAMES.forEach(name => {
+          const c = CHARACTER_CONFIG[name];
+          if (c && c.color) injectCharCSS(name, c.color);
+        });
+      }
+
+      // ============== 名称规整化 ==============
+      function normalizeDisplayName(raw) {
+        const s = String(raw || '')
+          .trim()
+          .replace(/^[\s"'""''「」『』《》〈〉()（）【】\[\]]+|[\s"'""''「」『』《》〈〉()（）【】\[\]]+$/g, '')
+          .trim();
+        if (CHARACTER_CONFIG[s]) return s;
+        for (const k of Object.keys(CHARACTER_CONFIG)) {
+          const c = CHARACTER_CONFIG[k];
+          if (c.aliases && c.aliases.includes(s)) return k;
+        }
+        return s;
+      }
+
+      // ============== 内容渲染 ==============
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function decodeEntities(text) {
+        if (!text || text.indexOf('&') === -1) return text;
+        const ta = document.createElement('textarea');
+        let cur = text;
+        for (let i = 0; i < 4; i++) {
+          ta.innerHTML = cur;
+          const next = ta.value;
+          if (next === cur) break;
+          cur = next;
+          if (cur.indexOf('&') === -1) break;
+        }
+        return cur;
+      }
+
+      function renderNameHtml(config, displayName) {
+        if (!config) return `<span>${escapeHtml(displayName)}</span>`;
+        const first = displayName.charAt(0);
+        const rest = displayName.slice(1);
+        return (
+          `<span class="rb-dlg-name-initial">${escapeHtml(first)}</span>` +
+          `<span>${escapeHtml(rest)}</span>`
+        );
+      }
+
+      function renderDialogue(rawName, content) {
+        const norm = normalizeDisplayName(rawName);
+        const config = CHARACTER_CONFIG[norm];
+        const avatar = config && config.avatar ? config.avatar : '';
+        const avatarHtml = avatar
+          ? `<img class="rb-dlg-avatar" src="${avatar}" alt="${escapeHtml(norm)}">`
+          : `<div class="rb-dlg-avatar-placeholder">👤</div>`;
+        const nameHtml = renderNameHtml(config, norm);
+        // 清理对话内容中残留的 {角色名} 标记
+        const cleanContent = content.replace(/\{[^}]+\}/g, '').trim();
+        return (
+          `<div class="rb-dialogue" data-char="${escapeHtml(norm)}">` +
+          `${avatarHtml}` +
+          `<div class="rb-dlg-body">` +
+          `<div class="rb-dlg-name">${nameHtml}</div>` +
+          `<div class="rb-dlg-bubble">${escapeHtml(cleanContent)}</div>` +
+          `</div></div>`
+        );
+      }
+
+      function renderNarration(text) {
+        // 移除任何残留的 {角色名} 花括号标记
+        const cleaned = text.replace(/\{[^}]+\}/g, '').trim();
+        if (!cleaned) return '';
+        return `<div class="rb-narration">${escapeHtml(cleaned)}</div>`;
+      }
+
+      /** 主渲染：把原始文本切分为旁白 / 对话块 */
+      function processContent() {
+        const container = document.getElementById('readingContent');
+        if (!container) return;
+        let raw = container.innerHTML;
+        if (!raw || !raw.trim()) return;
+        // 解码 HTML 实体并去除危险标签（仅去标签保留文字）
+        raw = decodeEntities(raw)
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(
+            /<\/?(?:div|span|p|ul|ol|li|strong|em|b|i|h[1-6]|a|br|hr|blockquote|pre|code|table|thead|tbody|tr|td|th)[^>]*>/gi,
+            '',
+          );
+
+        const lines = raw
+          .split(/\n+/)
+          .map(s => s.trim())
+          .filter(Boolean);
+
+        const out = [];
+        let pending = null; // { rawName, normName, lines: [] }
+
+        const flush = () => {
+          if (!pending) return;
+          out.push(renderDialogue(pending.rawName, pending.lines.join('\n\n')));
+          pending = null;
+        };
+
+        const braceFmt = /^\s*\{([^}]+)\}\s*(.+)$/;
+
+        for (const line of lines) {
+          // 跳过 {{...}} 这种情绪/动作标记，作为旁白输出
+          if (/^\{\{.*\}\}/.test(line)) {
+            flush();
+            const html = renderNarration(line);
+            if (html) out.push(html);
+            continue;
+          }
+
+          const m = line.match(braceFmt);
+          if (m) {
+            const rawName = m[1].trim();
+            const content = m[2].trim();
+            const normName = normalizeDisplayName(rawName);
+            const config = CHARACTER_CONFIG[normName];
+            // 仅当角色在配置中（已知/内置/自定义）时按对话渲染
+            if (config) {
+              if (pending && pending.normName === normName) {
+                pending.lines.push(content);
+              } else {
+                flush();
+                pending = { rawName, normName, lines: [content] };
+              }
+              continue;
+            }
+            // 非已知角色：剥离 {名} 标记，作为旁白
+            flush();
+            const html = renderNarration(content);
+            if (html) out.push(html);
+            continue;
+          }
+
+          // 普通旁白
+          flush();
+          const html = renderNarration(line);
+          if (html) out.push(html);
+        }
+        flush();
+
+        container.innerHTML = out.join('');
+      }
+
+      // ============== 主题切换 ==============
+      function applyTheme(theme) {
+        const t = theme === 'light' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', t);
+        try {
+          localStorage.setItem(THEME_KEY, t);
+        } catch (e) {
+          /* ignore */
+        }
+        const btn = document.getElementById('themeToggle');
+        if (btn) btn.textContent = t === 'dark' ? '🌙 夜' : '☀ 日';
+      }
+      function initTheme() {
+        let saved = 'dark';
+        try {
+          saved = localStorage.getItem(THEME_KEY) || 'dark';
+        } catch (e) {
+          /* ignore */
+        }
+        applyTheme(saved);
+      }
+
+      // ============== 字号 ==============
+      function adjustFontSize(delta) {
+        const root = document.querySelector('.rb-content');
+        if (!root) return;
+        const cur = parseInt(getComputedStyle(root).fontSize) || 17;
+        const next = Math.max(13, Math.min(24, cur + delta));
+        root.style.setProperty('--rb-reading-font', next + 'px');
+        root.style.fontSize = next + 'px';
+        try {
+          localStorage.setItem(FONT_SIZE_KEY, String(next));
+        } catch (e) {
+          /* ignore */
+        }
+      }
+      window.adjustFontSize = adjustFontSize;
+      function initFontSize() {
+        try {
+          const saved = parseInt(localStorage.getItem(FONT_SIZE_KEY) || '17');
+          const root = document.querySelector('.rb-content');
+          if (root && saved >= 13 && saved <= 24) {
+            root.style.fontSize = saved + 'px';
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }
+
+      // ============== Toast ==============
+      function showToast(msg) {
+        const el = document.createElement('div');
+        el.className = 'rb-toast';
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2000);
+      }
+
+      // ============== 角色管理 UI ==============
+      let _pendingAvatar = '';
+
+      window.switchCharTab = function (tab) {
+        const isCache = tab === 'cache';
+        document.getElementById('tabBtnCache').classList.toggle('active', isCache);
+        document.getElementById('tabBtnChat').classList.toggle('active', !isCache);
+        document.getElementById('tabCache').classList.toggle('active', isCache);
+        document.getElementById('tabChat').classList.toggle('active', !isCache);
+        if (isCache) renderCacheCharList();
+        else renderChatCharList();
+      };
+
+      function renderCacheCharList() {
+        const list = document.getElementById('cacheCharList');
+        if (!list) return;
+        const cached = getAllCachedChars();
+        const mvuList = getDialogueBeautifyList();
+        const names = Object.keys(cached);
+        if (!names.length) {
+          list.innerHTML = '<div class="rb-char-empty">缓存库为空，点下方新建</div>';
+          return;
+        }
+        let html = '';
+        names.forEach(name => {
+          const info = cached[name] || {};
+          const av = getAvatarFromCache(name);
+          const avHtml = av
+            ? `<img class="rb-char-avatar-small" src="${av}" alt="${escapeHtml(name)}">`
+            : `<div class="rb-char-avatar-placeholder-small">👤</div>`;
+          const dot = info.color ? `<span class="rb-color-dot" style="background:${info.color}"></span>` : '';
+          const inMvu = mvuList.includes(name);
+          const writeBtn = inMvu
+            ? `<span class="rb-char-action in-chat">已写入</span>`
+            : `<button class="rb-char-action" onclick="writeCacheCharToChat('${name.replace(/'/g, "\\'")}')">写入</button>`;
+          html +=
+            `<div class="rb-char-item">${avHtml}${dot}` +
+            `<span class="rb-char-name">${escapeHtml(name)}</span>` +
+            `${writeBtn}` +
+            `<button class="rb-char-delete" onclick="deleteCacheChar('${name.replace(/'/g, "\\'")}')" title="从缓存删除">✕</button>` +
+            `</div>`;
+        });
+        list.innerHTML = html;
+      }
+
+      function renderChatCharList() {
+        const list = document.getElementById('chatCharList');
+        if (!list) return;
+        const mvuList = getDialogueBeautifyList();
+        if (!mvuList.length) {
+          list.innerHTML = '<div class="rb-char-empty">当前聊天暂无写入的角色</div>';
+          return;
+        }
+        let html = '';
+        mvuList.forEach(name => {
+          const isBuiltin = BUILTIN_CHAR_NAMES.includes(name);
+          const cfg = CHARACTER_CONFIG[name];
+          const av = (cfg && cfg.avatar) || getAvatarFromCache(name);
+          const avHtml = av
+            ? `<img class="rb-char-avatar-small" src="${av}" alt="${escapeHtml(name)}">`
+            : `<div class="rb-char-avatar-placeholder-small">👤</div>`;
+          const dot = !isBuiltin && cfg && cfg.color ? `<span class="rb-color-dot" style="background:${cfg.color}"></span>` : '';
+          const trailing = isBuiltin
+            ? '<span class="rb-char-builtin">内置</span>'
+            : `<button class="rb-char-delete" onclick="removeChatChar('${name.replace(/'/g, "\\'")}')" title="从当前聊天移除">✕</button>`;
+          html +=
+            `<div class="rb-char-item">${avHtml}${dot}` +
+            `<span class="rb-char-name">${escapeHtml(name)}</span>` +
+            `${trailing}</div>`;
+        });
+        list.innerHTML = html;
+      }
+
+      window.showAddCustomCharForm = function () {
+        document.getElementById('customCharForm').classList.add('active');
+        document.getElementById('customCharAddBtn').style.display = 'none';
+        document.getElementById('customCharNameInput').value = '';
+        document.getElementById('customCharColorInput').value = '#a89968';
+        const preview = document.getElementById('customCharAvatarPreview');
+        preview.style.display = 'none';
+        preview.src = '';
+        _pendingAvatar = '';
+        document.getElementById('customCharUploadBtn').textContent = '📷 上传头像';
+      };
+
+      window.cancelAddCustomChar = function () {
+        document.getElementById('customCharForm').classList.remove('active');
+        document.getElementById('customCharAddBtn').style.display = 'block';
+        _pendingAvatar = '';
+      };
+
+      window.confirmAddCustomChar = function () {
+        const name = document.getElementById('customCharNameInput').value.trim();
+        if (!name) return showToast('请输入角色名称');
+        if (BUILTIN_CHAR_NAMES.includes(name)) return showToast('不能与内置角色同名');
+        const cached = getAllCachedChars();
+        if (cached[name]) return showToast('缓存中已存在该角色');
+        const color = document.getElementById('customCharColorInput').value || '#a89968';
+        if (_pendingAvatar) saveAvatarToCache(name, _pendingAvatar);
+        cached[name] = { color };
+        saveCachedChars(cached);
+        // 注册到内存配置
+        CHARACTER_CONFIG[name] = {
+          color,
+          avatar: _pendingAvatar || '',
+          given_name: name,
+          aliases: [name],
+          _custom: true,
+        };
+        injectCharCSS(name, color);
+        renderCacheCharList();
+        cancelAddCustomChar();
+        showToast(`已保存「${name}」到缓存库`);
+      };
+
+      window.writeCacheCharToChat = function (name) {
+        const cached = getAllCachedChars();
+        const info = cached[name];
+        if (!info) return showToast('缓存中未找到该角色');
+        const list = getDialogueBeautifyList();
+        if (!list.includes(name)) {
+          list.push(name);
+          const ok = setDialogueBeautifyList(list);
+          if (!ok) return showToast('MVU 写入失败：未连通 Mvu');
+        }
+        // 注册到当前页内存
+        const av = getAvatarFromCache(name);
+        CHARACTER_CONFIG[name] = {
+          color: info.color || '#a89968',
+          avatar: av || '',
+          given_name: name,
+          aliases: [name],
+          _custom: true,
+        };
+        if (info.color) injectCharCSS(name, info.color);
+        renderCacheCharList();
+        showToast(`已将「${name}」写入当前聊天`);
+      };
+
+      window.deleteCacheChar = function (name) {
+        if (BUILTIN_CHAR_NAMES.includes(name)) return;
+        const cached = getAllCachedChars();
+        delete cached[name];
+        saveCachedChars(cached);
+        removeAvatarFromCache(name);
+        // MVU 同步
+        const list = getDialogueBeautifyList();
+        if (list.includes(name)) setDialogueBeautifyList(list.filter(n => n !== name));
+        delete CHARACTER_CONFIG[name];
+        const styleEl = document.getElementById('rb-char-css-' + name);
+        if (styleEl) styleEl.remove();
+        renderCacheCharList();
+        showToast(`已从缓存删除「${name}」`);
+      };
+
+      window.removeChatChar = function (name) {
+        if (BUILTIN_CHAR_NAMES.includes(name)) return showToast('内置角色不可移除');
+        const list = getDialogueBeautifyList().filter(n => n !== name);
+        const ok = setDialogueBeautifyList(list);
+        if (!ok) return showToast('MVU 写入失败');
+        delete CHARACTER_CONFIG[name];
+        const styleEl = document.getElementById('rb-char-css-' + name);
+        if (styleEl) styleEl.remove();
+        renderChatCharList();
+        showToast(`已从当前聊天移除「${name}」`);
+      };
+
+      function initAvatarUpload() {
+        const btn = document.getElementById('customCharUploadBtn');
+        const input = document.getElementById('customCharFileInput');
+        const preview = document.getElementById('customCharAvatarPreview');
+        if (!btn || !input || !preview) return;
+        btn.addEventListener('click', () => input.click());
+        input.addEventListener('change', function () {
+          const file = this.files && this.files[0];
+          if (!file) return;
+          if (file.size > 500 * 1024) {
+            showToast('图片不能超过 500KB');
+            this.value = '';
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = ev => {
+            const img = new Image();
+            img.onload = () => {
+              const max = 128;
+              let w = img.width;
+              let h = img.height;
+              if (w > h) {
+                h = Math.round((h * max) / w);
+                w = max;
+              } else {
+                w = Math.round((w * max) / h);
+                h = max;
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = w;
+              canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              _pendingAvatar = canvas.toDataURL('image/webp', 0.85);
+              preview.src = _pendingAvatar;
+              preview.style.display = 'block';
+              btn.textContent = '✅ 已选择';
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // ============== 设置面板开关 ==============
+      function initSettingsPanel() {
+        const btn = document.getElementById('settingsBtn');
+        const panel = document.getElementById('settingsPanel');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          panel.classList.toggle('active');
+          if (panel.classList.contains('active')) {
+            renderCacheCharList();
+            renderChatCharList();
+          }
+        });
+        document.addEventListener('click', e => {
+          if (!panel.contains(e.target) && !btn.contains(e.target)) panel.classList.remove('active');
+        });
+      }
+
+      function initThemeToggle() {
+        const btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          const cur = document.body.getAttribute('data-theme') || 'dark';
+          applyTheme(cur === 'dark' ? 'light' : 'dark');
+        });
+      }
+
+      // ============== 入口 ==============
+      $(() => {
+        initTheme();
+        initFontSize();
+        loadCustomCharsIntoConfig();
+        processContent();
+        initThemeToggle();
+        initSettingsPanel();
+        initAvatarUpload();
+        renderCacheCharList();
+        renderChatCharList();
+      });
+    </script>
+  </body>
+</html>
+
+```
