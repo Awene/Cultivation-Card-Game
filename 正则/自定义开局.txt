@@ -1,0 +1,7 @@
+```
+<body>
+<script>
+$('body').load('https://testingcf.jsdelivr.net/gh/The-poem-of-destiny/FrontEnd-for-destined-journey@1.8.1/dist/custom_start/index.html')
+</script>
+</body>
+```
