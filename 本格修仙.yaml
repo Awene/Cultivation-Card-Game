@@ -5,7 +5,11 @@
 备注: 首发类脑旅途，免费AI角色分享，禁止商用
 
 第一条消息:
-  - 文件: 第一条消息\0
+  - 内容: "<customized>\r
+
+      自定义开局页面\r
+
+      </customized>"
 
 角色描述: ""
 
@@ -2100,71 +2104,6 @@
         仅格式显示: true
         仅格式提示词: false
       最大深度: 2
-
-    - 正则名称: action_info美化
-      id: 9c0a06f5-bd38-4e5f-91a9-25a02d9c2a9c
-      启用: true
-      查找表达式: /<action_info>((?:(?!<\/?action_info>)[\s\S])*?)<\/action_info>/gs
-      文件: 正则\action_info美化
-      来源:
-        用户输入: true
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: false
-      最大深度: 10
-
-    - 正则名称: battle_info美化
-      id: c77463f3-5657-43ca-b538-4b302e235344
-      启用: true
-      查找表达式: /<battle_info>((?:(?!<\/?battle_info>)[\s\S])*?)<\/battle_info>/gs
-      文件: 正则\battle_info美化
-      来源:
-        用户输入: true
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: false
-      最大深度: 10
-
-    - 正则名称: char_info美化
-      id: ee4874a3-c244-44b5-a4e2-5de183213a00
-      启用: true
-      查找表达式: /<char_info>((?:(?!<\/?char_info>)[\s\S])*?)<\/char_info>/gs
-      文件: 正则\char_info美化
-      来源:
-        用户输入: true
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: false
-      最大深度: 10
-
-    - 正则名称: item_info美化
-      id: 7e284945-a985-45b2-bf22-c805987bb420
-      启用: true
-      查找表达式: /<item_info>((?:(?!<\/?item_info>)[\s\S])*?)<\/item_info>/gs
-      文件: 正则\item_info美化
-      来源:
-        用户输入: true
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: false
-      最大深度: 10
-
-    - 正则名称: secret_realm_info美化
-      id: d0c265a2-bd59-44f9-b884-b015df878afc
-      启用: true
-      查找表达式: /<secret_realm_info>((?:(?!<\/?secret_realm_info>)[\s\S])*?)<\/secret_realm_info>/gs
-      文件: 正则\secret_realm_info美化
-      来源:
-        用户输入: true
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: false
-      最大深度: 10
 
     - 正则名称: 正文美化(测试)
       id: b0fa59f6-8c0c-492d-9b95-c8efb2beb170

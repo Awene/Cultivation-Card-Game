@@ -445,12 +445,396 @@
         background: linear-gradient(90deg, transparent, var(--rb-accent), transparent);
       }
 
+      /* ================== 面板美化（毛玻璃 + 动效，合并自 5 个独立美化器） ================== */
+
+      /* —— 5 类面板共享的"卡片"样式 —— */
+      .action-panel,
+      .battle-panel,
+      .char-panel,
+      .item-panel,
+      .realm-panel {
+        position: relative;
+        margin: 18px 0;
+        border-radius: 14px;
+        overflow: hidden;
+        background: linear-gradient(155deg,
+          rgba(20, 16, 32, 0.78) 0%,
+          rgba(28, 22, 44, 0.72) 60%,
+          rgba(20, 16, 32, 0.82) 100%);
+        backdrop-filter: blur(18px) saturate(180%);
+        -webkit-backdrop-filter: blur(18px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow:
+          0 14px 44px rgba(0, 0, 0, 0.42),
+          0 1px 0 rgba(255, 255, 255, 0.06) inset,
+          0 -1px 0 rgba(0, 0, 0, 0.25) inset;
+        color: #e8d5b7;
+        animation: rb-panel-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      }
+      .action-panel:hover,
+      .battle-panel:hover,
+      .char-panel:hover,
+      .item-panel:hover,
+      .realm-panel:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.16);
+        box-shadow:
+          0 22px 56px rgba(0, 0, 0, 0.5),
+          0 0 0 1px var(--rb-panel-accent, #a89968) inset,
+          0 1px 0 rgba(255, 255, 255, 0.08) inset;
+      }
+      @keyframes rb-panel-in {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* —— 顶部光带（带流光动画） —— */
+      .action-panel::before,
+      .battle-panel::before,
+      .char-panel::before,
+      .item-panel::before,
+      .realm-panel::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg,
+          transparent 0%,
+          var(--rb-panel-accent, #a89968) 30%,
+          color-mix(in srgb, var(--rb-panel-accent, #a89968) 70%, white) 50%,
+          var(--rb-panel-accent, #a89968) 70%,
+          transparent 100%);
+        background-size: 250% 100%;
+        animation: rb-panel-shimmer 6s ease-in-out infinite;
+      }
+      @keyframes rb-panel-shimmer {
+        0%, 100% { background-position: 0% 0; }
+        50% { background-position: 100% 0; }
+      }
+
+      /* —— 强调色（每个 panel 类型 + 6 种 action 子类） —— */
+      .action-panel { --rb-panel-accent: #fc8181; }
+      .action-panel.battle { --rb-panel-accent: #fc8181; }
+      .action-panel.craft { --rb-panel-accent: #68d391; }
+      .action-panel.cultivation { --rb-panel-accent: #90cdf4; }
+      .action-panel.breakthrough { --rb-panel-accent: #f6ad55; }
+      .action-panel.insight { --rb-panel-accent: #b794f4; }
+      .action-panel.judge { --rb-panel-accent: #63b3ed; }
+      .battle-panel { --rb-panel-accent: #fc8181; }
+      .char-panel { --rb-panel-accent: #d4af37; }
+      .item-panel { --rb-panel-accent: #f6e27a; }
+      .realm-panel { --rb-panel-accent: #f6ad55; }
+
+      /* —— 头部 —— */
+      .action-panel .panel-header,
+      .battle-panel .panel-header,
+      .char-panel .panel-header,
+      .item-panel .panel-header,
+      .realm-panel .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        cursor: pointer;
+        user-select: none;
+        background: linear-gradient(135deg,
+          rgba(255, 255, 255, 0.04) 0%,
+          rgba(255, 255, 255, 0.02) 50%,
+          rgba(255, 255, 255, 0.06) 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        transition: background 0.25s ease;
+      }
+      .action-panel .panel-header:hover,
+      .battle-panel .panel-header:hover,
+      .char-panel .panel-header:hover,
+      .item-panel .panel-header:hover,
+      .realm-panel .panel-header:hover {
+        background: linear-gradient(135deg,
+          rgba(255, 255, 255, 0.08) 0%,
+          rgba(255, 255, 255, 0.04) 50%,
+          rgba(255, 255, 255, 0.10) 100%);
+      }
+      .action-panel .panel-icon,
+      .battle-panel .panel-icon,
+      .char-panel .panel-icon,
+      .item-panel .panel-icon,
+      .realm-panel .panel-icon {
+        font-size: 1.25em;
+        color: var(--rb-panel-accent);
+        filter: drop-shadow(0 0 10px color-mix(in srgb, var(--rb-panel-accent) 60%, transparent));
+      }
+      .action-panel .panel-title,
+      .battle-panel .panel-title,
+      .char-panel .panel-title,
+      .item-panel .panel-title,
+      .realm-panel .panel-title {
+        flex: 1;
+        font-family: 'Cinzel', 'Noto Serif SC', serif;
+        font-size: 1.1em;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: var(--rb-panel-accent);
+        text-shadow: 0 0 14px color-mix(in srgb, var(--rb-panel-accent) 35%, transparent);
+        word-break: break-word;
+      }
+      .action-panel .panel-toggle,
+      .battle-panel .panel-toggle,
+      .char-panel .panel-toggle,
+      .item-panel .panel-toggle,
+      .realm-panel .panel-toggle {
+        color: var(--rb-panel-accent);
+        opacity: 0.7;
+        transition: transform 0.3s ease, opacity 0.2s ease;
+      }
+      .action-panel .panel-header:hover .panel-toggle,
+      .battle-panel .panel-header:hover .panel-toggle,
+      .char-panel .panel-header:hover .panel-toggle,
+      .item-panel .panel-header:hover .panel-toggle,
+      .realm-panel .panel-header:hover .panel-toggle { opacity: 1; }
+      .action-panel .panel-header.collapsed .panel-toggle,
+      .battle-panel .panel-header.collapsed .panel-toggle,
+      .char-panel .panel-header.collapsed .panel-toggle,
+      .item-panel .panel-header.collapsed .panel-toggle,
+      .realm-panel .panel-header.collapsed .panel-toggle { transform: rotate(-90deg); }
+
+      /* —— 内容区 —— */
+      .action-panel .panel-content,
+      .battle-panel .panel-content,
+      .char-panel .panel-content,
+      .item-panel .panel-content,
+      .realm-panel .panel-content {
+        padding: 14px 16px;
+        transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
+        overflow: hidden;
+        color: #e8d5b7; /* 显式设色,避免在 light 主题下被父级覆盖成黑色 */
+      }
+      .action-panel .panel-content.collapsed,
+      .battle-panel .panel-content.collapsed,
+      .char-panel .panel-content.collapsed,
+      .item-panel .panel-content.collapsed,
+      .realm-panel .panel-content.collapsed { max-height: 0; padding: 0 16px; opacity: 0; }
+
+      /* —— 数据行 —— */
+      .action-panel .data-row,
+      .battle-panel .data-row,
+      .item-panel .data-row,
+      .realm-panel .data-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+        padding: 9px 12px;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+        line-height: 1.6;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-left: 3px solid color-mix(in srgb, var(--rb-panel-accent) 60%, transparent);
+        color: #e8d5b7;
+        transition: background 0.18s ease, border-left-color 0.18s ease, transform 0.18s ease;
+      }
+      .action-panel .data-row:last-child,
+      .battle-panel .data-row:last-child,
+      .item-panel .data-row:last-child,
+      .realm-panel .data-row:last-child { margin-bottom: 0; }
+      .action-panel .data-row:hover,
+      .battle-panel .data-row:hover,
+      .item-panel .data-row:hover,
+      .realm-panel .data-row:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-left-color: var(--rb-panel-accent);
+        transform: translateX(2px);
+      }
+      /* char_info 用紧凑样式(无背景) */
+      .char-panel .data-row {
+        padding: 4px 0;
+        font-size: 0.95em;
+        line-height: 1.6;
+        color: #e8d5b7;
+      }
+
+      /* —— 标签:统一 pill 设计 —— */
+      .action-panel .tag,
+      .battle-panel .tag,
+      .item-panel .tag,
+      .realm-panel .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 12px;
+        border-radius: 999px;
+        font-size: 0.88em;
+        font-weight: 600;
+        white-space: normal;
+        word-break: break-word;
+        max-width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #e8d5b7;
+        vertical-align: middle;
+        transition: transform 0.15s ease, box-shadow 0.18s ease;
+      }
+      .action-panel .tag:hover,
+      .battle-panel .tag:hover,
+      .item-panel .tag:hover,
+      .realm-panel .tag:hover { transform: translateY(-1px); }
+      .char-panel .tag {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin: 0 2px;
+        background: rgba(168, 153, 104, 0.18);
+        color: #d4af37;
+        border: 1px solid rgba(168, 153, 104, 0.4);
+        vertical-align: middle;
+      }
+
+      /* —— field-label 强调 —— */
+      .action-panel .field-label,
+      .battle-panel .field-label,
+      .char-panel .field-label,
+      .item-panel .field-label,
+      .realm-panel .field-label {
+        color: var(--rb-panel-accent);
+        font-weight: 700;
+        margin-right: 4px;
+        letter-spacing: 0.3px;
+      }
+
+      /* —— 品质标签:渐变 + 发光 —— */
+      .tag-quality-凡 { background: linear-gradient(135deg, #4a5568, #2d3748) !important; color: #e2e8f0 !important; border-color: rgba(255,255,255,0.1) !important; }
+      .tag-quality-黄 { background: linear-gradient(135deg, #d69e2e, #b7791f) !important; color: #fff !important; border-color: rgba(255,255,255,0.18) !important; box-shadow: 0 0 14px rgba(214, 158, 46, 0.4); }
+      .tag-quality-玄 { background: linear-gradient(135deg, #4299e1, #2c5282) !important; color: #fff !important; border-color: rgba(255,255,255,0.18) !important; box-shadow: 0 0 14px rgba(49, 130, 206, 0.45); }
+      .tag-quality-地 { background: linear-gradient(135deg, #9f7aea, #553c9a) !important; color: #fff !important; border-color: rgba(255,255,255,0.2) !important; box-shadow: 0 0 16px rgba(128, 90, 213, 0.55); }
+      .tag-quality-天 { background: linear-gradient(135deg, #f56565, #9b2c2c) !important; color: #fff !important; border-color: rgba(255,255,255,0.25) !important; box-shadow: 0 0 18px rgba(245, 101, 101, 0.7); animation: rb-tag-pulse 2.6s ease-in-out infinite; }
+      @keyframes rb-tag-pulse {
+        0%, 100% { box-shadow: 0 0 18px rgba(245, 101, 101, 0.7); }
+        50% { box-shadow: 0 0 28px rgba(245, 101, 101, 1); }
+      }
+
+      /* —— 结果 —— */
+      .tag-success { background: linear-gradient(135deg, #38a169, #276749) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-fail { background: linear-gradient(135deg, #e53e3e, #9b2c2c) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-critical-success { background: linear-gradient(135deg, #f6e05e, #d69e2e) !important; color: #1a202c !important; font-weight: 800 !important; border-color: rgba(255,255,255,0.3) !important; box-shadow: 0 0 18px rgba(246, 224, 94, 0.7); animation: rb-tag-pulse-gold 2.4s ease-in-out infinite; }
+      @keyframes rb-tag-pulse-gold {
+        0%, 100% { box-shadow: 0 0 18px rgba(246, 224, 94, 0.7); }
+        50% { box-shadow: 0 0 32px rgba(246, 224, 94, 1); }
+      }
+      .tag-critical-fail { background: linear-gradient(135deg, #b794f4, #553c9a) !important; color: #fff !important; border-color: rgba(255,255,255,0.2) !important; }
+
+      /* —— 通用类型/属性 —— */
+      .tag-type { background: linear-gradient(135deg, #805ad5, #44337a) !important; color: #faf5ff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-attr { background: linear-gradient(135deg, #4299e1, #2c5282) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-effect { background: linear-gradient(135deg, #9f7aea, #44337a) !important; color: #faf5ff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-label { background: linear-gradient(135deg, #4a5568, #2d3748) !important; color: #e2e8f0 !important; border-color: rgba(255,255,255,0.1) !important; }
+      .tag-realm { background: linear-gradient(135deg, #b794f4, #553c9a) !important; color: #fff !important; border-color: rgba(255,255,255,0.18) !important; }
+      .tag-element { background: linear-gradient(135deg, #f6ad55, #c05621) !important; color: #fff !important; border-color: rgba(255,255,255,0.18) !important; }
+      .tag-status { background: linear-gradient(135deg, #4fd1c5, #285e61) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-unit-type { background: linear-gradient(135deg, #4299e1, #2a4365) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-formation { background: linear-gradient(135deg, #d69e2e, #744210) !important; color: #fff !important; border-color: rgba(255,255,255,0.18) !important; }
+      .tag-difficulty-简单 { background: linear-gradient(135deg, #38a169, #276749) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-difficulty-寻常 { background: linear-gradient(135deg, #4299e1, #2c5282) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+      .tag-difficulty-困难 { background: linear-gradient(135deg, #ed8936, #9c4221) !important; color: #fff !important; border-color: rgba(255,255,255,0.18) !important; }
+      .tag-difficulty-极难 { background: linear-gradient(135deg, #f56565, #9b2c2c) !important; color: #fff !important; border-color: rgba(255,255,255,0.2) !important; box-shadow: 0 0 14px rgba(245, 101, 101, 0.5); }
+      .tag-difficulty-绝境 { background: linear-gradient(135deg, #9f7aea, #44337a) !important; color: #fff !important; border-color: rgba(255,255,255,0.25) !important; box-shadow: 0 0 18px rgba(159, 122, 234, 0.65); animation: rb-tag-pulse-purple 2.8s ease-in-out infinite; }
+      @keyframes rb-tag-pulse-purple {
+        0%, 100% { box-shadow: 0 0 18px rgba(159, 122, 234, 0.65); }
+        50% { box-shadow: 0 0 28px rgba(159, 122, 234, 0.95); }
+      }
+      .tag-hazard { background: linear-gradient(135deg, #f56565, #9b2c2c) !important; color: #fff !important; border-color: rgba(255,255,255,0.18) !important; }
+      .tag-reward { background: linear-gradient(135deg, #38a169, #276749) !important; color: #fff !important; border-color: rgba(255,255,255,0.15) !important; }
+
+      /* —— 战斗专用辅助 —— */
+      .tree-indent { display: inline-block; color: #a0aec0; margin-right: 4px; font-family: monospace; opacity: 0.85; }
+      .unit-name { color: #fbd38d; font-weight: 700; }
+      .stat-label { color: #90cdf4; font-weight: 600; }
+      .sequence-arrow { color: #68d391; margin: 0 4px; font-weight: 700; }
+      .stat-value { color: #fbd38d; font-weight: 700; }
+      .effect-text { color: #cbd5e0; font-style: italic; }
+      .description-text { color: #cbd5e0; line-height: 1.6; }
+      .description-box { background: rgba(212, 175, 55, 0.06); border-left: 3px solid #d4af37; padding: 10px 12px; margin-top: 8px; border-radius: 6px; color: #cbd5e0; line-height: 1.6; }
+      .hazard-box { background: rgba(245, 101, 101, 0.10); border-left: 4px solid #f56565; padding: 10px 12px; margin-top: 8px; border-radius: 6px; color: #feb2b2; }
+      .reward-box { background: rgba(56, 161, 105, 0.10); border-left: 4px solid #38a169; padding: 10px 12px; margin-top: 8px; border-radius: 6px; color: #9ae6b4; }
+
+      /* —— char_info 内部分节 —— */
+      .char-panel .section { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed rgba(168, 153, 104, 0.18); }
+      .char-panel .section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+      .char-panel .section-title {
+        color: var(--rb-panel-accent);
+        font-weight: 700;
+        font-size: 1em;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid color-mix(in srgb, var(--rb-panel-accent) 35%, transparent);
+        letter-spacing: 0.5px;
+      }
+      .char-panel .subsection-title {
+        color: #e2e8f0;
+        font-weight: 600;
+        margin-top: 8px;
+        margin-bottom: 4px;
+        font-size: 0.95em;
+        opacity: 0.9;
+      }
+
+      /* —— 渲染失败回退条 —— */
+      .rb-fallback {
+        margin: 12px 0;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: rgba(245, 101, 101, 0.08);
+        border-left: 3px solid #f56565;
+        color: #feb2b2;
+        font-size: 0.92em;
+        white-space: pre-wrap;
+      }
+      .rb-fallback-tag {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 1px 8px;
+        background: rgba(245, 101, 101, 0.2);
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.85em;
+      }
+
+      /* —— 移动端 —— */
+      @media (max-width: 600px) {
+        .action-panel,
+        .battle-panel,
+        .char-panel,
+        .item-panel,
+        .realm-panel { margin: 14px 0; }
+        .action-panel .panel-header,
+        .battle-panel .panel-header,
+        .char-panel .panel-header,
+        .item-panel .panel-header,
+        .realm-panel .panel-header { padding: 12px 14px; }
+        .action-panel .panel-title,
+        .battle-panel .panel-title,
+        .char-panel .panel-title,
+        .item-panel .panel-title,
+        .realm-panel .panel-title { font-size: 1em; letter-spacing: 1px; }
+        .action-panel .panel-content,
+        .battle-panel .panel-content,
+        .char-panel .panel-content,
+        .item-panel .panel-content,
+        .realm-panel .panel-content { padding: 12px; }
+        .action-panel .data-row,
+        .battle-panel .data-row,
+        .item-panel .data-row,
+        .realm-panel .data-row { font-size: 0.9em; padding: 8px 10px; }
+      }
+
       /* —— 旁白 / 叙事段落 —— */
       .rb-narration {
         margin: 14px 0;
         padding: 8px 14px;
         background: var(--rb-narration-bg);
-        border-left: 3px solid var(--rb-accent);
         border-radius: 4px;
         color: var(--rb-text-soft);
         font-size: 0.96em;
@@ -931,14 +1315,392 @@
         return `<div class="rb-narration">${escapeHtml(cleaned)}</div>`;
       }
 
+      // ============== 面板美化（合并自 5 个独立美化器） ==============
+      // action_info 面板配置：根据 section 标题映射到 6 种子类型
+      const RB_PANEL_CONFIG_ACTION = {
+        战况总览: { type: 'battle', icon: 'fa-solid fa-scroll' },
+        行动顺序: { type: 'battle', icon: 'fa-solid fa-hourglass-half' },
+        攻击行动: { type: 'battle', icon: 'fa-solid fa-crosshairs' },
+        伤害基准计算: { type: 'battle', icon: 'fa-solid fa-calculator' },
+        结算清单: { type: 'battle', icon: 'fa-solid fa-list-check' },
+        战术动作: { type: 'battle', icon: 'fa-solid fa-chess-knight' },
+        战意判定: { type: 'battle', icon: 'fa-solid fa-heart-crack' },
+        战斗结算: { type: 'battle', icon: 'fa-solid fa-flag-checkered' },
+        生产准备: { type: 'craft', icon: 'fa-solid fa-hammer' },
+        制作检定: { type: 'craft', icon: 'fa-solid fa-flask' },
+        生产结算: { type: 'craft', icon: 'fa-solid fa-box-open' },
+        修为状态总览: { type: 'cultivation', icon: 'fa-solid fa-book' },
+        修为获取: { type: 'cultivation', icon: 'fa-solid fa-star' },
+        突破判定: { type: 'breakthrough', icon: 'fa-solid fa-bolt' },
+        历劫: { type: 'breakthrough', icon: 'fa-solid fa-fire' },
+        突破结算: { type: 'breakthrough', icon: 'fa-solid fa-crown' },
+        参悟检定: { type: 'insight', icon: 'fa-solid fa-brain' },
+        参悟结果: { type: 'insight', icon: 'fa-solid fa-lightbulb' },
+        大成奖励: { type: 'insight', icon: 'fa-solid fa-gift' },
+        判定检查: { type: 'judge', icon: 'fa-solid fa-scale-balanced' },
+        判定结果: { type: 'judge', icon: 'fa-solid fa-dice-d20' },
+      };
+      const RB_PANEL_CONFIG_BATTLE = {
+        战况总览: 'fa-solid fa-scroll',
+        行动顺序: 'fa-solid fa-hourglass-half',
+        攻击行动: 'fa-solid fa-crosshairs',
+        伤害基准计算: 'fa-solid fa-calculator',
+        结算清单: 'fa-solid fa-list-check',
+        战术动作: 'fa-solid fa-chess-knight',
+        战意判定: 'fa-solid fa-heart-crack',
+        战斗结算: 'fa-solid fa-flag-checkered',
+      };
+      const RB_PANEL_CONFIG_ITEM = {
+        物品信息: { icon: 'fa-solid fa-box' },
+        功法信息: { icon: 'fa-solid fa-scroll' },
+        法宝信息: { icon: 'fa-solid fa-wand-magic-sparkles' },
+        傀儡信息: { icon: 'fa-solid fa-robot' },
+        灵兽信息: { icon: 'fa-solid fa-dragon' },
+      };
+
+      // 表格语法解析：{标题} + |行|（action/battle/item/realm 共用）
+      function parseTablePanel(content) {
+        const lines = _.chain(content).split('\n').map(_.trim).compact().value();
+        const sections = [];
+        let currentSection = null;
+        _.forEach(lines, line => {
+          const titleMatch = line.match(/^\{(.+?)\}$/);
+          if (titleMatch) {
+            if (currentSection) sections.push(currentSection);
+            currentSection = { title: titleMatch[1], rows: [] };
+          } else if (_.startsWith(line, '|') && _.endsWith(line, '|') && currentSection) {
+            const rowContent = line.slice(1, -1).trim();
+            if (rowContent) currentSection.rows.push(rowContent);
+          }
+        });
+        if (currentSection) sections.push(currentSection);
+        return { sections };
+      }
+
+      // char_info 缩进式语法（一级标题无缩进、二级标题缩进 2 空格以冒号结尾）
+      function parseCharIndentedPanel(content) {
+        const lines = content.split('\n');
+        const sections = [];
+        let currentSection = null;
+        _.forEach(lines, line => {
+          if (!line.trim()) return;
+          const indent = line.search(/\S/);
+          const trimmed = line.trim();
+          if (indent === 0) {
+            if (currentSection) sections.push(currentSection);
+            currentSection = { title: trimmed, rows: [], subsections: [] };
+          } else if (currentSection) {
+            if (indent === 2 && trimmed.endsWith(':')) {
+              currentSection.subsections.push({ title: trimmed.slice(0, -1), rows: [] });
+            } else if (currentSection.subsections.length > 0) {
+              _.last(currentSection.subsections).rows.push(trimmed);
+            } else {
+              currentSection.rows.push(trimmed);
+            }
+          }
+        });
+        if (currentSection) sections.push(currentSection);
+        return { sections };
+      }
+
+      // —— 5 个 beautifyRow（行内文本高亮，每个 panel 独立规则） ——
+      function beautifyActionRow(row) {
+        let html = _.escape(row);
+        ['凡', '黄', '玄', '地', '天'].forEach(q => {
+          html = html.replace(
+            new RegExp(`品质:\\s*${q}`, 'g'),
+            `<span class="field-label">品质:</span> <span class="tag tag-quality-${q}"><i class="fa-solid fa-star"></i> ${q}</span>`,
+          );
+        });
+        html = html.replace(/结果:\s*大成功/g, `<span class="field-label">结果:</span> <span class="tag tag-critical-success"><i class="fa-solid fa-star"></i> 大成功</span>`);
+        html = html.replace(/结果:\s*成功/g, `<span class="field-label">结果:</span> <span class="tag tag-success"><i class="fa-solid fa-check"></i> 成功</span>`);
+        html = html.replace(/结果:\s*失败/g, `<span class="field-label">结果:</span> <span class="tag tag-fail"><i class="fa-solid fa-times"></i> 失败</span>`);
+        html = html.replace(/结果:\s*大失败/g, `<span class="field-label">结果:</span> <span class="tag tag-critical-fail"><i class="fa-solid fa-skull"></i> 大失败</span>`);
+        html = html.replace(/状态:\s*制作成功/g, `<span class="field-label">状态:</span> <span class="tag tag-success"><i class="fa-solid fa-check"></i> 制作成功</span>`);
+        html = html.replace(/状态:\s*制作失败/g, `<span class="field-label">状态:</span> <span class="tag tag-fail"><i class="fa-solid fa-times"></i> 制作失败</span>`);
+        const tagMappings = [
+          { pattern: /类型:\s*([^|]+)/g, label: '类型', icon: 'fa-solid fa-tag', className: 'tag-type' },
+          { pattern: /方法:\s*([^|]+)/g, label: '方法', icon: 'fa-solid fa-wand-magic-sparkles', className: 'tag-type' },
+          { pattern: /检定类型:\s*([^|]+)/g, label: '检定类型', icon: 'fa-solid fa-tag', className: 'tag-type' },
+          { pattern: /难度:\s*([^|]+)/g, label: '难度', icon: 'fa-solid fa-chart-line', className: 'tag-attr' },
+          { pattern: /当前境界:\s*([^|]+)/g, label: '当前境界', icon: 'fa-solid fa-crown', className: 'tag-attr' },
+          { pattern: /目标境界:\s*([^|]+)/g, label: '目标境界', icon: 'fa-solid fa-crown', className: 'tag-attr' },
+          { pattern: /攻方:\s*([^|]+)/g, label: '攻方', icon: 'fa-solid fa-hand-fist', className: 'tag-attr' },
+          { pattern: /守方:\s*([^|]+)/g, label: '守方', icon: 'fa-solid fa-shield', className: 'tag-attr' },
+          { pattern: /投入物:\s*([^|]+)/g, label: '投入物', icon: 'fa-solid fa-boxes-stacked', className: 'tag-attr' },
+          { pattern: /产出:\s*([^|]+)/g, label: '产出', icon: 'fa-solid fa-box-open', className: 'tag-attr' },
+        ];
+        tagMappings.forEach(({ pattern, label, icon, className }) => {
+          html = html.replace(pattern, (m, val) => `<span class="field-label">${label}:</span> <span class="tag ${className}"><i class="${icon}"></i> ${val.trim()}</span>`);
+        });
+        return html;
+      }
+
+      function beautifyBattleRow(row) {
+        let html = _.escape(row);
+        html = html.replace(/├─/g, '<span class="tree-indent">├─</span>');
+        html = html.replace(/└─/g, '<span class="tree-indent">└─</span>');
+        html = html.replace(/─/g, '<span class="tree-indent">─</span>');
+        html = html.replace(/\s*-&gt;\s*/g, ' <span class="sequence-arrow">→</span> '); // -> 已经被 _.escape 转成 -&gt;
+        const attrMappings = [
+          { pattern: /气血:\s*(\[[\d/]+\])/g, label: '气血', icon: 'fa-solid fa-heart' },
+          { pattern: /灵力:\s*(\[[\d/]+\])/g, label: '灵力', icon: 'fa-solid fa-wand-magic-sparkles' },
+          { pattern: /遁速\[(\d+)\]/g, label: '遁速', icon: 'fa-solid fa-wind' },
+          { pattern: /御物\[(\d+)\]/g, label: '御物', icon: 'fa-solid fa-hand-sparkles' },
+          { pattern: /咒法\[(\d+)\]/g, label: '咒法', icon: 'fa-solid fa-scroll' },
+          { pattern: /幻术\[(\d+)\]/g, label: '幻术', icon: 'fa-solid fa-mask' },
+          { pattern: /阵法\[(\d+)\]/g, label: '阵法', icon: 'fa-solid fa-diagram-project' },
+          { pattern: /神识\[(\d+)\]/g, label: '神识', icon: 'fa-solid fa-eye' },
+          { pattern: /炼体\[(\d+)\]/g, label: '炼体', icon: 'fa-solid fa-person' },
+        ];
+        attrMappings.forEach(({ pattern, label, icon }) => {
+          html = html.replace(pattern, (m, val) => `<span class="stat-label"><i class="${icon}"></i> ${label}${val}</span>`);
+        });
+        html = html.replace(/五行:\s*([金木水火土])\s*vs\s*([金木水火土])/g, (m, e1, e2) => {
+          const t1 = `<span class="tag tag-element"><i class="fa-solid fa-circle"></i> ${e1}</span>`;
+          const t2 = `<span class="tag tag-element"><i class="fa-solid fa-circle"></i> ${e2}</span>`;
+          return `五行: ${t1} vs ${t2}`;
+        });
+        ['渡劫', '大乘', '合体', '分神', '元神', '化神', '炼虚', '炼神', '金丹', '筑基', '练气'].forEach(realm => {
+          html = html.replace(
+            new RegExp(`${realm}([L×\\d]|\\s|$)`, 'g'),
+            (m, suffix) => `<span class="tag tag-realm"><i class="fa-solid fa-crown"></i> ${realm}</span>${suffix}`,
+          );
+        });
+        ['人物', '法宝', '灵兽', '傀儡', '阵法'].forEach(type => {
+          html = html.replace(
+            new RegExp(`(${type})([A-Z]|集群)`, 'g'),
+            `<span class="tag tag-unit-type"><i class="fa-solid fa-users"></i> $1$2</span>`,
+          );
+        });
+        html = html.replace(/结阵中/g, `<span class="tag tag-formation"><i class="fa-solid fa-circle-notch"></i> 结阵中</span>`);
+        html = html.replace(/已结阵/g, `<span class="tag tag-formation"><i class="fa-solid fa-check-circle"></i> 已结阵</span>`);
+        return html;
+      }
+
+      function beautifyCharRow(row) {
+        let html = _.escape(row);
+        ['凡', '黄', '玄', '地', '天'].forEach(q => {
+          html = html.replace(new RegExp(`品质:\\s*${q}`, 'g'), `<span class="field-label">品质:</span> <span class="tag">${q}</span>`);
+        });
+        ['火', '水', '木', '金', '土', '阴', '阳'].forEach(elem => {
+          html = html.replace(new RegExp(`五行:\\s*\\[${elem}\\]`, 'g'), `<span class="field-label">五行:</span> <span class="tag">[${elem}]</span>`);
+          html = html.replace(new RegExp(`灵根五行:\\s*\\[${elem}\\]`, 'g'), `<span class="field-label">灵根五行:</span> <span class="tag">[${elem}]</span>`);
+        });
+        ['渡劫', '大乘', '合体', '分神', '元神', '化神', '炼虚', '炼神', '金丹', '筑基', '练气'].forEach(realm => {
+          html = html.replace(new RegExp(`境界:\\s*${realm}`, 'g'), `<span class="field-label">境界:</span> <span class="tag">${realm}</span>`);
+        });
+        ['心法', '咒法', '身法', '护体', '武器', '防具', '法宝', '符箓', '丹药'].forEach(type => {
+          html = html.replace(new RegExp(`类型:\\s*${type}`, 'g'), `<span class="field-label">类型:</span> <span class="tag">${type}</span>`);
+        });
+        html = html.replace(/使用中:\s*(true|false)/g, (m, val) => {
+          const status = val === 'true' ? '✓ 使用中' : '✗ 未使用';
+          return `<span class="field-label">使用中:</span> <span class="tag">${status}</span>`;
+        });
+        return html;
+      }
+
+      function beautifyItemRow(row) {
+        let html = _.escape(row);
+        ['凡', '黄', '玄', '地', '天'].forEach(q => {
+          html = html.replace(
+            new RegExp(`品质:\\s*${q}`, 'g'),
+            `<span class="field-label">品质:</span> <span class="tag tag-quality-${q}"><i class="fa-solid fa-star"></i> ${q}</span>`,
+          );
+        });
+        ['物品', '功法', '法宝', '傀儡', '灵兽', '秘籍', '配方', '符箓', '丹药', '素材', '武器', '工具'].forEach(t => {
+          html = html.replace(
+            new RegExp(`类型:\\s*${t}`, 'g'),
+            `<span class="field-label">类型:</span> <span class="tag tag-type"><i class="fa-solid fa-tag"></i> ${t}</span>`,
+          );
+        });
+        html = html.replace(/攻击力:\s*(\d+)/g, (m, val) => `<span class="field-label">攻击力:</span> <span class="stat-value">${val}</span>`);
+        html = html.replace(/防御力:\s*(\d+)/g, (m, val) => `<span class="field-label">防御力:</span> <span class="stat-value">${val}</span>`);
+        html = html.replace(/遁速:\s*(\d+)/g, (m, val) => `<span class="field-label">遁速:</span> <span class="stat-value">${val}</span>`);
+        html = html.replace(/气血:\s*(\d+)/g, (m, val) => `<span class="field-label">气血:</span> <span class="stat-value">${val}</span>`);
+        html = html.replace(/灵气:\s*(\d+)/g, (m, val) => `<span class="field-label">灵气:</span> <span class="stat-value">${val}</span>`);
+        html = html.replace(/\[([^\]]+)\]/g, (m, tag) => `<span class="tag tag-attr"><i class="fa-solid fa-bookmark"></i> ${tag}</span>`);
+        html = html.replace(/效果:\s*([^|]+)/g, (m, effect) => `<span class="field-label">效果:</span> <span class="effect-text">${effect.trim()}</span>`);
+        return html;
+      }
+
+      function beautifyRealmRow(row) {
+        let html = _.escape(row);
+        ['简单', '寻常', '困难', '极难', '绝境'].forEach(d => {
+          html = html.replace(
+            new RegExp(`难度:\\s*${d}`, 'g'),
+            `<span class="field-label">难度:</span> <span class="tag tag-difficulty-${d}"><i class="fa-solid fa-skull"></i> ${d}</span>`,
+          );
+        });
+        html = html.replace(/类型:\s*([^|]+)/g, (m, val) => `<span class="field-label">类型:</span> <span class="tag tag-type"><i class="fa-solid fa-map"></i> ${val.trim()}</span>`);
+        html = html.replace(/危害:\s*([^|]+)/g, (m, val) => `<span class="field-label">危害:</span> <span class="tag tag-hazard"><i class="fa-solid fa-exclamation"></i> ${val.trim()}</span>`);
+        html = html.replace(/奖励:\s*([^|]+)/g, (m, val) => `<span class="field-label">奖励:</span> <span class="tag tag-reward"><i class="fa-solid fa-gift"></i> ${val.trim()}</span>`);
+        html = html.replace(/(\d+)/g, (m, val) => `<span class="stat-value">${val}</span>`);
+        return html;
+      }
+
+      // —— 渲染各 panel 为 HTML 字符串（不操作 DOM，便于嵌入占位符流程） ——
+      function renderActionHtml(panel) {
+        let html = '';
+        _.forEach(panel.sections, section => {
+          const config = RB_PANEL_CONFIG_ACTION[section.title] || { type: 'battle', icon: 'fa-solid fa-scroll' };
+          let rowsHtml = '';
+          _.forEach(section.rows, row => { rowsHtml += `<div class="data-row">${beautifyActionRow(row)}</div>`; });
+          html += `<div class="action-panel ${config.type}"><div class="panel-header"><i class="panel-icon ${config.icon}"></i><span class="panel-title">${_.escape(section.title)}</span><i class="panel-toggle fa-solid fa-chevron-down"></i></div><div class="panel-content">${rowsHtml}</div></div>`;
+        });
+        return html;
+      }
+
+      function renderBattleHtml(panel) {
+        let html = '';
+        _.forEach(panel.sections, section => {
+          const icon = RB_PANEL_CONFIG_BATTLE[section.title] || 'fa-solid fa-scroll';
+          let rowsHtml = '';
+          _.forEach(section.rows, row => { rowsHtml += `<div class="data-row">${beautifyBattleRow(row)}</div>`; });
+          html += `<div class="battle-panel"><div class="panel-header"><i class="panel-icon ${icon}"></i><span class="panel-title">${_.escape(section.title)}</span><i class="panel-toggle fa-solid fa-chevron-down"></i></div><div class="panel-content">${rowsHtml}</div></div>`;
+        });
+        return html;
+      }
+
+      function renderCharHtml(charData) {
+        let sectionsHtml = '';
+        _.forEach(charData.sections, section => {
+          let secInner = '';
+          if (section.title) secInner += `<div class="section-title">${_.escape(section.title)}</div>`;
+          _.forEach(section.rows, row => { secInner += `<div class="data-row">${beautifyCharRow(row)}</div>`; });
+          _.forEach(section.subsections, sub => {
+            let subInner = '';
+            if (sub.title) subInner += `<div class="subsection-title">${_.escape(sub.title)}</div>`;
+            _.forEach(sub.rows, row => { subInner += `<div class="data-row" style="padding-left: 12px;">${beautifyCharRow(row)}</div>`; });
+            secInner += `<div>${subInner}</div>`;
+          });
+          sectionsHtml += `<div class="section">${secInner}</div>`;
+        });
+        return `<div class="char-panel"><div class="panel-header"><i class="panel-icon fa-solid fa-user"></i><span class="panel-title">角色信息</span><i class="panel-toggle fa-solid fa-chevron-down"></i></div><div class="panel-content">${sectionsHtml}</div></div>`;
+      }
+
+      function renderItemHtml(panel) {
+        let html = '';
+        _.forEach(panel.sections, section => {
+          const config = RB_PANEL_CONFIG_ITEM[section.title] || { icon: 'fa-solid fa-box' };
+          let rowsHtml = '';
+          _.forEach(section.rows, row => { rowsHtml += `<div class="data-row">${beautifyItemRow(row)}</div>`; });
+          html += `<div class="item-panel"><div class="panel-header"><i class="panel-icon ${config.icon}"></i><span class="panel-title">${_.escape(section.title)}</span><i class="panel-toggle fa-solid fa-chevron-down"></i></div><div class="panel-content">${rowsHtml}</div></div>`;
+        });
+        return html;
+      }
+
+      function renderRealmHtml(panel) {
+        let html = '';
+        _.forEach(panel.sections, section => {
+          let rowsHtml = '';
+          _.forEach(section.rows, row => { rowsHtml += `<div class="data-row">${beautifyRealmRow(row)}</div>`; });
+          html += `<div class="realm-panel"><div class="panel-header"><i class="panel-icon fa-solid fa-mountain"></i><span class="panel-title">${_.escape(section.title)}</span><i class="panel-toggle fa-solid fa-chevron-down"></i></div><div class="panel-content">${rowsHtml}</div></div>`;
+        });
+        return html;
+      }
+
+      // 渲染失败时的兜底:把原始内容裹一个红色"解析失败"条回退,避免整段 processContent 崩溃
+      function renderPanelFallback(label, rawInner) {
+        const safe = (typeof escapeHtml === 'function' ? escapeHtml : (s => String(s)))(String(rawInner || '').slice(0, 800));
+        return `<div class="rb-fallback"><span class="rb-fallback-tag">${escapeHtml(label)} 解析失败</span>${safe}</div>`;
+      }
+
+      // 安全调用面板解析 + 渲染:任何抛错都吞掉返回 fallback
+      function safeRenderPanel(label, parseFn, renderFn, inner) {
+        try {
+          const trimmed = String(inner || '').trim();
+          if (!trimmed) return ''; // 空面板直接丢弃
+          const parsed = parseFn(trimmed);
+          // 没有任何 section 时直接丢弃,不渲染空壳
+          if (!parsed || !parsed.sections || !parsed.sections.length) return '';
+          const html = renderFn(parsed);
+          return html || '';
+        } catch (e) {
+          console.warn(`[正文美化] ${label} 渲染异常:`, e);
+          return renderPanelFallback(label, inner);
+        }
+      }
+
+      // 把 raw 中的 5 类面板抽走、留 placeholder（避免被 paragraph splitter 切碎）
+      // 顺序：内层（item/char/realm/battle）先于外层（action）；按 prompt 设计本不应嵌套
+      function extractPanels(raw, stash) {
+        const wrap = html => (html ? '\n\n' + stash(html) + '\n\n' : '\n\n');
+        raw = raw.replace(/<item_info>([\s\S]*?)<\/item_info>/gi, (m, inner) =>
+          wrap(safeRenderPanel('item_info', parseTablePanel, renderItemHtml, inner)),
+        );
+        raw = raw.replace(/<char_info>([\s\S]*?)<\/char_info>/gi, (m, inner) =>
+          wrap(safeRenderPanel('char_info', parseCharIndentedPanel, renderCharHtml, inner)),
+        );
+        raw = raw.replace(/<secret_realm_info>([\s\S]*?)<\/secret_realm_info>/gi, (m, inner) =>
+          wrap(safeRenderPanel('secret_realm_info', parseTablePanel, renderRealmHtml, inner)),
+        );
+        raw = raw.replace(/<battle_info>([\s\S]*?)<\/battle_info>/gi, (m, inner) =>
+          wrap(safeRenderPanel('battle_info', parseTablePanel, renderBattleHtml, inner)),
+        );
+        raw = raw.replace(/<action_info>([\s\S]*?)<\/action_info>/gi, (m, inner) =>
+          wrap(safeRenderPanel('action_info', parseTablePanel, renderActionHtml, inner)),
+        );
+        // 清理任何未配对的孤儿标签(AI 截断、写漏闭合等)
+        raw = raw.replace(
+          /<\/?(?:action_info|battle_info|char_info|item_info|secret_realm_info)\b[^>]*>?/gi,
+          '',
+        );
+        return raw;
+      }
+
+      // 折叠点击事件委托（只挂一次）
+      let _rbPanelDelegated = false;
+      function ensurePanelClickDelegation() {
+        if (_rbPanelDelegated) return;
+        try {
+          if (typeof $ === 'undefined') return;
+          _rbPanelDelegated = true;
+          $('#readingContent').on(
+            'click',
+            '.action-panel > .panel-header, .battle-panel > .panel-header, .char-panel > .panel-header, .item-panel > .panel-header, .realm-panel > .panel-header',
+            function () {
+              $(this).toggleClass('collapsed');
+              $(this).next('.panel-content').toggleClass('collapsed');
+            },
+          );
+        } catch (e) {
+          console.warn('[正文美化] 折叠委托绑定失败:', e);
+        }
+      }
+
       /** 主渲染：把原始文本切分为旁白 / 对话块 */
       function processContent() {
         const container = document.getElementById('readingContent');
         if (!container) return;
         let raw = container.innerHTML;
         if (!raw) return;
-        // 解码 HTML 实体并去除危险标签（先把段落 / 换行标签转成真实换行，再剥离其它标签）
-        raw = decodeEntities(raw)
+
+        // 1) 先解码实体（让 &lt;action_info&gt; 之类还原成真实标签）
+        raw = decodeEntities(raw);
+
+        // 1.5) 剥离 HTML 注释 <!-- ... --> （AI 把子思维链放在注释里）
+        raw = raw.replace(/<!--[\s\S]*?-->/g, '');
+        // 顺手清理孤儿的 --> 或 <!-- 标记字符串（仅当它们是行首/行尾的独立 token，避免误伤正文）
+        raw = raw.replace(/^\s*-->\s*$/gm, '');
+        raw = raw.replace(/^\s*<!--\s*$/gm, '');
+
+        // 2) 抽取 5 类面板，留 U+2063 包裹的 placeholder（不会被 escape/trim/split 破坏）
+        const panelMap = new Map();
+        let panelCounter = 0;
+        const stashPanel = htmlFragment => {
+          const token = `⁣RB_PANEL_${panelCounter++}⁣`;
+          panelMap.set(token, htmlFragment);
+          return token;
+        };
+        try {
+          raw = extractPanels(raw, stashPanel);
+        } catch (e) {
+          console.warn('[正文美化] 面板抽取失败:', e);
+        }
+
+        // 3) 继续原有的标签剥离 & 空白规整
+        raw = raw
           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
           .replace(/<br\s*\/?>/gi, '\n')
           .replace(/<\/(?:p|div|li|h[1-6]|blockquote)>/gi, '\n')
@@ -947,20 +1709,19 @@
             /<\/?(?:div|span|p|ul|ol|li|strong|em|b|i|h[1-6]|a|br|hr|blockquote|pre|code|table|thead|tbody|tr|td|th)[^>]*>/gi,
             '',
           )
-          // 规整空白：行末空格 / 多余空行
           .replace(/[\t ]+\n/g, '\n')
           .replace(/\n{3,}/g, '\n\n');
 
-        if (!raw.trim()) return;
+        // 全是面板（无文本）也要继续，否则面板渲染不到
+        if (!raw.trim() && panelMap.size === 0) return;
 
-        // 每个非空行 = 一个段落（与原版行为一致；JS 的 \s 已覆盖 U+3000 等全角空白）
         const lines = raw
           .split(/\n+/)
           .map(s => s.trim())
           .filter(Boolean);
 
         const out = [];
-        let pending = null; // { rawName, normName, lines: [] }
+        let pending = null;
 
         const flush = () => {
           if (!pending) return;
@@ -968,11 +1729,18 @@
           pending = null;
         };
 
-        // 段内可跨行：{角色名}…对话内容（保留段内换行）
         const braceFmt = /^\s*\{([^}]+)\}\s*([\s\S]+)$/;
+        const panelTokenRe = /^⁣RB_PANEL_\d+⁣$/;
 
         for (const line of lines) {
-          // 双花括号包裹的情绪 / 动作标记按旁白输出（注释里不写连续左右花括号，避免被酒馆宏替换误伤）
+          // 面板占位符：直接放入，不裹 narration 容器
+          if (panelTokenRe.test(line)) {
+            flush();
+            out.push(line);
+            continue;
+          }
+
+          // 双花括号包裹的情绪 / 动作标记按旁白输出
           if (/^\{\{.*\}\}/.test(line)) {
             flush();
             const html = renderNarration(line);
@@ -986,7 +1754,6 @@
             const content = m[2].trim();
             const normName = normalizeDisplayName(rawName);
             const config = CHARACTER_CONFIG[normName];
-            // 仅当角色在配置中（已知/内置/自定义）时按对话渲染
             if (config) {
               if (pending && pending.normName === normName) {
                 pending.lines.push(content);
@@ -996,21 +1763,27 @@
               }
               continue;
             }
-            // 非已知角色：剥离 {名} 标记，作为旁白
             flush();
             const html = renderNarration(content);
             if (html) out.push(html);
             continue;
           }
 
-          // 普通旁白
           flush();
           const html = renderNarration(line);
           if (html) out.push(html);
         }
         flush();
 
-        container.innerHTML = out.join('');
+        // 4) 还原 placeholder 为真实面板 HTML
+        let finalHtml = out.join('');
+        panelMap.forEach((html, token) => {
+          finalHtml = finalHtml.split(token).join(html);
+        });
+        container.innerHTML = finalHtml;
+
+        // 5) 单次绑定折叠点击委托
+        ensurePanelClickDelegation();
       }
 
       // ============== 主题切换 ==============
@@ -1382,5 +2155,4 @@
     </script>
   </body>
 </html>
-
 ```
