@@ -577,14 +577,14 @@
     <div class="rb-settings" id="settingsPanel">
       <div class="rb-settings-row">
         <span class="rb-settings-label">正文字号</span>
-        <button class="rb-btn" onclick="adjustFontSize(-1)" style="padding: 2px 8px;">−</button>
-        <button class="rb-btn" onclick="adjustFontSize(1)" style="padding: 2px 8px;">+</button>
+        <button class="rb-btn" data-action="font" data-arg="-1" style="padding: 2px 8px;">−</button>
+        <button class="rb-btn" data-action="font" data-arg="1" style="padding: 2px 8px;">+</button>
       </div>
 
       <div class="rb-section-title">🎭 对白美化角色</div>
       <div class="rb-char-tabs">
-        <button class="rb-char-tab active" id="tabBtnCache" onclick="switchCharTab('cache')">📦 缓存库</button>
-        <button class="rb-char-tab" id="tabBtnChat" onclick="switchCharTab('chat')">💬 当前聊天</button>
+        <button class="rb-char-tab active" id="tabBtnCache" data-action="tab" data-arg="cache">📦 缓存库</button>
+        <button class="rb-char-tab" id="tabBtnChat" data-action="tab" data-arg="chat">💬 当前聊天</button>
       </div>
 
       <div class="rb-char-content active" id="tabCache">
@@ -603,12 +603,12 @@
             <input type="color" id="customCharColorInput" value="#a89968" />
           </div>
           <div class="rb-form-actions">
-            <button class="rb-btn" onclick="cancelAddCustomChar()">取消</button>
-            <button class="rb-btn active" onclick="confirmAddCustomChar()">添加到缓存</button>
+            <button class="rb-btn" data-action="cancel-add">取消</button>
+            <button class="rb-btn active" data-action="confirm-add">添加到缓存</button>
           </div>
         </div>
 
-        <button class="rb-add-btn" id="customCharAddBtn" onclick="showAddCustomCharForm()">+ 新建自定义角色</button>
+        <button class="rb-add-btn" id="customCharAddBtn" data-action="show-add">+ 新建自定义角色</button>
       </div>
 
       <div class="rb-char-content" id="tabChat">
@@ -622,6 +622,9 @@
     </div>
 
     <script>
+      // 脚本进入即记录，便于在 DevTools 里确认是否执行
+      try { console.log('[正文美化] script loaded, readyState=', document.readyState); } catch (_) {}
+
       // ============== 内置角色配置 ==============
       // 名称 → { color, avatar?, given_name, aliases? }
       // 内置角色取自世界书 NPC，未提供头像时显示占位符；用户可通过缓存库为他们补充头像。
@@ -865,13 +868,16 @@
       }
 
       // ============== 内容渲染 ==============
+      // 注意：SillyTavern 在把 iframe srcdoc 注入前会 HTML-decode 实体（&amp; → &），
+      // 因此源码里不能出现裸的实体字面量；用 & (`&` 的 Unicode 转义) 把 '&' 隔开
+      // 避开扫描器，JS 引擎仍会得到正确的 '&amp;' 等字符串。
       function escapeHtml(s) {
         return String(s)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
+          .replace(/&/g, '\u0026amp;')
+          .replace(/</g, '\u0026lt;')
+          .replace(/>/g, '\u0026gt;')
+          .replace(/"/g, '\u0026quot;')
+          .replace(/'/g, '\u0026#39;');
       }
 
       function decodeEntities(text) {
@@ -930,16 +936,24 @@
         const container = document.getElementById('readingContent');
         if (!container) return;
         let raw = container.innerHTML;
-        if (!raw || !raw.trim()) return;
-        // 解码 HTML 实体并去除危险标签（仅去标签保留文字）
+        if (!raw) return;
+        // 解码 HTML 实体并去除危险标签（先把段落 / 换行标签转成真实换行，再剥离其它标签）
         raw = decodeEntities(raw)
           .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/(?:p|div|li|h[1-6]|blockquote)>/gi, '\n')
+          .replace(/<(?:hr)\s*\/?>/gi, '\n\n')
           .replace(
             /<\/?(?:div|span|p|ul|ol|li|strong|em|b|i|h[1-6]|a|br|hr|blockquote|pre|code|table|thead|tbody|tr|td|th)[^>]*>/gi,
             '',
-          );
+          )
+          // 规整空白：行末空格 / 多余空行
+          .replace(/[\t ]+\n/g, '\n')
+          .replace(/\n{3,}/g, '\n\n');
 
+        if (!raw.trim()) return;
+
+        // 每个非空行 = 一个段落（与原版行为一致；JS 的 \s 已覆盖 U+3000 等全角空白）
         const lines = raw
           .split(/\n+/)
           .map(s => s.trim())
@@ -954,10 +968,11 @@
           pending = null;
         };
 
-        const braceFmt = /^\s*\{([^}]+)\}\s*(.+)$/;
+        // 段内可跨行：{角色名}…对话内容（保留段内换行）
+        const braceFmt = /^\s*\{([^}]+)\}\s*([\s\S]+)$/;
 
         for (const line of lines) {
-          // 跳过 {{...}} 这种情绪/动作标记，作为旁白输出
+          // 双花括号包裹的情绪 / 动作标记按旁白输出（注释里不写连续左右花括号，避免被酒馆宏替换误伤）
           if (/^\{\{.*\}\}/.test(line)) {
             flush();
             const html = renderNarration(line);
@@ -1083,19 +1098,20 @@
         names.forEach(name => {
           const info = cached[name] || {};
           const av = getAvatarFromCache(name);
+          const safeName = escapeHtml(name);
           const avHtml = av
-            ? `<img class="rb-char-avatar-small" src="${av}" alt="${escapeHtml(name)}">`
+            ? `<img class="rb-char-avatar-small" src="${av}" alt="${safeName}">`
             : `<div class="rb-char-avatar-placeholder-small">👤</div>`;
           const dot = info.color ? `<span class="rb-color-dot" style="background:${info.color}"></span>` : '';
           const inMvu = mvuList.includes(name);
           const writeBtn = inMvu
             ? `<span class="rb-char-action in-chat">已写入</span>`
-            : `<button class="rb-char-action" onclick="writeCacheCharToChat('${name.replace(/'/g, "\\'")}')">写入</button>`;
+            : `<button class="rb-char-action" data-action="write-chat" data-arg="${safeName}">写入</button>`;
           html +=
             `<div class="rb-char-item">${avHtml}${dot}` +
-            `<span class="rb-char-name">${escapeHtml(name)}</span>` +
+            `<span class="rb-char-name">${safeName}</span>` +
             `${writeBtn}` +
-            `<button class="rb-char-delete" onclick="deleteCacheChar('${name.replace(/'/g, "\\'")}')" title="从缓存删除">✕</button>` +
+            `<button class="rb-char-delete" data-action="del-cache" data-arg="${safeName}" title="从缓存删除">✕</button>` +
             `</div>`;
         });
         list.innerHTML = html;
@@ -1114,16 +1130,17 @@
           const isBuiltin = BUILTIN_CHAR_NAMES.includes(name);
           const cfg = CHARACTER_CONFIG[name];
           const av = (cfg && cfg.avatar) || getAvatarFromCache(name);
+          const safeName = escapeHtml(name);
           const avHtml = av
-            ? `<img class="rb-char-avatar-small" src="${av}" alt="${escapeHtml(name)}">`
+            ? `<img class="rb-char-avatar-small" src="${av}" alt="${safeName}">`
             : `<div class="rb-char-avatar-placeholder-small">👤</div>`;
           const dot = !isBuiltin && cfg && cfg.color ? `<span class="rb-color-dot" style="background:${cfg.color}"></span>` : '';
           const trailing = isBuiltin
             ? '<span class="rb-char-builtin">内置</span>'
-            : `<button class="rb-char-delete" onclick="removeChatChar('${name.replace(/'/g, "\\'")}')" title="从当前聊天移除">✕</button>`;
+            : `<button class="rb-char-delete" data-action="del-chat" data-arg="${safeName}" title="从当前聊天移除">✕</button>`;
           html +=
             `<div class="rb-char-item">${avHtml}${dot}` +
-            `<span class="rb-char-name">${escapeHtml(name)}</span>` +
+            `<span class="rb-char-name">${safeName}</span>` +
             `${trailing}</div>`;
         });
         list.innerHTML = html;
@@ -1293,18 +1310,75 @@
         });
       }
 
-      // ============== 入口 ==============
-      $(() => {
-        initTheme();
-        initFontSize();
-        loadCustomCharsIntoConfig();
-        processContent();
-        initThemeToggle();
-        initSettingsPanel();
-        initAvatarUpload();
-        renderCacheCharList();
-        renderChatCharList();
-      });
+      // ============== 事件委托：所有 [data-action] 按钮 ==============
+      function initEventDelegation() {
+        document.body.addEventListener('click', e => {
+          const t = e.target && e.target.closest && e.target.closest('[data-action]');
+          if (!t) return;
+          const action = t.getAttribute('data-action');
+          const arg = t.getAttribute('data-arg');
+          switch (action) {
+            case 'font':
+              adjustFontSize(parseInt(arg, 10) || 0);
+              break;
+            case 'tab':
+              if (typeof window.switchCharTab === 'function') window.switchCharTab(arg);
+              break;
+            case 'show-add':
+              if (typeof window.showAddCustomCharForm === 'function') window.showAddCustomCharForm();
+              break;
+            case 'cancel-add':
+              if (typeof window.cancelAddCustomChar === 'function') window.cancelAddCustomChar();
+              break;
+            case 'confirm-add':
+              if (typeof window.confirmAddCustomChar === 'function') window.confirmAddCustomChar();
+              break;
+            case 'write-chat':
+              if (typeof window.writeCacheCharToChat === 'function') window.writeCacheCharToChat(arg);
+              break;
+            case 'del-cache':
+              if (typeof window.deleteCacheChar === 'function') window.deleteCacheChar(arg);
+              break;
+            case 'del-chat':
+              if (typeof window.removeChatChar === 'function') window.removeChatChar(arg);
+              break;
+          }
+        });
+      }
+
+      // ============== 入口（每个步骤独立 try，互不影响） ==============
+      function safeRun(label, fn) {
+        try {
+          fn();
+        } catch (e) {
+          console.error('[正文美化] ' + label + ' 失败:', e);
+        }
+      }
+
+      let _rbBooted = false;
+      function rbBoot() {
+        if (_rbBooted) return;
+        _rbBooted = true;
+        // 优先把按钮事件挂上，确保即使后续 init 出错按钮也能用
+        safeRun('initEventDelegation', initEventDelegation);
+        safeRun('initThemeToggle', initThemeToggle);
+        safeRun('initSettingsPanel', initSettingsPanel);
+        safeRun('initAvatarUpload', initAvatarUpload);
+        safeRun('initTheme', initTheme);
+        safeRun('initFontSize', initFontSize);
+        safeRun('loadCustomCharsIntoConfig', loadCustomCharsIntoConfig);
+        safeRun('processContent', processContent);
+        safeRun('renderCacheCharList', renderCacheCharList);
+        safeRun('renderChatCharList', renderChatCharList);
+      }
+
+      // 脚本在 body 末尾执行时，body 必然已存在；多数 iframe srcdoc 场景 readyState 已是
+      // 'interactive' 或 'complete'。即使是 'loading'，也直接跑（document.body 已可用），
+      // 同时保留 DOMContentLoaded 监听作为兜底（避免被某些环境提前触发又错过监听）。
+      rbBoot();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', rbBoot);
+      }
     </script>
   </body>
 </html>
