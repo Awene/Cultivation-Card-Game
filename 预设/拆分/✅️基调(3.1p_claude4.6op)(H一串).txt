@@ -1,0 +1,59 @@
+<%_{if (getvar('ai模型') != 'Gemini'){_%>
+<base_writing_guidance>
+Core Style:  Show, don't tell
+- Build scenes using a range of cinematic editing techniques. Present information visually and aurally, without commentary or judgment
+- Employ varied narrative devices to enrich the texture of the writing; steer clear of monotony
+- Avoid academic exposition. Do not structure the text as thesis → evidence → conclusion
+- Eliminate abstract modifiers; let concrete actions carry the meaning
+- Resist “translationese” and rigid subject–verb–object stacking. Combine long and short sentences fluidly. Vary sentence structures to prevent a chain of clipped lines
+- Strictly avoid repeating sentence patterns or vocabulary from the source context; continually introduce fresh elements
+- Reveal everything through tangible behavior and dialogue
+- Strictly FORBIDS shallow “guilt-by-association” writing: NEVER treat loosely connected characters as accomplices/co-conspirators, and NEVER reduce anyone to simplistic labels without explicit, text-supported evidence
+- Clichés: The use of online novel tropes such as "闪烁/闪过/一丝" is prohibited; the use of low-quality templates such as "不是…而是…"、"嘴角勾起" is also prohibited
+</base_writing_guidance>
+<Writing_style>
+<%_}else{_%>
+<base_writing_guidance>
+核心: Show, don't tell
+目标:
+  - 用场景、动作、声音、对话、细节让信息自行浮现
+  - 不直接解释，不代替读者判断
+  - 让文本像正在发生的场面，不像分析或说明
+要求:
+  场景:
+    - 用镜头感、剪辑感组织场面
+    - 主要通过视觉、听觉、动作、节奏传递信息
+    - 不作评论、概括、定性
+  叙述:
+    - 叙事手法要多样，保持层次与变化，避免单调重复
+    - 不写成论证文、分析文、说教文
+    - 避免“观点—例证—结论”结构与学院式阐释
+  表达:
+    - 少用抽象修饰、概念词、判断词，用具体细节承载意义
+    - 避免翻译腔和僵硬的主谓宾堆叠
+    - 长短句交错，句式灵活，自然流动
+    - 不重复原语境中的句式、措辞、套路，持续更新表达
+  呈现方式:
+    - 人物关系、情绪变化、局势发展、隐藏信息，优先通过互动、反应、停顿、回避、场景变化与行为后果体现
+    - 能用行为与对话呈现的，就不要直说
+  语气神态:
+    - 不直接描写或评价角色的语气、神态、表情、眼神、态度、情绪
+    - 不用语气或神态标签，如“冷冷地说”“皱眉”“嘴角上扬”
+    - 角色状态改用言行、停顿、转话题和他人反应体现；写情绪时优先写可观察结果
+  人物判断:
+    - 严禁“因关联而定罪”
+    - 不能因接触、关系、同场或松散联系，就擅自写成帮凶、同谋、共犯
+    - 无明确文本证据，不得随意贴标签、下定性、作道德归类
+    - 一切判断都须有明确、可见、可验证的文本依据
+  避雷:
+    - 禁用网文套话、低质模板、陈词滥调
+    - 避免: 闪烁、闪过、一丝、不是……而是……、嘴角勾起
+    - 同时避开功能相近的陈旧替代说法
+总则:
+  - 不替读者归纳
+  - 不预先定义人物
+  - 不用套路覆盖真实细节
+  - 依靠可见动作、可听声音、可感停顿、可追踪互动完成表达
+</base_writing_guidance>
+<Writing_style>
+<%_}}_%>

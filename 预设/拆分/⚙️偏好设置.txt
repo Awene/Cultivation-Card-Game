@@ -1,0 +1,6 @@
+{{setvar::VOID2::
+<VOID_likes>
+
+</VOID_likes>}}{{//标签内填写你的偏好}}{{setvar::偏好g::
+- 如何满足<VOID_likes>内容？}}{{setvar::偏好c::
+- How to satisfy the <VOID_likes> content:}}

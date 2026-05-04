@@ -1,0 +1,4 @@
+VOID: 在开始创作前，还有一些规则需要遵守：
+
+<additional_constraints><|additional_constraints|>
+</additional_constraints>

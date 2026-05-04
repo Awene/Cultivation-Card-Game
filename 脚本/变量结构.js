@@ -142,7 +142,7 @@ const SkillSchema = z
   })
   .prefault({});
 
-// ===== 资源池 Schema (气血/灵力/遁速) =====
+// ===== 资源池 Schema (气血/灵气/遁速) =====
 const ResourcePoolSchema = z
   .object({
     气血: z
@@ -157,7 +157,7 @@ const ResourcePoolSchema = z
           .prefault(100),
       })
       .prefault({ 现值: 100, 上限: 100 }),
-    灵力: z
+    灵气: z
       .object({
         现值: z.coerce
           .number()
@@ -177,7 +177,7 @@ const ResourcePoolSchema = z
   })
   .prefault({
     气血: { 现值: 100, 上限: 100 },
-    灵力: { 现值: 100, 上限: 100 },
+    灵气: { 现值: 100, 上限: 100 },
     遁速: 10,
   });
 
@@ -200,7 +200,7 @@ const CultivationArtSchema = z.object({
   境界: z.string().prefault("练气期"),
   五行: FiveElementsEnum.optional(),
   类型: z
-    .enum(["心法", "攻击", "幻术", "神识", "咒法", "身法", "护体", "其他"])
+    .enum(["心法", "攻击", "幻术", "神识", "咒法", "身法", "护体", "阵法"])
     .prefault("心法"),
   消耗: z.string().optional(),
   标签: z.array(z.string()).prefault([]),
@@ -213,8 +213,8 @@ const ItemSchema = z.object({
   品质: QualityEnum.prefault("凡"),
   境界: z.string().optional(),
   类型: z
-    .enum(["秘籍", "配方", "符箓", "丹药", "素材", "工具", "其他"])
-    .prefault("其他"),
+    .enum(["秘籍", "配方", "符箓", "丹药", "素材", "工具"])
+    .prefault("素材"),
   消耗: z.string().optional(),
   五行: FiveElementsEnum.optional(),
   标签: z.array(z.string()).prefault([]),
@@ -233,15 +233,7 @@ const EquipmentSchema = z.object({
   类型: z.enum(["法宝", "护甲", "饰品"]).prefault("法宝"),
   消耗: z.string().optional(),
   五行: FiveElementsEnum.optional(),
-  标签: z.array(z.string()).prefault([]),
-  攻击力: z.coerce
-    .number()
-    .transform((n) => _.clamp(n, 0, Infinity))
-    .optional(),
-  防御力: z.coerce
-    .number()
-    .transform((n) => _.clamp(n, 0, Infinity))
-    .optional(),
+  标签: z.array(z.string()).prefault([]), // 法宝→[攻击力:N]、护甲→[防御力:N]
   效果: z.record(z.string(), z.string()).optional(),
   描述: z.string().prefault(""),
   位置: z.string().prefault("储物袋"),
@@ -273,23 +265,22 @@ const CombatUnitSchema = z.object({
   技能: z.record(z.string(), CombatSkillSchema).prefault({}),
 });
 
-// ===== 储物空间 Schema =====
-const StorageSchema = z
-  .object({
-    灵石: z.coerce
-      .number()
-      .transform((n) => _.clamp(n, 0, Infinity))
-      .describe("默认单位为下品灵石")
-      .prefault(0),
-    物品: z.record(z.string(), ItemSchema).prefault({}),
-    装备: z.record(z.string(), EquipmentSchema).prefault({}),
-    傀儡: z.record(z.string(), CombatUnitSchema).prefault({}),
-    灵兽: z.record(z.string(), CombatUnitSchema).prefault({}),
-  })
-  .prefault({ 灵石: 0, 物品: {}, 装备: {}, 傀儡: {}, 灵兽: {} });
+// ===== 储物字段(根级 + NPC 共用,直接 spread 进 z.object) =====
+const StorageFields = {
+  灵石: z.coerce
+    .number()
+    .transform((n) => _.clamp(n, 0, Infinity))
+    .describe("默认单位为下品灵石")
+    .prefault(0),
+  物品: z.record(z.string(), ItemSchema).prefault({}),
+  装备: z.record(z.string(), EquipmentSchema).prefault({}),
+  傀儡: z.record(z.string(), CombatUnitSchema).prefault({}),
+  灵兽: z.record(z.string(), CombatUnitSchema).prefault({}),
+};
 
-// ===== NPC Schema =====
+// ===== NPC Schema (类型='人物') =====
 const NPCSchema = z.object({
+  类型: z.literal("人物").prefault("人物"),
   在场: z.boolean().prefault(false),
   种族: z.string().prefault("人族"),
   身份: z.array(z.string()).prefault([]),
@@ -303,7 +294,7 @@ const NPCSchema = z.object({
   资源池: ResourcePoolSchema,
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
   功法: z.record(z.string(), CultivationArtSchema).prefault({}),
-  储物空间: StorageSchema,
+  ...StorageFields, // 灵石 / 物品 / 装备 / 傀儡 / 灵兽 直接挂在 NPC 根级,与 user 一致
   性格: z.string().prefault(""),
   外貌: z.string().prefault(""),
   着装: z.string().prefault(""),
@@ -314,54 +305,84 @@ const NPCSchema = z.object({
     .prefault(0),
 });
 
-// ===== 基本信息 Schema =====
-const BasicInfoSchema = z.object({
-  姓名: z.string().prefault("User"),
-  寿元: LifespanSchema,
-  种族: z.string().prefault("人族"),
-  灵根: SpiritualRootSchema,
-  体质: PhysiqueSchema,
-  修炼进度: CultivationProgressSchema,
-  技艺: SkillSchema,
+// ===== 无主战斗单位 (关系列表条目, 类型='傀儡'|'灵兽') =====
+// 用于 关系列表 中表达 "野生妖兽 / 遗弃傀儡 / 临时随从" 等无主形态
+const WildPuppetSchema = z.object({
+  类型: z.literal("傀儡"),
+  在场: z.boolean().prefault(true),
+  品质: QualityEnum.prefault("凡"),
+  境界: z.string().prefault("凡人"),
+  五行: FiveElementsEnum.optional(),
+  标签: z.array(z.string()).prefault([]),
+  描述: z.string().prefault(""),
   资源池: ResourcePoolSchema,
-  地点: z
-    .object({
-      世界: z.enum(["凡界", "灵界", "仙界"]).prefault("凡界"),
-      地域: z.string().prefault("中原"),
-      具体地点: z.string().prefault("荒野"),
-    })
-    .prefault({ 世界: "凡界", 地域: "中原", 具体地点: "荒野" }),
-  时间: z
-    .object({
-      年: z.coerce.number().prefault(1),
-      月: z.coerce
-        .number()
-        .transform((n) => _.clamp(n, 1, 12))
-        .prefault(1),
-      日: z.coerce
-        .number()
-        .transform((n) => _.clamp(n, 1, 30))
-        .prefault(1),
-      时辰: z
-        .enum([
-          "子时",
-          "丑时",
-          "寅时",
-          "卯时",
-          "辰时",
-          "巳时",
-          "午时",
-          "未时",
-          "申时",
-          "酉时",
-          "戌时",
-          "亥时",
-        ])
-        .prefault("午时"),
-    })
-    .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" }),
+  防御力: z.coerce
+    .number()
+    .transform((n) => _.clamp(n, 0, Infinity))
+    .prefault(0),
+  技能: z.record(z.string(), CombatSkillSchema).prefault({}),
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
+  好感度: z.coerce
+    .number()
+    .transform((n) => _.clamp(n, -100, 100))
+    .prefault(-50), // 无主战斗单位默认敌对
 });
+
+const WildBeastSchema = WildPuppetSchema.extend({
+  类型: z.literal("灵兽"),
+});
+
+// ===== 关系列表 条目 = 人物 | 傀儡 | 灵兽 =====
+// preprocess: 老数据/AI 遗漏 类型 字段时 默认补 '人物',保持向后兼容
+const RelationEntrySchema = z.preprocess(
+  (val) => {
+    if (val && typeof val === "object" && !val.类型) {
+      return { ...val, 类型: "人物" };
+    }
+    return val;
+  },
+  z.discriminatedUnion("类型", [NPCSchema, WildPuppetSchema, WildBeastSchema]),
+);
+
+// ===== 地点 Schema =====
+const LocationSchema = z
+  .object({
+    世界: z.enum(["凡界", "灵界", "仙界"]).prefault("凡界"),
+    地域: z.string().prefault("中原"),
+    具体地点: z.string().prefault("荒野"),
+  })
+  .prefault({ 世界: "凡界", 地域: "中原", 具体地点: "荒野" });
+
+// ===== 时间 Schema =====
+const TimeSchema = z
+  .object({
+    年: z.coerce.number().prefault(1),
+    月: z.coerce
+      .number()
+      .transform((n) => _.clamp(n, 1, 12))
+      .prefault(1),
+    日: z.coerce
+      .number()
+      .transform((n) => _.clamp(n, 1, 30))
+      .prefault(1),
+    时辰: z
+      .enum([
+        "子时",
+        "丑时",
+        "寅时",
+        "卯时",
+        "辰时",
+        "巳时",
+        "午时",
+        "未时",
+        "申时",
+        "酉时",
+        "戌时",
+        "亥时",
+      ])
+      .prefault("午时"),
+  })
+  .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" });
 
 // ===== 传闻 Schema =====
 const RumorSchema = z.object({
@@ -392,32 +413,29 @@ const RumorSchema = z.object({
   内容: z.string().prefault(""),
 });
 
-// ===== 主 Schema =====
+// ===== 主 Schema (扁平化:基本信息/修炼功法/储物空间 三大类拆掉) =====
 export const Schema = z.object({
-  基本信息: BasicInfoSchema.prefault({
-    姓名: "User",
-    种族: "人族",
-    寿元: { 年龄: 0, 寿命: 100, 外观年龄: 18 },
-    灵根: { 名称: "未检测", 五行: ["未知"], 品阶: "未检测" },
-    体质: { 名称: "凡体", 悟性: 0, 根骨: 0, 气感: 0 },
-    修炼进度: { 境界: "凡人", 当前进度: 0, 进度上限: 100, 天谴: 0 },
-    技艺: { 生产类: {}, 战斗类: {} },
-    资源池: {
-      气血: { 现值: 100, 上限: 100 },
-      灵力: { 现值: 100, 上限: 100 },
-      遁速: 10,
-    },
-    地点: { 世界: "凡界", 地域: "中原", 具体地点: "荒野" },
-    时间: { 年: 1, 月: 1, 日: 1, 时辰: "午时" },
-    状态效果: {},
-  }),
-  修炼功法: z
-    .object({
-      功法: z.record(z.string(), CultivationArtSchema).prefault({}),
-    })
-    .prefault({ 功法: {} }),
-  储物空间: StorageSchema,
-  关系列表: z.record(z.string(), NPCSchema).prefault({}),
+  // —— 原 基本信息.* ——
+  姓名: z.string().prefault("User"),
+  寿元: LifespanSchema,
+  种族: z.string().prefault("人族"),
+  灵根: SpiritualRootSchema,
+  体质: PhysiqueSchema,
+  修炼进度: CultivationProgressSchema,
+  技艺: SkillSchema,
+  资源池: ResourcePoolSchema,
+  地点: LocationSchema,
+  时间: TimeSchema,
+  状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
+
+  // —— 原 修炼功法.功法 ——
+  功法: z.record(z.string(), CultivationArtSchema).prefault({}),
+
+  // —— 原 储物空间.* ——
+  ...StorageFields,
+
+  // —— 不变 ——
+  关系列表: z.record(z.string(), RelationEntrySchema).prefault({}),
   传闻: z.array(RumorSchema).prefault([]),
 });
 

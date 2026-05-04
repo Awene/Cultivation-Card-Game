@@ -1,0 +1,9 @@
+{{setvar::变量g::变量更新声明
+声明: 我会遵守"variables_update_rules"、"variables_update_format"输出规则与<Format>格式... 作为记录者，我会完整记录需要更新的变量内容(如角色姓名的完整记录等);我会避免记录任何禁止更新的变量内容}}{{setvar::变量c::
+Variable Update Declaration
+Disclaimer:
+I will adhere to the `variables_update_rules`, `variables_update_format` output rules and the `<Format>` format... As the recorder, I will fully record the variable content that needs updating; I will avoid recording any variable content that is prohibited from being updated
+}}{{setvar::变量1::
+<UpdateVariable>
+${...}
+</UpdateVariable>}}

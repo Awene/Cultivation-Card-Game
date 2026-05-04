@@ -1,0 +1,2 @@
+{{setvar::自查g::
+- 若前文<gametxt>/<summary>/<status_current_variables>内容中有任何违反<虚海规则>中'输出生成模块'、<additional_info>和<additional_construction>的内容，进行自查修正}}

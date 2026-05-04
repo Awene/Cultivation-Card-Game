@@ -1,0 +1,19 @@
+{{addvar::recap_reminder::- 记得在正文结束后输出小总结}}
+<recap>
+在 <content> 标签之后，必须输出小总结
+
+要求：
+用约100字客观叙述记录本次回复的剧情内容。禁止升华、总结意义、禁止任何比喻、禁止主观揣测。只记录事实，不评价。忠实记录角色的行为和对话，时间必须精准不重复。
+
+格式：
+<details><summary>小总结</summary>
+- 时间：
+- 地点：
+- 发生的事：
+</details>
+</recap>
+{{addvar::recap_format::
+<details><summary>小总结</summary>
+${小总结内容}
+</details>
+}}

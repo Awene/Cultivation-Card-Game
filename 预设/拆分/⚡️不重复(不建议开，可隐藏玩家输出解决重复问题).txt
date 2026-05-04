@@ -1,0 +1,1 @@
+直接从</historical_record>处开始记录，避免对</historical_record>内容出现任何形式的重复。在思考后直接输出正文。

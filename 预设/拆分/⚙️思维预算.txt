@@ -1,0 +1,1 @@
+{{setvar::思维预算c::No more than 4096 words.}}{{setvar::思维预算g::至少2048字中文}}{{//c是claude，g是Gemini，不是越多越好}}

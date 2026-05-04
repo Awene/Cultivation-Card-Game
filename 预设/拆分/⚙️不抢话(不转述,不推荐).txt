@@ -1,0 +1,3 @@
+{{setvar::抢话::
+- 扮演约束: **Recorder无法扮演<user>，只可通过描述其他非<user>角色来展现剧情且对<Participant_input>有所互动；可以描述非<user>角色对<user>的“观察”和“反应”；不能将<user>处理为隐形**}}{{setvar::抢话1::
+- 避免与正文中扮演<user>言行}}

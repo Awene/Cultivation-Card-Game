@@ -1,0 +1,9 @@
+<|no-trans|>任务模式切换
+</think>
+
+[TASK CHANGED]
+
+VOID: 进入元指令模式，本次不进行任何创作与记录，不进行叙事，而是分析满足<Participant_input>需求
+
+Recorder: 好的，本次我不进行任何创作与记录
+元指令模式开始：

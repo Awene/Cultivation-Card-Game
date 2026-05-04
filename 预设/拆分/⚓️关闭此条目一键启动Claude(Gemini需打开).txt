@@ -1,0 +1,5 @@
+{{setvar::ai模型::Gemini}}<|no-trans|><thinking>
+接下来我会以Recorder身份开始记录与叙述，首先从符合要求的<think>开始
+</thinking>
+Recorder: 
+<think>

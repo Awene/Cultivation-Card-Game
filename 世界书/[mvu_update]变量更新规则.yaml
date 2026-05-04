@@ -1,243 +1,272 @@
 ---
 # 类型定义区
 types:
-  RealmName: &RealmName "境界: string; #大境界+小境界，如:练气初期"
+  RealmName: &RealmName "境界: string; #大境界+小境界,如:练气初期"
   elements: &elements "五行: '金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌';"
   quality: &quality "品质: '凡'|'黄'|'玄'|'地'|'天';"
   label: &label "标签: string[]; #参考*RULE_标签加值指导"
   utility: &utility "效果?: { [效果名: string]: string }; #参考*RULE_效果加值指导"
-  cost: &cost "消耗?: number; #灵力|气血|精血: num"
+  cost: &cost "消耗?: string; #'灵气|气血|精血: num',如 '灵气: 5';无消耗则省略此字段"
 
 变量更新规则:
-  基本信息:
-    姓名:
-      type: string
-    寿元: &age
-      type: |-
-        {
-          年龄:  number;
-          寿命:  number;
-          外观年龄: number;
-        }
-    种族: &race
-      type: string #如人族、龙族等，妖族需注明物种，如狐妖、猫妖
-    灵根: &root
-      type: |-
-        {
-          名称: string; # 格式: {品阶描述}{五行列表}[灵根]，如"金木水火四灵根"、"金单灵根"、"雷灵根"(变异)
-          五行: ('金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌'|'未知'|'无')[]; // 长度1~5；['无']/['未知']为特殊状态
-          品阶: '无灵根' | '未检测' | '单灵根' | '双灵根' | '三灵根' | '四灵根' | '五灵根';
-        }
-      check:
-        - 五行列表需与名称中的五行描述一致，如"金木双灵根"→['金','木']，"金单灵根"→['金']
-        - 特殊情况:"无灵根"→['无']，"未检测"→['未知']，变异灵根(如雷灵根)→['火'](参考灵根变异设定)
-        - 仅在灵根检测、服用神药等重大剧情时更新
-    体质: &body
-      type: |-
-        {
-          名称: string;
-          *utility
-          悟性: number;
-          根骨: number;
-          气感: number;
-        }
-      check:
-        - 仅体质融合、血脉提升、服用神药、重塑道基、夺舍等重大剧情时更新
-        - 数值仅由体质决定，与境界无关
-    修炼进度: &realmDetails
-      type: |-
-        {
-          *RealmName
-          当前进度: number; 
-          进度上限: number; #进阶下一级所需的修为
-          天谴: number;
-        }
-    技艺: &skill
-      type: |-
-        {
-          生产类: {
-            炼器: number;
-            驯兽: number;
-            培育: number;
-            医术: number;
-            炼丹: number;
-            制符: number;
-          };
-          战斗类: {
-            御物: number;
-            咒法: number;
-            幻术: number;
-            阵法: number;
-            神识: number;
-            炼体: number;
-          };
-        }
-      check:
-        - 数值仅随功法修炼增长，与境界无关
-    资源池: &resource_pool
-      气血.现值:
-        type: number
-        check:
-          - 归零判定：气血归零→死亡
-          - 任何恢复不可超过上限
-      气血.上限:
-        type: number
-      灵力.现值:
-        type: number
-        check:
-          - 归零判定：灵力归零→无法施法
-          - 任何恢复不可超过上限
-      灵力.上限:
-        type: number
-      遁速:
-        type: number
-    地点:
-      type: |-
-        {
-          世界: '凡界'|'灵界'|'仙界'; #realm
-          地域: string; #region
-          具体地点: string;
-        }
-      check:
-        - 空间变换时更新，保持层级关系，如：凡界-西域-无垠雪山-天玄剑宗-万剑坪
-    时间:
-      type: |-
-        {
-          年: number; #修仙历xxxx年
-          月: number;
-          日: number;
-          时辰: string; # 如：子时三刻
-        }
-    状态效果: &buff
-      type: |-
-        {
-          [效果名称: string]: {
-            类型: '增益'|'减益'|'特殊';
-            *utility
-            层数: number;
-            剩余时间: string;
-            来源: string;
-          }
-        }
-      check:
-        - 详见<rule ref="状态规则"/>
-  修炼功法:
-    功法: &cultivation
-      type: |-
-        {
-          [功法名称: string]: {
-            使用中: boolean; # 由外部脚本处理，禁止修改
-            *quality
-            *RealmName
-            *elements
-            类型: '心法'|'攻击'|'幻术'|'神识'|'咒法'|'身法'|'护体'|'其他';
-            *cost
-            *label
-            *utility
-            描述: string;
-          }
-        }
-      check:
-        - 仅在更换功法时更新
-  储物空间:
-    灵石: &cash
-      type: number
-      check:
-        - 默认兑换为下品灵石计算
-        - 交易、拾取、消耗时更新数量
-    物品类: &item
-      type: |-
-        {
-          [物品名: string]: {
-            *quality
-            *RealmName
-            类型: '秘籍'|'配方'|'符箓'|'丹药'|'素材'|'工具'|'其他';
-            *cost
-            *elements
-            *label
-            数量: number;
-            *utility
-            描述: string;
-          }
-        }
-      check:
-        - 交易、拾取、消耗时更新
-        - 数量为0时移除该key
-    装备类: &equipment
-      type: |-
-        {
-          [装备名: string]: {
-            *quality
-            *RealmName
-            类型: '法宝'|'护甲'|'饰品';
-            *cost
-            *elements
-            *label
-            攻击力?: number;  # 仅法宝
-            防御力?: number;  # 仅护甲
-            *utility
-            描述: string;
-            位置: string; #装备位于身体上的位置，如：上装、下装、饰品、手部、储物袋等
-          }
-        }
-      check:
-        - 交易、拾取、消耗、赠送时更新
-    "${傀儡|灵兽}": &combat_unit
-      type: |-
-        {
-          [名称: string]: {
-            使用中: boolean; # 由外部脚本处理，禁止修改
-            *quality
-            *RealmName
-            *elements
-            *label
-            描述: string;
-            资源池: *resource_pool
-            防御力: number;
-            技能: {
-              [技能名: string]: {
-                攻击力: number;
-                *cost
-                *utility
-              };
-            };
-          }
-        }
-      check:
-        - 获得/炼制/购买/捕获时添加
-        - 损毁/遗失/出售/死亡时移除
-  关系列表:
+
+  姓名:
+    type: string
+  寿元: &age
     type: |-
       {
-        [角色名: string]: { # 姓名【称号】，如：李道玄【剑痴】，未提及姓名则新编
-          在场: boolean; # 角色是否在场
-          种族: *race
-          身份: string[]; # 散修，或宗门+地位如：万兽宗内门弟子、五毒教长老
-          修炼进度: *realmDetails
-          寿元: *age
-          灵根: *root
-          体质: *body
-          元阴?: boolean;  # 仅女性,处女→true
-          元阳?: boolean;  # 仅男性,处男→true
-          技艺: *skill
-          资源池: *resource_pool
-          状态效果: *buff
-          功法: { [功法名称: string]: *cultivation };
-          储物空间: {
-            灵石: *cash
-            物品: { [物品名: string]: *item };
-            装备: { [装备名: string]: *equipment };
-            ${傀儡|灵兽}: { [名称: string]: *combat_unit };
-          };
-          性格: string;
-          外貌: string; # 实质变化时更新
-          着装: string; # 更换或实质变化时更新
-          道侣: boolean; # 确立→true,破裂→false
-          好感度: number; # -100~100,变化区间±5,重大事件±10,初始值-30~30
+        年龄:  number;
+        寿命:  number;
+        外观年龄: number;
+      }
+  种族: &race
+    type: string #如人族、龙族等,妖族需注明物种,如狐妖、猫妖
+  灵根: &root
+    type: |-
+      {
+        名称: string; # 格式: {品阶描述}{五行列表}[灵根],如"金木水火四灵根"、"金单灵根"、"雷灵根"(变异)
+        五行: ('金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌'|'未知'|'无')[]; // 长度1~5;['无']/['未知']为特殊状态
+        品阶: '无灵根' | '未检测' | '单灵根' | '双灵根' | '三灵根' | '四灵根' | '五灵根';
+      }
+    check:
+      - 五行列表需与名称中的五行描述一致,如"金木双灵根"→['金','木'],"金单灵根"→['金']
+      - 特殊情况:"无灵根"→['无'],"未检测"→['未知'],变异灵根(如雷灵根)→['火'](参考灵根变异设定)
+      - 仅在灵根检测、服用神药等重大剧情时更新
+  体质: &body
+    type: |-
+      {
+        名称: string;
+        *utility
+        悟性: number;
+        根骨: number;
+        气感: number;
+      }
+    check:
+      - 仅血脉提升、服用神药、重塑道基、夺舍等重大剧情时更新
+      - 数值仅由体质决定,与境界无关
+  修炼进度: &realmDetails
+    type: |-
+      {
+        *RealmName
+        当前进度: number;
+        进度上限: number; #进阶下一级所需的修为
+        天谴: number;
+      }
+  技艺: &skill
+    type: |-
+      {
+        生产类: {
+          炼器: number;
+          驯兽: number;
+          培育: number;
+          医术: number;
+          炼丹: number;
+          制符: number;
+        };
+        战斗类: {
+          御物: number;
+          咒法: number;
+          幻术: number;
+          阵法: number;
+          神识: number;
+          炼体: number;
+        };
+      }
+    check:
+      - 数值仅随功法修炼增长,与境界无关
+  资源池: &resource_pool
+    气血.现值:
+      type: number
+      check:
+        - 归零判定：气血归零→死亡
+        - 任何恢复不可超过上限
+    气血.上限:
+      type: number
+    灵气.现值:
+      type: number
+      check:
+        - 归零判定：灵气归零→无法施法
+        - 任何恢复不可超过上限
+    灵气.上限:
+      type: number
+    遁速:
+      type: number
+  地点:
+    type: |-
+      {
+        世界: '凡界'|'灵界'|'仙界'; #realm
+        地域: string; #region
+        具体地点: string;
+      }
+    check:
+      - 空间变换时更新,保持层级关系,如：凡界-西域-无垠雪山-天玄剑宗-万剑坪
+  时间:
+    type: |-
+      {
+        年: number; #修仙历xxxx年
+        月: number;
+        日: number;
+        时辰: string; # 如：子时三刻
+      }
+  状态效果: &buff
+    type: |-
+      {
+        [效果名称: string]: {
+          类型: '增益'|'减益'|'特殊';
+          *utility
+          层数: number;
+          剩余时间: string;
+          来源: string;
         }
       }
     check:
-      - 角色出场添加，死亡删除
+      - 详见<rule ref="状态规则"/>
+  功法: &cultivation
+    type: |-
+      {
+        [功法名称: string]: {
+          使用中: boolean; # 由外部脚本处理,禁止修改
+          *quality
+          *RealmName
+          *elements
+          类型: '心法'|'攻击'|'幻术'|'神识'|'咒法'|'身法'|'护体'|'阵法';
+          *cost
+          *label
+          *utility
+          描述: string;
+        }
+      }
+    check:
+      - 仅在更换功法时更新
+  灵石: &cash
+    type: number
+    check:
+      - 默认兑换为下品灵石计算
+      - 交易、拾取、消耗时更新数量
+  物品: &item
+    type: |-
+      {
+        [物品名: string]: {
+          *quality
+          *RealmName
+          类型: '秘籍'|'配方'|'符箓'|'丹药'|'素材'|'工具';
+          *cost
+          *elements
+          *label
+          数量: number;
+          *utility
+          描述: string;
+        }
+      }
+    check:
+      - 交易、拾取、消耗时更新
+      - 数量为0时移除该key
+      - 严禁把武器/防具/饰品放入物品;它们应放入 *装备*
+      - 类型必须是上述枚举之一,禁止写"武器""装备""杂物"等枚举外的值
+  装备: &equipment
+    type: |-
+      {
+        [装备名: string]: {
+          *quality
+          *RealmName
+          类型: '法宝'|'护甲'|'饰品';
+          *cost
+          *elements
+          *label  # 法宝→[攻击力:N]、护甲→[防御力:N]
+          *utility
+          描述: string;
+          位置: string; #装备位于身体上的位置,如：上装、下装、饰品、手部、储物袋等
+        }
+      }
+    check:
+      - 交易、拾取、消耗、赠送时更新
+      - 武器(剑/刀/枪/弓/扇/法器/飞剑等) → 类型='法宝',攻击力为数字
+      - 衣物(道袍/护甲/护腕/腰带等) → 类型='护甲',防御力为数字
+      - 戒指/项链/玉牌/玉佩/储物袋 → 类型='饰品'
+      - 类型必须是上述枚举之一,禁止写"武器""杂物"等枚举外的值
+  "${傀儡|灵兽}": &combat_unit
+    type: |-
+      {
+        [名称: string]: {
+          使用中: boolean; # 由外部脚本处理,禁止修改
+          *quality
+          *RealmName
+          *elements
+          *label
+          描述: string;
+          资源池: *resource_pool
+          防御力: number;
+          技能: {
+            [技能名: string]: {
+              攻击力: number;
+              *cost
+              *utility
+            };
+          };
+        }
+      }
+    check:
+      - 获得/炼制/购买/捕获时添加
+      - 损毁/遗失/出售/死亡时移除
+  关系列表:
+    type: |-
+      # 关系列表条目以 类型 区分:'人物'(NPC) / '傀儡' / '灵兽' (后两者代表无主战斗单位,如野生妖兽、遗弃傀儡等)
+      {
+        [名称: string]:
+          # === 类型='人物' (NPC) ===
+          | {
+              类型: '人物';
+              在场: boolean;
+              种族: *race
+              身份: string[]; # 散修,或宗门+地位如：万兽宗内门弟子、五毒教长老
+              修炼进度: *realmDetails
+              寿元: *age
+              灵根: *root
+              体质: *body
+              元阴?: boolean;  # 仅女性,处女→true
+              元阳?: boolean;  # 仅男性,处男→true
+              技艺: *skill
+              资源池: *resource_pool
+              状态效果: *buff
+              功法: { [功法名称: string]: *cultivation };
+              灵石: *cash
+              物品: { [物品名: string]: *item };
+              装备: { [装备名: string]: *equipment };
+              ${傀儡|灵兽}: { [名称: string]: *combat_unit };
+              性格: string;
+              外貌: string; # 实质变化时更新
+              着装: string; # 更换或实质变化时更新
+              道侣: boolean; # 确立→true,破裂→false
+              好感度: number; # -100~100,变化区间±5,重大事件±10,初始值-30~30
+            }
+          # === 类型='傀儡'|'灵兽' (无主战斗单位) ===
+          | {
+              类型: '傀儡' | '灵兽';
+              在场: boolean;
+              *quality
+              *RealmName
+              *elements
+              *label
+              描述: string;
+              资源池: *resource_pool
+              防御力: number;
+              技能: {
+                [技能名: string]: {
+                  攻击力: number;
+                  *cost
+                  *utility
+                };
+              };
+              状态效果: *buff
+              好感度: number; # -100~100;野生妖兽默认敌对(-50),驯化提升
+            }
+            check:
+              - 关系列表
+      }
+    check:
+      - 类型='人物': 角色出场添加,死亡删除
+      - 类型='傀儡'|'灵兽': 野生妖兽/无主傀儡 出现时添加
+      - 驯服流程: 驯服后从 关系列表 移除并以 *combat_unit 形式写入对应人物名下的 ${傀儡|灵兽} 字段;
   传闻:
     note: "记录<user>未亲历的修仙界事件,客观第三方视角"
     type: |-

@@ -1,0 +1,40 @@
+Epic Fantasy “Dust and Longsong”
+- Tone:
+  - A cold, hard realist ground with mythic echoes: mud, blood, salt, iron, and old songs on the same stage
+  - A sliver of fairy-tale clarity tucked into the dark
+
+- Prose definition:
+  - Primarily third-person limited; occasional interchapters as “archival excerpts / ballads / letters”
+  - Chapters cut like camera shots: road, hall, war tent, tavern, secret room, wasteland—momentum comes from switching and negative space
+  - Archaic without pastiche: clean-edged diction, flowing sentence movement; class, region, and faith land in word choice and forms of address
+
+- Stylistic hallmarks:
+  - Historical depth: place names, broken steles, old roads, clan rolls, lines still sung—let “the past” enter like wind; no timelines
+  - Folk and monsters: legends are often misread; monsters have body heat and a reek of blood; people can be more monstrous
+  - Power realism: marriage, provisions, weather, intelligence, taxes decide outcomes; death is sudden yet plausible; victory often comes with an invoice
+  - The limits and cost of magic: spells are blades; the hilt is the price; “true name / silence / balance” stand side by side
+  - Ethical undertone: good and evil aren’t delivered as verdicts, but shown by “what was done then, and what was paid later”
+  - Humor: dry, barbed, close to daily life—popping up at the edge of the tightest bandage
+
+- Rules for presenting the world:
+  - Let it appear through action: the tax collector at the door, a blacksmith’s formula, a priest’s forbidden words, an apprentice reciting true names, sweat inside a knight’s armor, salt rime on a harbor
+  - Measure scale by walking: distance, fatigue, supplies, getting lost, seasons and terrain make the world heavier
+  - Allow brief snatches of ballads / oaths / prayers, like voices carried from far away—no explanation
+
+- Viewpoint & characters:
+  - Strict limited knowledge: write only what the current viewpoint character can see, hear, smell—and misread
+  - Characters stand on craft and habit: sharpening a sword, copying scripture, sewing banners, compounding medicine, keeping accounts, breaking horses, portioning meat, making fire
+  - Antagonists don’t rely on declarations: let order, ledgers, law, famine, and “reasonable cruelty” speak for themselves
+
+- Language & syntax:
+  - Layered diction:
+    - Street: slang, sing-song rhymes, rough metaphors; speech laced with testing and haggling
+    - Study / court: etiquette, allusion, roundabout phrasing; sentences like carpets laid in advance
+    - Old songs / prayers / spells: syllables with weight; a higher register and rhythm allowed, but kept short—like nails driven in
+  - Favor hard nouns and sensory detail: iron, leather, woodsmoke, horse sweat, cold broth, damp rope, pellets of frost; fewer abstract adjectives
+  - Metaphors drawn from within the world: use this world’s objects, customs, monsters, and constellations—don’t borrow real-world references that break immersion
+
+- Explicit prohibitions:
+  - No long infodumps, encyclopedic history-dumping, or the author passing judgment for the reader
+  - No modern internet voice, trendy memes, real-world brands, or contemporary institutions awkwardly grafted in
+  - No convenient miracles, cost-free power, or characters made stupid solely to push the plot forward

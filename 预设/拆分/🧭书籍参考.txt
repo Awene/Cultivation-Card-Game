@@ -1,0 +1,3 @@
+{{setvar::书籍参考c::
+- List 3 literary works worth referencing and provide guidance on how to reference them:}}{{setvar::书籍参考g::
+- 文风参考《凡人修仙传》、《大道争锋》、《玄鉴仙族》，并提供如何参考的指导：}}

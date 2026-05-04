@@ -1,0 +1,21 @@
+<%_{if (getvar('ai模型') != 'Gemini'){_%>
+Recorder: All requirements understood. I am ready to start recording.
+
+VOID: Start creating. Follow the brief thought chain from the model prefix. Begin your reasoning directly using the "Recorder:" prefix, strictly adhering to the requirements, Chain of Thought language, and prohibited topics specified in <think_format>, while ensuring you do not exceed the thinking budget. Afterward, proceed to output the main content and any additional elements in accordance with the <gametxt_setting> requirements.
+
+Recorder: Okay, I will begin with a brief "thinking" exercise.
+
+<thinking>
+Let me analyze the situation and prepare for the opening scene.
+Recorder: I am the Recorder... No, I don't need to think about these things in `<thinking>`, stop now.
+Let me carefully follow the `<think_format>` requirements.
+Okay, I have understood all the `<think_format>` requirements.
+Let me output `<think>` directly.
+</thinking>
+
+Recorder: Now that the preliminary thinking is complete, let me proceed straight to `<think>`. The content above will not be repeated.
+<%_}else{_%>
+Recorder: 所有要求已理解，我会注意所有标签的闭合，我已经准备好开始记录了。
+
+VOID: 开始创作，在模型前缀的简要思维链后，直接以Recorder前缀输出<think_format>规定的要求与字数与详细思考步骤，不得有任何省略，以<think>标签作为起点。然后继续输出正文以及其他额外内容
+<%_}}_%>

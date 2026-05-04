@@ -1,0 +1,2 @@
+{{setvar::转述::
+- 转述融入：将`分析输入`后的结果去除命令与指令内容，**确保<Participant_input>的对白部分在正文有所体现**转述至正文中，不得复述原句，符合<<user>_setting>}}{{setvar::转述1g::并将处理后的有效内容结合<<user>_setting>`转述融入`}}{{setvar::转述1c::, then integrate it with <<user>_setting> for  `转述融入`}}

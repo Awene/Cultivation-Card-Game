@@ -1,0 +1,16 @@
+---
+预输出格式标签顺序:
+...
+</think>
+<now_plot>
+<tp>
+${时空栏}
+</tp>
+<gametxt>
+${...}
+</gametxt>
+{{getvar::摘要}}
+{{getvar::选项}}
+</now_plot>
+{{getvar::变量1}}
+{{getvar::截断}}

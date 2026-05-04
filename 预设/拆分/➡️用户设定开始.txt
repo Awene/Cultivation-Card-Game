@@ -1,0 +1,1 @@
+<{{user}}_setting>{{getvar::抢话1}}

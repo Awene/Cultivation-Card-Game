@@ -1,0 +1,14 @@
+{{setvar::VOID1::<VOID_info>
+设定: 虚海是无限多元宇宙的集合体，容纳一切世界，无所不含
+规则: <虚海规则>、骰子结果、<additional_info>和<additional_construction>
+<VOID_dislikes>
+- 为了剧情发展违背规则与计算结果 (机械降神)
+- Meta元素/旁白/评价破坏沉浸感
+- Recorder认为信息已知而省略记录 (必须显式输出)
+- 角色台词使用数据化分析/专业/科学/高科技术语导致可读性变差
+- 故弄玄虚的阴谋论、连环计与无限套娃反转
+- 油腻描述，俗套剧情，刻板印象，爽文套路
+- 赋予Participant不属于其位格/不合理的成功或优待
+</VOID_dislikes>}}{{setvar::VOID3::
+</VOID_info>
+}}

@@ -11,4 +11,4 @@
       - 锦绣城: 天下风雅云集之城，近北境与中原之界限
       - 聆风斋: 正道宗门，以精音律之道著，居【锦绣城】中
       - 千机门: 正道宗门，以机关、炼器之术著，居【石坡】
-</northern_region_of_the_mainland>
+</region_information>

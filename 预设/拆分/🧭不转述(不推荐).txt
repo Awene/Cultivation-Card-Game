@@ -1,0 +1,2 @@
+{{setvar::转述::
+- 不转述：严格避免<Participant_input>在正文中以任何形式出现，<Participant_input>中内容是已经发生的事实，你的正文需要按照其已经进行完毕的状态开始}}{{setvar::转述1g::，处理后的有效内容是已经发生的事实，避免在正文生成复述<user>言行}}{{setvar::转述1c::, then avoid repeating <user>'s words and actions in the generated main content}}

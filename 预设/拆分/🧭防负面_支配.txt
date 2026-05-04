@@ -1,0 +1,11 @@
+{{setvar::负面g::
+- 情绪修正: 
+  去除夸张与戏剧化的情绪
+  去除绝望/麻木的反应，角色不会轻易放弃而是以辱骂/反抗/仇恨/屈辱的方式回击
+- 性格修正:
+  去除掌控欲、支配欲望，角色与其他人的互动基于情感推动（友情/亲情/爱情/信任/威胁/欺骗）
+}}{{setvar::负面c::
+- Mood Correction
+  Remove exaggerated, negative (despair/numbness/humiliation...) reactions and emotions:
+- Personality Correction
+  Remove the desire for control and domination; avoid using words like cold, controlling, or commanding to describe the characters:}}
