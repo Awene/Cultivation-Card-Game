@@ -1,7 +1,7 @@
 ```
 <body>
 <script>
-$('body').load('https://testingcf.jsdelivr.net/gh/The-poem-of-destiny/FrontEnd-for-destined-journey@1.8.1/dist/custom_start/index.html')
+$('body').load('https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.4/dist/自定义开局/index.html')
 </script>
 </body>
 ```
