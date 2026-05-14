@@ -27,13 +27,14 @@ if (mode !== 'hidden') {
   const pick3 = (arr) => [...arr].sort(() => Math.random() - 0.5).slice(0, 3).join('、');
 
   // 读取最近聊天 + 具体地点 用于关键字检测
-  // 用 '0-{{lastMessageId}}' (文档明确支持的格式) 拿全部, JS slice(-10) 取最末 10 条
-  // 避免 '-10-{{lastMessageId}}' 这种负数起点格式可能不被解析的问题
+  // 注意: 这里用的是 ST-Prompt-Template (EJS 插件) 提供的 API, 不是 TavernHelper 的:
+  //   - EJS 上下文里 `lastMessageId` 是一个全局变量, 没有 getLastMessageId() 函数
+  //   - 这里的 getChatMessages(count) 返回 string[] (直接是消息内容), 不是 ChatMessage[]
+  // 参考: https://github.com/zonde306/ST-Prompt-Template/blob/master/docs/reference.md
   let scanText = 具体地点;
   try {
-    const allMsgs = getChatMessages('0-{{lastMessageId}}') || [];
-    const recent = allMsgs.slice(-10);
-    scanText += '\n' + recent.map(m => m.message || '').join('\n');
+    const recent = getChatMessages(10) || [];
+    scanText += '\n' + recent.join('\n');
   } catch(e) {}
   const mentioned = (kws) => kws.some(kw => kw && scanText.includes(kw));
   const inLoc = (kw) => 具体地点.includes(kw);
