@@ -1146,8 +1146,8 @@
         color: #93c5e9;
       }
       .item-card .ic-stat.ic-stat-加成,
-      .item-card .ic-stat.ic-stat-减免%,
-      .item-card .ic-stat.ic-stat-穿透% {
+      .item-card .ic-stat.ic-stat-减免\%,
+      .item-card .ic-stat.ic-stat-穿透\% {
         background: rgba(72, 187, 120, 0.12);
         border-color: rgba(72, 187, 120, 0.30);
         color: #93dca5;
@@ -3776,12 +3776,34 @@
         if (def) metaTags += `<span class="tag tag-attr">防 ${_.escape(def)}</span>`;
         if (cost) metaTags += `<span class="tag">耗 ${_.escape(cost)}</span>`;
 
-        // 自定义标签(数组形式)
+        // 自定义标签解析 - 兼容多种 AI 输出格式:
+        //   1) "[命中:2][穿透%:14][攻击力:5]"  — 多括号串联(本次 case)
+        //   2) "[命中:2, 穿透%:14]"            — 单括号 + 逗号
+        //   3) "命中:2, 穿透%:14"              — 无括号 + 逗号
+        //   4) "[[a],[b]]"                      — 双层包裹
         let customTags = '';
         if (tagsField && tagsField !== '[]') {
-          const m = String(tagsField).match(/^\[(.+)\]$/);
-          const ts = m ? m[1].split(/[,，]\s*/).filter(Boolean) : [];
-          ts.forEach(t => { customTags += `<span class="char-card-item-customtag">${_.escape(t.trim())}</span>`; });
+          const s = String(tagsField).trim();
+          let ts = [];
+          // 优先用 \[([^\[\]]+)\] 全局匹配,捕获所有形如 [xxx] 的内层片段
+          const bracketMatches = s.match(/\[([^\[\]]+)\]/g);
+          if (bracketMatches && bracketMatches.length) {
+            for (const m of bracketMatches) {
+              const inner = m.slice(1, -1).trim();
+              // 再按 ,，、 二次拆分,兼容 [a, b, c] 这种情况
+              for (const part of inner.split(/[,，、]\s*/)) {
+                const p = part.trim();
+                if (p) ts.push(p);
+              }
+            }
+          } else if (s) {
+            // 完全无括号: 直接按分隔符切
+            for (const part of s.split(/[,，、]\s*/)) {
+              const p = part.trim();
+              if (p) ts.push(p);
+            }
+          }
+          ts.forEach(t => { customTags += `<span class="char-card-item-customtag">${_.escape(t)}</span>`; });
         }
 
         // 效果
@@ -5377,5 +5399,4 @@
     </script>
   </body>
 </html>
-
 ```
