@@ -1850,7 +1850,8 @@
     - 正则名称: "[不发送]去除变量更新"
       id: 939a0a7b-ce41-4466-bf51-74f6d21b6b43
       启用: true
-      查找表达式: /^[ \t]*<update(?:variable)?>(?:(?!.*<\/update(?:variable)?>).*$|.*<\/update(?:variable)?>)/gsim
+      查找表达式: /^[
+        \t]*<update(?:variable)?>(?:(?!.*<\/update(?:variable)?>).*$|.*<\/update(?:variable)?>)/gsim
       内容: ""
       来源:
         用户输入: false
@@ -1887,7 +1888,8 @@
     - 正则名称: "[折叠]变量更新中"
       id: 70050338-7e46-4db5-8f5a-e9a96b2a9545
       启用: true
-      查找表达式: /^[ \t]*<update(?:variable)?>(?!.*<\/update(?:variable)?>)\s*(.*)\s*$/gsim
+      查找表达式: /^[
+        \t]*<update(?:variable)?>(?!.*<\/update(?:variable)?>)\s*(.*)\s*$/gsim
       文件: 正则\[折叠]变量更新中
       来源:
         用户输入: false
