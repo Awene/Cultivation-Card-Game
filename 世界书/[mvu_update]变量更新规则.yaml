@@ -106,7 +106,7 @@ types:
         年: number; #修仙历xxxx年
         月: number;
         日: number;
-        时辰: string; # 如：子时三刻
+        时辰: string; # 如：子时
       }
   状态效果: &buff
     type: |-
