@@ -3949,6 +3949,12 @@
       }
 
       function renderCharItem(item) {
+        // 空集合字面量({} / [])跳过渲染:AI 偶尔把空的 技艺/物品/装备/状态效果/关系列表 等
+        // 写成内联空对象,会被解析为值为 "{}" 的标量,直接渲染会暴露多余花括号。
+        if (item.kind === 'scalar') {
+          const sv = item.value == null ? '' : String(item.value).trim();
+          if (/^[\[{]\s*[\]}]$/.test(sv)) return '';
+        }
         // 身份 特殊渲染:tag 列表(健壮处理多种分隔符)
         const probe = (item.kind === 'section' || item.kind === 'list-section') ? item.title : item.key;
         if (probe === '身份') return renderCharIdentity(item);
@@ -4001,6 +4007,12 @@
             if (headerMap['_天谴'] === undefined) headerMap['_天谴'] = item.value;
             continue;
           }
+          // 元阳/元阴 已并入 体质:从 体质 section 抽到 header(不 continue,体质仍照常渲染)
+          if ((item.kind === 'section' || item.kind === 'list-section') && item.title === '体质' && Array.isArray(item.fields)) {
+            for (const f of item.fields) {
+              if (f.key === '元阳' || f.key === '元阴') headerMap[f.key] = f.value;
+            }
+          }
           remaining.push(item);
         }
 
@@ -4024,10 +4036,12 @@
         // 境界(从被 hide 的 修炼进度 抽出来)
         if (headerMap['_境界']) headerTags.push(`<span class="tag">${_.escape(headerMap['_境界'])}</span>`);
 
-        // 元阳/元阴:勾叉表达;按 schema,角色只会存在其中之一(性别决定)
+        // 元阳/元阴(来自 体质):勾叉表达;null/无/不存在 则不显示(该性征不适用,性别决定留哪个)
         for (const k of ['元阳', '元阴']) {
           if (headerMap[k] === undefined) continue;
           const v = String(headerMap[k]).trim().toLowerCase();
+          // 仅 null/空/缺失 才视作"不存在"而隐藏;'无'/'否'/'false' 等按 已损(✗) 处理
+          if (v === '' || v === 'null' || v === 'undefined') continue;
           const isIntact = v === 'true' || v === '是';
           const cls = isIntact ? 'char-header-purity-intact' : 'char-header-purity-broken';
           const label = isIntact ? `${k} ✓` : `${k} ✗`;
@@ -4241,9 +4255,14 @@
                 if (key === '标签') {
                   const matches = String(value).match(/\[([^\]]+)\]/g) || [];
                   if (matches.length) {
-                    for (const m of matches) cur.标签.push(m.slice(1, -1).trim());
-                  } else if (value.trim()) {
-                    for (const t of value.split(/[,，、]+/)) {
+                    for (const m of matches) {
+                      const t = m.slice(1, -1).trim();
+                      if (t) cur.标签.push(t);
+                    }
+                  } else {
+                    // 去掉外层方括号(空数组 [] / [ ] 在此收敛为空,不再产生空标签),再按分隔符拆
+                    const inner = String(value).trim().replace(/^\[|\]$/g, '').trim();
+                    for (const t of inner.split(/[,，、]+/)) {
                       const tt = t.trim();
                       if (tt) cur.标签.push(tt);
                     }
@@ -5399,4 +5418,5 @@
     </script>
   </body>
 </html>
+
 ```

@@ -4,7 +4,7 @@
 正则文件同步脚本
 
 将 tavern_helper_template-main/src/面板美化/*.html 的内容前后用 ``` 包裹,
-输出到 Cultivation-Card-Game/正则/*(测试).txt 供酒馆正则使用。
+输出到 Cultivation-Card-Game/正则/*.txt 供酒馆正则使用。
 
 新增美化文件时,只需向 TARGETS 增加一项 (源, 目标) 即可。
 """
@@ -20,8 +20,8 @@ OUT_DIR = SCRIPT_DIR.parent / "正则"
 
 # (源 html, 输出 txt)
 TARGETS = [
-    (SRC_DIR / "正文美化.html",   OUT_DIR / "正文美化(测试).txt"),
-    (SRC_DIR / "思维链美化.html", OUT_DIR / "思维链美化(测试).txt"),
+    (SRC_DIR / "正文美化.html",   OUT_DIR / "正文美化.txt"),
+    (SRC_DIR / "思维链美化.html", OUT_DIR / "思维链美化.txt"),
 ]
 
 FENCE = "```"

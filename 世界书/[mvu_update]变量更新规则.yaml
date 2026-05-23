@@ -40,10 +40,12 @@ types:
         悟性: number;
         根骨: number;
         气感: number;
+        元阴?: boolean;  # 仅女性:处女→true,非处女→false
+        元阳?: boolean;  # 仅男性:处男→true,非处男→false
       }
     check:
       - 仅血脉提升、服用神药、重塑道基、夺舍等重大剧情时更新
-      - 数值仅由体质决定,与境界无关
+      - 体质为先天属性,与境界无关
   修炼进度: &realmDetails
     type: |-
       {
@@ -78,14 +80,14 @@ types:
     气血.现值:
       type: number
       check:
-        - 归零判定：气血归零→死亡
+        - 归零判定:气血归零→死亡
         - 任何恢复不可超过上限
     气血.上限:
       type: number
     灵气.现值:
       type: number
       check:
-        - 归零判定：灵气归零→无法施法
+        - 归零判定:灵气归零→无法施法
         - 任何恢复不可超过上限
     灵气.上限:
       type: number
@@ -96,17 +98,17 @@ types:
       {
         世界: '凡界'|'灵界'|'仙界'; #realm
         地域: string; #region
-        具体地点: string;
+        具体地点: string; #格式:${生态}-${?宗门|秘境|城市}-${具体位置}
       }
     check:
-      - 空间变换时更新,保持层级关系,如：凡界-西域-无垠雪山-天玄剑宗-万剑坪
+      - 空间变换时更新
   时间:
     type: |-
       {
         年: number; #修仙历xxxx年
         月: number;
         日: number;
-        时辰: string; # 如：子时
+        时辰: string; # 如:子时
       }
   状态效果: &buff
     type: |-
@@ -175,7 +177,7 @@ types:
           *label  # 法宝→[攻击力:N]、护甲→[防御力:N]
           *utility
           描述: string;
-          位置: string; #装备位于身体上的位置,如：上装、下装、饰品、手部、储物袋等
+          位置: string; #装备位于身体上的位置,如:上装、下装、饰品、手部、储物袋等
         }
       }
     check:
@@ -218,13 +220,11 @@ types:
               类型: '人物';
               在场: boolean;
               种族: *race
-              身份: string[]; # 散修,或宗门+地位如：万兽宗内门弟子、五毒教长老
+              身份: string[]; # 散修,或宗门+地位如:万兽宗内门弟子、五毒教长老
               修炼进度: *realmDetails
               寿元: *age
               灵根: *root
               体质: *body
-              元阴?: boolean;  # 仅女性,处女→true
-              元阳?: boolean;  # 仅男性,处男→true
               技艺: *skill
               资源池: *resource_pool
               状态效果: *buff

@@ -58,8 +58,12 @@ const PhysiqueSchema = z
       .number()
       .transform((n) => _.clamp(n, 0, Infinity))
       .prefault(0),
+    // 元阴/元阳: 性征三态(true 处子 / false 已破 / null 不存在)。null≡该性征不适用,
+    //   据 (元阴,元阳) 值组合判定性别(单边成立=女/男, 其余=其他)。缺失时 prefault 补 null。
+    元阴: z.boolean().nullable().prefault(null),
+    元阳: z.boolean().nullable().prefault(null),
   })
-  .prefault({ 名称: "凡体", 悟性: 0, 根骨: 0, 气感: 0 });
+  .prefault({ 名称: "凡体", 悟性: 0, 根骨: 0, 气感: 0, 元阴: null, 元阳: null });
 
 // ===== 修炼进度 Schema =====
 const CultivationProgressSchema = z
@@ -287,9 +291,7 @@ const NPCSchema = z.object({
   修炼进度: CultivationProgressSchema,
   寿元: LifespanSchema,
   灵根: SpiritualRootSchema,
-  体质: PhysiqueSchema,
-  元阴: z.boolean().optional(),
-  元阳: z.boolean().optional(),
+  体质: PhysiqueSchema, // 元阴/元阳 已并入 体质
   技艺: SkillSchema,
   资源池: ResourcePoolSchema,
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
@@ -448,12 +450,12 @@ export const Schema = z.object({
 // 各 schema 允许字段白名单 — 与 Zod 定义保持同步
 const NPC_FIELDS = new Set([
   "类型", "在场", "种族", "身份",
-  "修炼进度", "寿元", "灵根", "体质", "元阴", "元阳",
+  "修炼进度", "寿元", "灵根", "体质",
   "技艺", "资源池", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
   "性格", "外貌", "着装", "道侣", "好感度",
 ]);
-const PHYSIQUE_FIELDS = new Set(["名称", "效果", "悟性", "根骨", "气感"]);
+const PHYSIQUE_FIELDS = new Set(["名称", "效果", "悟性", "根骨", "气感", "元阴", "元阳"]);
 const SPIRITUAL_ROOT_FIELDS = new Set(["名称", "五行", "品阶"]);
 const LIFESPAN_FIELDS = new Set(["年龄", "寿命", "外观年龄"]);
 const CULTIVATION_PROGRESS_FIELDS = new Set(["境界", "当前进度", "进度上限", "天谴"]);
@@ -545,6 +547,14 @@ function sanitizeNpcEntry(input) {
 
   // 5. 好感度 中文/异常值 兜底
   if ("好感度" in npc) npc.好感度 = coerceFavor(npc.好感度);
+
+  // 6. 元阴/元阳(已并入 体质)三态规整: null ≡ "该性征不存在"。
+  //    无论 AI 写入何种格式(如只给 体质.元阴:true),都补齐为两字段、各取 true|false|null,
+  //    供据 (元阴,元阳) 值组合判定性别: 单边成立=男/女, 其余=其他。
+  if (npc.体质 && typeof npc.体质 === "object") {
+    npc.体质.元阴 = npc.体质.元阴 === true || npc.体质.元阴 === false ? npc.体质.元阴 : null;
+    npc.体质.元阳 = npc.体质.元阳 === true || npc.体质.元阳 === false ? npc.体质.元阳 : null;
+  }
 
   return npc;
 }
@@ -689,14 +699,36 @@ function fixPath(rawPath) {
   return fixed;
 }
 
+// 取(修正后)路径的根段, 用于判断是否指向合法顶级词条
+function pathRootKey(rawPath) {
+  if (typeof rawPath !== "string" || !rawPath) return "";
+  const stripped = rawPath.replace(/^[\\"'` ]+|[\\"'` ]+$/g, "");
+  const segments = stripped.includes("/")
+    ? stripped.split("/").filter(Boolean)
+    : stripped.split(".").filter(Boolean);
+  return segments[0] || "";
+}
+
 // mag_command_parsed_for_zod 钩子: 在 mvu_zod 处理器之前清洗每个 command 的 args
 function jsonPatchPreprocessor(_variables, commands) {
   if (!Array.isArray(commands)) return;
-  for (const cmd of commands) {
+  // 倒序遍历: 便于在原数组上 splice 掉无效命令而不打乱后续索引
+  for (let ci = commands.length - 1; ci >= 0; ci--) {
+    const cmd = commands[ci];
     if (!cmd || !Array.isArray(cmd.args)) continue;
     // 1. 先修正路径(args[0] 是 path, 对 move 命令 args[1] 也是 path)
     if (cmd.args.length > 0) cmd.args[0] = fixPath(cmd.args[0]);
     if (cmd.type === "move" && cmd.args.length > 1) cmd.args[1] = fixPath(cmd.args[1]);
+    // 1.5 容错: 修正后路径根段仍不属于当前 schema 的合法顶级词条 → 指向不存在的字段。
+    //     整批 JSONPatch 是原子应用的,留着它会令同批的正确命令(如新增 NPC)一并失败,
+    //     故在此丢弃,使其余命令照常生效。判定以 ALL_TOP_LEVEL_KEYS 为准 —— 日后新增
+    //     顶级字段时,同步把它加进该集合与 Schema 即可被正常接受。
+    const rootKey = pathRootKey(cmd.args[0]);
+    if (rootKey && !ALL_TOP_LEVEL_KEYS.has(rootKey)) {
+      console.warn(`[JSONPatch preprocessor] 丢弃指向无效词条的命令: ${cmd.type} ${cmd.args[0]}`);
+      commands.splice(ci, 1);
+      continue;
+    }
     // 2. 再清洗 value (递归扫描对象, 命中 NPC 形状就过 schema 字段白名单)
     for (let i = 0; i < cmd.args.length; i++) {
       const parsed = tryParseValue(cmd.args[i]);
