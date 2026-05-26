@@ -1262,13 +1262,13 @@ ${seg('归墟旧伤')}
   const mapText = `<region_map realm="凡界" region="北境">
 \`\`\`mermaid
 graph TD
-    subgraph SEA[北无尽海·远近三层]
+    subgraph SEA[北无尽海]
         direction LR
         JN[近岸潮带·浅海] === XBH[玄冰浮海·中海] === JMY[极冥渊·禁地]
     end
-    subgraph BJ[北境大陆·八生态区块]
+    subgraph BJ[北境]
         XSXW[东北沿海·雪松峡湾<br/>沧澜王朝]
-        YSSL[北内陆·永霜松涛<br/>熊罴会盟、冻骨观]
+        YSSL[北内陆·永霜松涛<br/>熊罴会盟<br/>冻骨观]
         YSLX[西部·银沙落星漠<br/>沙裔商邦]
         BYG((西海口·半月港))
         BZCJ{中央·不周残脊<br/>雪鬃高地部}
@@ -1276,38 +1276,38 @@ graph TD
         XLMJ((西侧侧脊·千骨陉<br/>血莲密教))
         HYHY((中段裂谷·黑曜火渊<br/>烬阳城))
         CLCH[东南·苍狼草海<br/>苍狼汗国]
-        QJYZ[东南低地·千镜盐泽<br/>七姓盐家、盐镜社]
-        NFJX[南陲·南风锦绣<br/>南风国、聆风斋]
+        QJYZ[东南低地·千镜盐泽<br/>七姓盐家<br/>盐镜社]
+        NFJX[南陲·南风锦绣<br/>南风国<br/>聆风斋]
 
-        XSXW ---|沿海北滩| YSSL
+        XSXW --- YSSL
         YSSL --- CLCH
         YSSL -.山脉东麓.- BZCJ
-        BZCJ ===|山中裂谷| HYHY
+        BZCJ ===|栈道| HYHY
         BZCJ -. 雨影背风 .-> YSLX
         BZCJ === QJF
-        BZCJ ==>|公开附属·凡人血供| XLMJ
+        BZCJ ==>|栈道| XLMJ
         QJF --- CLCH
         BZCJ --- CLCH
-        HYHY ---|阶梯栈道| CLCH
+        HYHY ---|栈道| CLCH
         CLCH --- QJYZ
         NFJX --- CLCH
         NFJX --- QJYZ
-        YSLX -.沙海西陲.- BYG
+        YSLX -.沙海.- BYG
         BYG --- XSXW
     end
 
     SEA === BJ
-    NFJX ==>|南风国↔通济城·悬河北脉/陆路商道·互市| ZY[中原·通济城↔胜天城]
-    YSLX ==>|沙海连片·楼兰丝路| XY_LSXH[西域·流沙星海]
-    YSLX ==>|沙陇过渡·昆吾陇道| XY_HRQG[西域·昆吾石塬]
-    BYG -.->|绕海西航·凡级传送| XY_RFHW[西域·柔风海湾]
-    XSXW -.->|沧澜远洋舰队·北无尽海近岸| DT[东土·临渊城]
+    NFJX ==>|商道| ZY[中原·通济城]
+    YSLX ==>|楼兰丝路| XY_LSXH[西域·流沙星海]
+    NFJX ==>|昆吾陇道| XY_HRQG[西域·昆吾石塬]
+    BYG -.->|西方航路| XY_RFHW[西域·柔风海湾]
+    XSXW -.->|东方航路| DT[东土·临渊城]
 \`\`\`
 地图阅读:
 - 实线 ---: 陆地接壤、可徒步通行
-- 虚线 -.-: 险阻地形或绕航(雨影、山脉东麓、沙海西陲、远洋绕航)
-- 粗线 ===: 重要地理过渡或主干道(海陆交界、山中裂谷、跨境主干道、公开附属)
-- 节点形状: 矩形=普通生态区块,菱形=山脉,圆形=修仙城/宗门驻峰/海口
+- 虚线 -.-: 险阻地形或绕航
+- 粗线 ===: 主干道
+- 节点形状: 矩形=普通生态区块,菱形=山脉,圆形=修仙城/宗门/海口
 </region_map>`;
 
   // ========== 装配输出 ==========

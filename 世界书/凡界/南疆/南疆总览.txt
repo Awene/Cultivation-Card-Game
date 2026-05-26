@@ -1112,11 +1112,11 @@ ${seg('鸿蒙水眼')}
   const mapText = `<region_map realm="凡界" region="南疆">
 \`\`\`mermaid
 graph TD
-    subgraph SEA[南无尽海·远近三层]
+    subgraph SEA[南无尽海]
         direction LR
-        QGZ[近海·千根渚<br/>红树林] === NMSH[中海·南溟珊瑚海<br/>含朱髓孤屿] === NMDY[远海·南冥大渊<br/>化神禁地]
+        QGZ[近海·千根渚] === NMSH[中海·南溟珊瑚海<br/>朱髓孤屿] === NMDY[远海·南冥大渊]
     end
-    subgraph NJ[南疆大陆·八生态区块]
+    subgraph NJ[南疆]
         CYQ[北部·翠玉丘<br/>百越国北境<br/>千形宗]
         YZL[南部·雨瘴林<br/>百越国·百越台城<br/>五毒教]
         SWDS{西南·十万大山<br/>万妖盟}
@@ -1126,39 +1126,38 @@ graph TD
         YHG[中南·永恒谷<br/>大祀王朝·大祀城<br/>幽冥府]
         ZSGY((远海·朱髓孤屿<br/>大祀王朝领土))
 
-        CYQ ---|丘陵相接| YZL
+        CYQ --- YZL
         CYQ --- JXDX
         CYQ -.山陉.- SWDS
-        YZL -.林缘交界.- SWDS
+        YZL -.森林.- SWDS
         YZL --- SMMY
         JXDX --- YMZ
         JXDX --- SMMY
         SMMY --- YHG
-        SMMY -.山麓相邻.- SWDS
+        SMMY -.山峦阻隔.- SWDS
         YMZ === YHG
-        YMZ -.潜行水道.-> SMMY
+        YMZ -.沼泽.-> SMMY
     end
 
     SEA === NJ
-    YZL ---|南海岸| QGZ
-    YHG ---|东南海岸| QGZ
-    SWDS ---|南麓红树岸| QGZ
-    SWDS -.南麓海眼.- NMSH
-    NMSH ==>|朱髓航道·大祀活祭船团| ZSGY
-    YHG ==>|东南海口| NMSH
+    YZL --- QGZ
+    YHG --- QGZ
+    SWDS --- QGZ
+    NMSH ==>|航道| ZSGY
+    YHG ==>|航道| NMSH
 
-    YMZ ==>|长川北通·接天江(南河)·经灼华山口| ZY[中原·灼华山↔胜天城]
-    JXDX ==>|稻乡北道| ZY
-    CYQ ==>|翠玉北陉| ZY
-    YMZ ==>|东海航路·楚水水师| DT[东土·临渊城]
-    YHG ==>|东南海路·活祭航道| DT
-    SWDS ==>|瘴关陉道| XY_WYXS[西域·无垠雪山南麓]
+    YMZ ==>|道路| ZY[中原·灼华山山口]
+    JXDX ==>|道路| ZY[中原·灼华山山口]
+    CYQ ==>|道路| ZY[中原·灼华山山口]
+    YMZ ==>|航路| DT[东土·临渊城]
+    YHG ==>|航路| DT[东土·临渊城]
+    SWDS ==>|山路| XY_WYXS[西域·无垠雪山]
 \`\`\`
 地图阅读:
-- 实线 ---: 陆地接壤、可徒步通行
-- 虚线 -.-: 险阻地形或飞地(山陉、林缘交界、山麓相邻、潜行水道)
-- 粗线 ===: 重要地理过渡或主干道(王朝-粮仓边界、活祭航道、海陆交界)
-- 节点形状: 矩形=普通生态区块,菱形=山脉/禁地,圆形=远海圣岛
+- 实线 ---: 接壤可通行
+- 虚线 -.-: 险阻地形
+- 粗线 ===: 主干道
+- 节点形状: 矩形=普通生态,菱形=山脉/禁地,圆形=远海岛屿
 </region_map>`;
 
   // ========== 装配输出 ==========
