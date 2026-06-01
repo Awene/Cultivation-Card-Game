@@ -3248,9 +3248,13 @@
           } else {
             // 纯文本行:仅当尚无 section 时,视为 section 标题
             // (容错 AI 不带 {} 直接写名称,如 item_info 第一行写"赤铜残刀"而非"{赤铜残刀}")
-            // 已有 section 时忽略此类行(避免 action_info 中"(若是静态判定:)"这种括号注释被误当标题)
             if (!currentSection) {
               currentSection = { title: line, rows: [] };
+            } else if (/^[^:：(（]+[(（][^)）]+[)）]\s*$/.test(line)) {
+              // 已有 section 时,仅当行形如 "name (meta)" 才推入 rows——这是 time_info
+              // 中 {人物推演} 下的人物头行;括号注释如 "(若是静态判定:)" 因以括号开头
+              // 不匹配 [^:：(（]+ 前缀,会被静默忽略
+              currentSection.rows.push(line);
             }
           }
         });

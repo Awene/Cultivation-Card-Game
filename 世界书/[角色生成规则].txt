@@ -129,7 +129,7 @@ const _weightedPickN = (items, n) => {
   return result;
 };
 
-const _pickedNameStrategies = _weightedPickN(_nameStrategies, 4);
+const _pickedNameStrategies = _weightedPickN(_nameStrategies, 2);
 const _renderStrategy = s => {
   const list = s.pool ? _pickN(s.pool, 4) : s.examples;
   return `      • 【${s.name}】${s.desc}(如:${list.join("、")})`;
@@ -189,9 +189,9 @@ _%>
     - 数值遵循<rule ref="物品功法生成规则"/>
 -->
 
-# 步骤二: 结果面板
+# 步骤二: 面板模板
   模板规则:若内容为空则不生成可省略键名;禁止英文翻译;仅 | 符号开头可写多行字符串;数组强制使用行内格式(如 [a, b] 严禁使用 - 换行);YAML格式注意缩进;括号内为填写指引,禁止输出括号及其内容本身; 符合字数规范;
-  插入位置:<content>中此角色出场位置,禁止插入于<content>外,每个角色单独生成一个独立面板
+  插入位置:<gametxt>中此角色出场位置,禁止插入于<gametxt>外,每个角色单独生成一个独立面板
   <char_info>
   类型: 人物
   姓名:
@@ -346,7 +346,7 @@ _%>
   Step3_好感度:
     - 好感度: 默认 -50;驯化倾向高的灵兽可初始 -20~0
 -->
-# 步骤二: 结果面板
+# 步骤二: 面板模板
   <item_info>
     {实体名称}
     | 类型: [傀儡|灵兽] |
