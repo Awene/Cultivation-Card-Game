@@ -383,32 +383,25 @@ const TimeSchema = z
   .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" });
 
 // ===== 传闻 Schema =====
-const RumorSchema = z.object({
-  类型: z.enum([
-    "大派动向",
-    "仙人行迹",
-    "宗门战事",
-    "灵脉异变",
-    "道庭法令",
-    "秘境传闻",
-    "高额悬赏",
-    "妖兽异动",
-    "通缉魔修",
-    "宝物现世",
-    "风流韵事",
-    "千里同心",
-    "缘分将至",
-    "邂逅预兆",
-    "恩怨流转",
-    "同门轶事",
-    "师长动向",
-    "门内任务",
-    "资源调配",
-    "内部秘辛",
-  ]),
-  时间: z.string().prefault(""),
-  来源: z.string().prefault(""),
-  内容: z.string().prefault(""),
+// 内容由前端引擎 (src/修仙状态栏/timeline-engine.ts) 生成并写回此字段,
+// AI 仅读、不写。详见 [mvu_update]变量更新规则.yaml。
+const TimelineDateSchema = z.object({
+  年: z.coerce.number(),
+  月: z.coerce.number(),
+  日: z.coerce.number(),
+});
+const RumorEntrySchema = z.object({
+  id: z.string(),
+  时间区间: z.object({
+    起: TimelineDateSchema,
+    止: TimelineDateSchema,
+  }),
+  世界: z.string(),
+  地域: z.string(),
+  地点: z.string(),
+  类别: z.string(),
+  内容: z.string(),
+  难度: z.string(),
 });
 
 // ===== 主 Schema (扁平化:基本信息/修炼功法/储物空间 三大类拆掉) =====
@@ -434,7 +427,9 @@ export const Schema = z.object({
 
   // —— 不变 ——
   关系列表: z.record(z.string(), RelationEntrySchema).prefault({}),
-  传闻: z.array(RumorSchema).prefault([]),
+
+  // —— 传闻 (前端引擎写,AI 仅读) ——
+  传闻: z.array(RumorEntrySchema).prefault([]),
 });
 
 // ============================================================

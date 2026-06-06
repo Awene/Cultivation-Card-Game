@@ -2323,6 +2323,39 @@
         color: #5a4a36;
       }
 
+      /* —— 玩家手动插入 / SD 文生图插件生成的图片 —— */
+      /* 与外部包裹容器(figure/div + 内联样式)隔离,避免移动端被 float/inline-block 撑破成两列 */
+      .rb-img-wrap {
+        display: block;
+        margin: 18px 0;
+        padding: 0;
+        text-align: center;
+        clear: both;
+        float: none;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      .rb-img-wrap img {
+        display: block;
+        max-width: 100%;
+        width: auto;
+        height: auto;
+        margin: 0 auto;
+        border-radius: 10px;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.32);
+        clear: both;
+        float: none;
+      }
+      [data-theme='light'] .rb-img-wrap img {
+        box-shadow: 0 4px 14px rgba(120, 95, 50, 0.18);
+      }
+      @media (max-width: 600px) {
+        .rb-img-wrap {
+          margin: 14px 0;
+        }
+      }
+
       /* —— 小总结卷轴(<details><summary>X</summary>...</details>) —— */
       .rb-summary {
         position: relative;
@@ -4964,6 +4997,46 @@
           raw = extractPanels(raw, stashPanel);
         } catch (e) {
           console.warn('[正文美化] 面板抽取失败:', e);
+        }
+
+        // 2.4) 抽取 <img>(玩家手动插入 / SD 文生图插件生成)
+        //   - 不抽的话: escapeHtml 会把 <img> 转义成字面文本,图片不显示
+        //   - 抽且不规范化的话: 某些插件把 <img> 包在 inline-block / float 容器里,
+        //     手机端会撑破布局,变成"主文 + 侧栏"两列错位 (玩家反馈的现象)
+        //   解法: 剥掉所有外层 figure/picture/aside/section 包装,只保留 img,
+        //         然后包进我们自己的 .rb-img-wrap 强制 max-width:100% / block / clear:both
+        try {
+          // 先剥掉 figure/picture/aside/section 容器(可能带 SD 插件的 inline style)
+          //   <source> 是 <picture> 的子元素,单独保留会被 escapeHtml 显示为字面 HTML
+          raw = raw.replace(
+            /<(figure|picture|aside|section)\b[^>]*>([\s\S]*?)<\/\1>/gi,
+            '$2',
+          );
+          raw = raw.replace(/<\/?(?:figure|picture|aside|section)\b[^>]*>?/gi, '');
+          raw = raw.replace(/<source\b[^>]*\/?>/gi, '');
+          // 抽出所有 img 走 stashPanel,只保留 src/alt,丢弃外部 inline style/class/onclick
+          raw = raw.replace(/<img\b([^>]*)\/?>/gi, (_m, attrs) => {
+            const srcMatch =
+              attrs.match(/\bsrc\s*=\s*"([^"]*)"/i) ||
+              attrs.match(/\bsrc\s*=\s*'([^']*)'/i);
+            const altMatch =
+              attrs.match(/\balt\s*=\s*"([^"]*)"/i) ||
+              attrs.match(/\balt\s*=\s*'([^']*)'/i);
+            const src = srcMatch ? srcMatch[1] : '';
+            const alt = altMatch ? altMatch[1] : '';
+            if (!src) return ''; // 没 src 的空 img 直接丢
+            const safeSrc = src.replace(/"/g, '&quot;');
+            const safeAlt = escapeHtml(alt);
+            return (
+              '\n\n' +
+              stashPanel(
+                `<figure class="rb-img-wrap"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy"></figure>`,
+              ) +
+              '\n\n'
+            );
+          });
+        } catch (e) {
+          console.warn('[正文美化] <img> 抽取失败:', e);
         }
 
         // 3) 继续原有的标签剥离 & 空白规整
