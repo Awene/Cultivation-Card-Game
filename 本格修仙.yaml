@@ -1829,6 +1829,9 @@
         类型: 脚本
         内容: import
           'https://testingcf.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate/artifact/bundle.js';
+        导出时携带:
+          数据: true
+          按钮: true
         按钮:
           启用: true
           按钮列表:
@@ -1849,6 +1852,9 @@
         id: ed6584a2-8017-45ed-a1bd-6a699a1204d3
         启用: true
         类型: 脚本
+        导出时携带:
+          数据: true
+          按钮: true
         文件: 脚本\变量结构
 
     变量: {}
