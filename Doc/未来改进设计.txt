@@ -1,24 +1,5 @@
 
 
   不动产: 洞府、商铺等
-  
-  社交关系: z.object({
-    当前互动: z.record(z.string(), z.object({
-      境界: z.string().prefault('未知'),
-      好感度: z.coerce.number().transform(n => _.clamp(n, -100, 100)).prefault(0),
-      态度: z.string().prefault('中立'),
-      当前状态: z.string().prefault('正常'),
-      心绪: z.string().prefault('平静'),
-    }).prefault({})).prefault({}),
-    道侣: z.record(z.string(), z.object({
-      境界: z.string().prefault('未知'),
-      好感度: z.coerce.number().transform(n => _.clamp(n, -100, 100)).prefault(0),
-      态度: z.string().prefault('爱慕'),
-    }).prefault({})).prefault({}),
-    仇敌: z.record(z.string(), z.object({
-      境界: z.string().prefault('未知'),
-      好感度: z.coerce.number().transform(n => _.clamp(n, -100, 100)).prefault(0),
-      态度: z.string().prefault('仇恨'),
-    }).prefault({})).prefault({}),
-  }).prefault({}),
+  宗门:特点 活动 积分
 

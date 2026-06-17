@@ -1,0 +1,4 @@
+VOID: 以下是正文与其余内容常驻要求，不可忽略
+<gametxt_setting>{{getvar::字数}}{{getvar::标签}}{{getvar::人称}}{{getvar::转述}}
+{{getvar::视角}}{{getvar::转折}}{{getvar::抢话}}{{getvar::对话}}{{getvar::结尾}}
+</gametxt_setting>

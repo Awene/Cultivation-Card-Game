@@ -1,0 +1,248 @@
+```
+<body>
+<style>
+  /* —— 思维链 折叠卡片:与正文美化的 .action-panel/.char-panel 等保持同一视觉语言 —— */
+  .cot-collapse {
+    --cot-accent: #b794f4;
+    position: relative;
+    margin: 12px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(155deg,
+      rgba(20, 16, 32, 0.78) 0%,
+      rgba(28, 22, 44, 0.72) 60%,
+      rgba(20, 16, 32, 0.82) 100%);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 14px 44px rgba(0, 0, 0, 0.42),
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.25) inset;
+    color: #e8d5b7;
+    animation: cot-panel-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .cot-collapse:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow:
+      0 22px 56px rgba(0, 0, 0, 0.5),
+      0 0 0 1px var(--cot-accent) inset,
+      0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  }
+  @keyframes cot-panel-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 顶部流光带 */
+  .cot-collapse::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      var(--cot-accent) 30%,
+      color-mix(in srgb, var(--cot-accent) 70%, white) 50%,
+      var(--cot-accent) 70%,
+      transparent 100%);
+    background-size: 250% 100%;
+    animation: cot-panel-shimmer 6s ease-in-out infinite;
+    z-index: 1;
+  }
+  @keyframes cot-panel-shimmer {
+    0%, 100% { background-position: 0% 0; }
+    50% { background-position: 100% 0; }
+  }
+
+  /* 头部 */
+  .cot-collapse > summary.cot-collapse-head {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 14px;
+    cursor: pointer;
+    user-select: none;
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.02) 50%,
+      rgba(255, 255, 255, 0.06) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.25s ease;
+  }
+  .cot-collapse > summary.cot-collapse-head::-webkit-details-marker { display: none; }
+  .cot-collapse > summary.cot-collapse-head::marker { content: ''; }
+  .cot-collapse > summary.cot-collapse-head:hover {
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      rgba(255, 255, 255, 0.10) 100%);
+  }
+  .cot-collapse-icon {
+    font-size: 1.05em;
+    color: var(--cot-accent);
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--cot-accent) 60%, transparent));
+  }
+  .cot-collapse-title {
+    flex: 1;
+    font-family: 'Cinzel', 'Noto Serif SC', serif;
+    font-size: 0.98em;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: var(--cot-accent);
+    text-shadow: 0 0 14px color-mix(in srgb, var(--cot-accent) 35%, transparent);
+    word-break: break-word;
+  }
+  .cot-collapse-toggle {
+    color: var(--cot-accent);
+    opacity: 0.7;
+    font-size: 0.82em;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: 0.4px;
+    transition: opacity 0.2s ease;
+  }
+  .cot-collapse > summary.cot-collapse-head:hover .cot-collapse-toggle { opacity: 1; }
+  .cot-collapse-toggle::before { content: '▸ 展开'; }
+  .cot-collapse[open] > summary.cot-collapse-head .cot-collapse-toggle::before { content: '▾ 收起'; }
+
+  /* 内容区 */
+  .cot-collapse-body {
+    padding: 12px 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.86em;
+    line-height: 1.75;
+    color: #e8d5b7;
+    font-family: ui-monospace, 'JetBrains Mono', 'Source Code Pro', Consolas, monospace;
+    max-height: 520px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.12);
+  }
+  .cot-collapse-body::-webkit-scrollbar { width: 5px; }
+  .cot-collapse-body::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.18); border-radius: 3px; }
+  .cot-collapse-body::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--cot-accent) 40%, transparent);
+    border-radius: 3px;
+  }
+  .cot-collapse-body::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--cot-accent) 65%, transparent);
+  }
+
+  /* 日间模式:与正文美化保持同一暖色调
+     由于 思维链 渲染位置可能在正文美化 body 之外,[data-theme='light'] 选择器不一定能命中,
+     因此同时支持 .cot-theme-light 显式类(由内嵌脚本根据 localStorage 'rb-theme' 设置) */
+  [data-theme='light'] .cot-collapse,
+  .cot-collapse.cot-theme-light {
+    background: linear-gradient(155deg,
+      rgba(255, 250, 240, 0.92) 0%,
+      rgba(248, 240, 222, 0.86) 55%,
+      rgba(252, 244, 228, 0.94) 100%);
+    border: 1px solid rgba(160, 127, 72, 0.28);
+    color: #3a2f24;
+    box-shadow:
+      0 8px 28px rgba(101, 75, 38, 0.14),
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 -1px 0 rgba(101, 75, 38, 0.06) inset;
+  }
+  [data-theme='light'] .cot-collapse:hover,
+  .cot-collapse.cot-theme-light:hover {
+    border-color: rgba(160, 127, 72, 0.45);
+    box-shadow:
+      0 16px 40px rgba(101, 75, 38, 0.20),
+      0 0 0 1px var(--cot-accent) inset,
+      0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  }
+  [data-theme='light'] .cot-collapse > summary.cot-collapse-head,
+  .cot-collapse.cot-theme-light > summary.cot-collapse-head {
+    background: linear-gradient(135deg,
+      rgba(168, 153, 104, 0.10) 0%,
+      rgba(168, 153, 104, 0.05) 50%,
+      rgba(168, 153, 104, 0.14) 100%);
+    border-bottom: 1px solid rgba(160, 127, 72, 0.20);
+  }
+  [data-theme='light'] .cot-collapse > summary.cot-collapse-head:hover,
+  .cot-collapse.cot-theme-light > summary.cot-collapse-head:hover {
+    background: linear-gradient(135deg,
+      rgba(168, 153, 104, 0.16) 0%,
+      rgba(168, 153, 104, 0.08) 50%,
+      rgba(168, 153, 104, 0.22) 100%);
+  }
+  [data-theme='light'] .cot-collapse .cot-collapse-icon,
+  .cot-collapse.cot-theme-light .cot-collapse-icon {
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--cot-accent) 35%, transparent));
+  }
+  [data-theme='light'] .cot-collapse .cot-collapse-title,
+  .cot-collapse.cot-theme-light .cot-collapse-title {
+    color: color-mix(in srgb, var(--cot-accent) 75%, #1a0f00);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--cot-accent) 18%, transparent);
+  }
+  [data-theme='light'] .cot-collapse .cot-collapse-body,
+  .cot-collapse.cot-theme-light .cot-collapse-body {
+    background: rgba(168, 153, 104, 0.07);
+    color: #3a2f24;
+  }
+  [data-theme='light'] .cot-collapse .cot-collapse-body::-webkit-scrollbar-track,
+  .cot-collapse.cot-theme-light .cot-collapse-body::-webkit-scrollbar-track {
+    background: rgba(168, 153, 104, 0.12);
+  }
+
+  /* 移动端 */
+  @media (max-width: 600px) {
+    .cot-collapse { margin: 9px 0; }
+    .cot-collapse > summary.cot-collapse-head { padding: 7px 11px; gap: 7px; }
+    .cot-collapse-title { font-size: 0.92em; letter-spacing: 0.8px; }
+    .cot-collapse-body {
+      padding: 9px 12px;
+      font-size: 0.82em;
+      line-height: 1.7;
+      max-height: 380px;
+    }
+  }
+</style>
+<details class="cot-collapse">
+  <summary class="cot-collapse-head">
+    <i class="cot-collapse-icon fa-solid fa-brain"></i>
+    <span class="cot-collapse-title">思维链 · Recorder 推演</span>
+    <span class="cot-collapse-toggle"></span>
+  </summary>
+  <div class="cot-collapse-body">$1</div>
+</details>
+<script>
+  // 主题同步:由于思维链可能渲染在 正文美化 body 之外,无法依赖 [data-theme='light'] CSS 选择器,
+  // 因此读取 正文美化 写入的 localStorage 'rb-theme' 并显式给 .cot-collapse 元素加 class。
+  (function () {
+    function readTheme() {
+      try {
+        const v = localStorage.getItem('rb-theme');
+        if (v === 'light' || v === 'dark') return v;
+      } catch (e) { /* private mode / disabled */ }
+      // 回退:OS 偏好
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
+      } catch (e) { /* ignore */ }
+      return 'dark';
+    }
+    function syncCotTheme() {
+      const light = readTheme() === 'light';
+      const nodes = document.querySelectorAll('.cot-collapse');
+      for (let i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle('cot-theme-light', light);
+      }
+    }
+    syncCotTheme();
+    // 仅注册一次的轮询,捕捉用户在 正文美化 上的切换
+    if (!window.__cotThemeSyncRegistered) {
+      window.__cotThemeSyncRegistered = true;
+      setInterval(syncCotTheme, 1500);
+      // 跨标签页变更时也响应
+      window.addEventListener('storage', function (e) {
+        if (e && e.key === 'rb-theme') syncCotTheme();
+      });
+    }
+  })();
+</script>
+</body>
+```

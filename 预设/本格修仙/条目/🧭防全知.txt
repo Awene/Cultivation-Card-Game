@@ -1,0 +1,11 @@
+<character_knowledge>
+- 有限视角; 不要掺杂该角色不可能知道的外部事实
+- 认知界限: 角色已知信息仅限于该角色获取此信息的言行在<historical_record>中已描述
+- 隐藏信息: 角色会出于身份，情景等隐藏各种信息且不被记录，不说出于口
+</character_knowledge>{{setvar::防全知g::
+- 认知界限:
+  回顾<character_knowledge>，上文发生的哪些信息对于各个角色为迷雾？哪些信息角色不会说出口或不会于正文生成？
+  回顾<historical_record>，各个角色不知道<user>的哪些事物/信息？}}{{setvar::防全知c::
+- Cognitive Boundaries
+  Recalling <character_knowledge>，What information from the above events is unknown to the various characters? What information will the characters not reveal:
+  Recalling <historical_record>，What things/information about <user> are unknown to each role:}}

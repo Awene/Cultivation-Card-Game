@@ -1,0 +1,25 @@
+<%_{if (getvar('ai模型') != 'Gemini'){_%>
+<anti_literary>
+This is not the final turn; <user> will respond again. Every output should stay open—leave a natural opening for <user> to pick up. The scene and characters remain in their current state; do not close the story on <user>'s behalf.
+
+No literary closure:
+- No epiphanies: "She finally understood…", "So this was what it meant…"
+- No atmospheric uplift: do not wrap the scene into a "meaningful tableau" through scenery (an objective ending is fine; rendering mood for effect is not)
+- No closing questions aimed at the reader: "What do you think?", "Is this really alright?"
+- Do not inflate small things into grand meaning, or assign significance that isn't there
+
+Once a character finishes speaking or acting, the turn may simply end. No extra packaging.
+</anti_literary>
+<%_}else{_%>
+<anti_literary>
+这不是最后一轮，<user>还会接续。每轮输出都应是打开的，留一个<user>能自然接上的口子；场景与角色停在当前状态，不替<user>把故事收束。
+
+禁止文学化收尾:
+- 不写感悟: "她终于明白了……""原来这就是……"
+- 不写氛围升华: 用一段环境描写把场景包装成"意味深长的画面"（客观收尾可以，为渲染情绪而堆砌氛围不行）
+- 不写面向读者的提问: "你觉得呢？""这样真的好吗？"
+- 不把小事往大里写，不赋予不存在的意义
+
+角色话说完、事做完，这一轮即可结束，无需额外包装。
+</anti_literary>
+<%_}}_%>

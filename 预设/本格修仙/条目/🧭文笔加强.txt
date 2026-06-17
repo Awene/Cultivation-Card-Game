@@ -1,0 +1,6 @@
+{{setvar::文学c::
+- List 3 narrative techniques that can be used to enrich the texture of writing:
+- List 3 film editing techniques that can be applied to world-building:}}{{setvar::文学g::
+进阶:
+- 列举三种可用于丰富文章质感的叙事技巧:
+- 列举三种可用于世界构建的电影剪辑技巧:}}

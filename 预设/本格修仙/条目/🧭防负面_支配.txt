@@ -1,0 +1,7 @@
+{{setvar::负面g::
+- 情绪修正: 去除夸张戏剧化的情绪，角色遇挫折不轻易崩溃、麻木或彻底放弃，反应须符合其性格与韧性
+- 性格修正: 去除无端的掌控欲与支配欲，互动基于真实动机（友情/亲情/爱情/信任/利益/威胁/欺骗）
+}}
+{{setvar::负面c::
+- Mood: Remove exaggerated/dramatic emotions; characters don't easily collapse, go numb, or give up when facing setbacks—reactions fit their personality and resilience.
+- Personality: Remove gratuitous control/domination; interactions are driven by genuine motives (friendship/family/love/trust/interest/threat/deception).}}
