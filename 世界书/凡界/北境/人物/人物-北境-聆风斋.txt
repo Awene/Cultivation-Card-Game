@@ -6,16 +6,16 @@
 // 路由策略:
 //   本条目被触发(yaml 关键字命中) → 文件内每位角色都"出现"
 //   对每位角色:
-//     - 不在 stat_data.人物关系 → 输出 brief
+//     - 不在 stat_data.关系列表 → 输出 brief
 //     - 在 人物关系  → 输出 detail
 //     - 在 人物关系 且 好感度>80 且 非道侣 → detail 末附 [表白]
 //     - 在 人物关系 且 关系='道侣'         → detail 末附 [道侣相处]
 //
 // 人物关系变量结构(假设):
-//   stat_data.人物关系[本名] = { 好感度: number, 关系: '道侣'|'朋友'|... }
+//   stat_data.关系列表[本名] = { 好感度: number, 道侣: boolean, ... }(道侣为布尔)
 // ============================================================
 
-const 人物关系 = getMessageVar('stat_data.人物关系') || {};
+const 人物关系 = getMessageVar('stat_data.关系列表') || {};
 
 const queryRel = (n) => {
   const r = 人物关系[n];
@@ -23,7 +23,7 @@ const queryRel = (n) => {
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
   return {
     好感度: r.好感度 ?? 0,
-    关系: r.关系 || r.关系类型 || '',
+    关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || ''),
   };
 };
 

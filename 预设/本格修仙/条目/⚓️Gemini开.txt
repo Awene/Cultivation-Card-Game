@@ -1,5 +1,15 @@
-{{setvar::ai模型::Gemini}}<|no-trans|><thinking>
+{{setvar::ai模型::Gemini}}<|no-trans|><%_ if (lastMessageId === 1) { _%>
+<thinking>
+接下来我会以Recorder身份开始记录与叙述
+本次为开局，我必须遵循"variables_update_rules"，在`<UpdateVariable>`块中完整记录主角的初始信息：姓名、灵根、体质、境界、修为、寿元、属性、物品、技艺、社交关系等，不遗漏省略
+首先从符合要求的<think>开始
+</thinking>
+Recorder: 
+<think>
+<%_ } else { _%>
+<thinking>
 接下来我会以Recorder身份开始记录与叙述，首先从符合要求的<think>开始
 </thinking>
 Recorder: 
 <think>
+<%_ } _%>

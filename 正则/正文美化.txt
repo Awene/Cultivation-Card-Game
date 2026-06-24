@@ -1922,6 +1922,7 @@
         font-size: 0.84em;
       }
       .char-panel .char-card-text {
+        grid-column: 1 / -1; /* 处在 fields 网格里时(如 性格/外貌/着装 的整段描述)横跨整行,避免被挤进窄列 */
         font-size: 0.86em;
         line-height: 1.7;
         color: #e8d5b7;
@@ -3745,10 +3746,16 @@
         const cls = 'char-card-section' + (isNarrative ? ' char-card-section--narrative' : '');
         let html = `<div class="${cls}"><div class="char-card-section-title">${_.escape(item.title)}</div><div class="char-card-fields">`;
         _.forEach(item.fields, f => {
-          if (f.key) {
+          const hasVal = f.value != null && String(f.value).trim() !== '';
+          if (f.key && hasVal) {
             html += `<div class="char-card-field"><span class="char-card-field-key">${_.escape(f.key)}</span><span class="char-card-field-val">${beautifyCharValue(f.key, f.value)}</span></div>`;
           } else {
-            html += `<div class="char-card-field char-card-field-full"><span class="char-card-field-val">${_.escape(f.value)}</span></div>`;
+            // 兜底:只有 key 没 value(AI 把整段描述写成无冒号行,如 性格/外貌/着装),
+            // 或只有 value 没 key,都当作整段描述文本渲染,避免被塞进窄标签里溢出截断。
+            const text = (f.key && !hasVal) ? f.key : f.value;
+            if (text != null && String(text).trim() !== '') {
+              html += `<div class="char-card-text">${_.escape(text)}</div>`;
+            }
           }
         });
         html += `</div></div>`;
@@ -3818,6 +3825,7 @@
         //   2) "[命中:2, 穿透%:14]"            — 单括号 + 逗号
         //   3) "命中:2, 穿透%:14"              — 无括号 + 逗号
         //   4) "[[a],[b]]"                      — 双层包裹
+        //   5) "- 防御力:8000 / - 修行速度:4500" — YAML 列表项被拍平(带 "- " 前缀, " / " 分隔)
         let customTags = '';
         if (tagsField && tagsField !== '[]') {
           const s = String(tagsField).trim();
@@ -3834,13 +3842,28 @@
               }
             }
           } else if (s) {
-            // 完全无括号: 直接按分隔符切
-            for (const part of s.split(/[,，、]\s*/)) {
+            // 完全无括号: 按 换行 / 斜杠 / 逗号顿号 多种分隔切开(兼容被拍平的 YAML 列表)
+            for (const part of s.split(/[\n,，、]|\s*\/\s*/)) {
               const p = part.trim();
               if (p) ts.push(p);
             }
           }
-          ts.forEach(t => { customTags += `<span class="char-card-item-customtag">${_.escape(t)}</span>`; });
+          // 兜底规范化:去掉 YAML 列表标记/项目符号前缀;数值型 K:V 标签拆成「键 值」漂亮展示;
+          // 攻击力/防御力 已在上方 meta 区以 攻/防 chip 呈现,这里跳过避免重复。
+          const META_STAT_KEYS = ['攻击力', '防御力'];
+          for (const t of ts) {
+            const tag = String(t).replace(/^[\s\-–—•·*‣◦]+/, '').trim();
+            if (!tag) continue;
+            const kv = tag.match(/^(.+?)\s*[:：]\s*(.+)$/);
+            if (kv) {
+              const k = kv[1].trim();
+              const v = kv[2].trim();
+              if (META_STAT_KEYS.includes(k)) continue;
+              customTags += `<span class="char-card-item-customtag"><b>${_.escape(k)}</b> ${_.escape(v)}</span>`;
+            } else {
+              customTags += `<span class="char-card-item-customtag">${_.escape(tag)}</span>`;
+            }
+          }
         }
 
         // 效果

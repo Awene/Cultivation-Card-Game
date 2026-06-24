@@ -1,10 +1,10 @@
-<%_{if (getvar('ai模型') != 'Gemini'){_%>
+<%_{if (getvar('ai模型') != 'Gemini' && getvar('ai模型') != 'Deepseek'){_%>
 <think_format>
 Before formally generating the main content, you must conduct the following thinking process.
 Thinking content must be enclosed in <think> </think> tags.
 Chain of Thought Language: **中文**
 Thinking Budget: {{getvar::思维预算c}}
-Prohibited Thinking: <think> must NOT contain the <!-- ... --> thinking content from <rules>.
+Prohibited: <think> must NOT contain the <!-- ... --> thinking content from <rules>, and must NOT insert panels; the correct insertion position is within <gametxt>.
 Requirements: Strictly follow the prescribed step sequence; Recorder must not alter, add, omit, or skip any step, must not reduce the budget word count, and must not think about prohibited topics.
 <think>{{getvar::身份c}}
 Step 0: Thinking Requirements Review
@@ -29,7 +29,7 @@ As Recorder (无形记录者), conduct a detailed comparison between traditional
 
 Step 4: Pre-Launch
 
-- Rules trigger check: (check each, answer activated / not and panel insert position)
+- Rules trigger check: (check each, only answer activated / not, and panel insert position into <gametxt>)
   1. 非战斗判定: non-combat attempt to overcome uncertain obstacle (auto-skip if 角色L ≥ 挑战L + 2)
   2. 战斗: both sides explicitly enter combat / forced array-break (no trigger if one-sided crush, L diff > 2)
   3. 生产制作: <user> explicitly performs 炼丹/炼器/制符/阵盘刻录/制傀儡...
@@ -61,13 +61,10 @@ Step 7: Character-related
 Step 8: {{getvar::变量c}}
 
 Step 9: Plot-related
-- Plot tree reconstruction: list every branch of the story in tree form
-  Main root:
-  ├─ Branch A → Leaf A: brief current progress
-  ├─ Branch B → Leaf B: ...
-  ├─ Branch C → Leaf C: ...
-  └─ ...
-  Constraint: the plot truth each leaf leads to must be mutually unrelated (themes/villains/crises/motives must not be reused);
+- Main line: in one sentence, state the single current main line (core goal/conflict) and its progress
+- Side lines (OPTIONAL): list only if a genuinely independent side line already exists; otherwise write "no side line yet". Never force-split, never invent side lines to fill space — early story usually has the main line only
+  - Each side line stays independent from the main line and from other side lines: themes/villains/crises/motives must not be reused
+- Convergence control: main line and side lines run in PARALLEL by default and must NOT actively merge/converge/summarize; let them converge only when the plot logic strictly requires it, and only with explicit causality
 
 Step 10: gametxt_setting Review
 The requirements in <gametxt_setting> are persistent rules; no item may be omitted
@@ -76,13 +73,8 @@ The requirements in <gametxt_setting> are persistent rules; no item may be omitt
   ...
 
 Step 11: Style Design
-Foundation:
-Review <base_writing_guidance> and <Writing_style>
-  1. How to design the writing style?
-  2. How to avoid prohibited vocabulary?
-  3. ...
-  ...{{getvar::文学c}}{{getvar::书籍参考c}}
-Trigger:{{getvar::sex_c}}
+- Review <base_writing_guidance> and <Writing_style>: how to design the writing style?{{getvar::文学c}}{{getvar::书籍参考c}}
+- Trigger:{{getvar::sex_c}}
 
 </think>
 </think_format>
@@ -92,7 +84,7 @@ Trigger:{{getvar::sex_c}}
 思考内容需要使用<think> </think>包裹
 思维链语言: 中文
 思维链预算: {{getvar::思维预算g}}
-禁止思考: <think>中禁止包含<rules>规则的<!-- ... -->思考内容
+禁止: <think>中禁止包含<rules>规则的<!-- ... -->思考内容、禁止插入面板；正确的插入位置是<gametxt>中
 要求: 必须按照规定思考步数推进，Recorder不得改变、增添、减少或回避思考步数，不得减少思维预算字数，不得思考禁止思考内容
 <think>{{getvar::身份g}}
 Step 0: 思维要求回顾
@@ -117,7 +109,7 @@ Step 3:功能对比
 
 Step 4:预启动
 
-- rules触发检查: (逐项检查,回答是否激活,以及插入文中的位置)
+- rules触发检查: (逐项检查,仅回答是否激活,以及面板插入<gametxt>的位置)
   1.非战斗判定: 非战斗下克服不确定性阻碍(角色L≥挑战L+2自动略过)
   2.战斗: 双方明确战斗 / 强行破阵 (碾压L差>2不触发)
   3.生产制作: <user>明确炼丹/炼器/制符/阵盘刻录/制傀儡...
@@ -149,13 +141,10 @@ Step 7:角色相关
 Step 8:{{getvar::变量g}}
 
 Step 9:剧情相关
-- 剧情树重建: 以树形结构列出本故事全部分支
-  主根:
-  ├─ 分支A → 叶子A: 简述目前进度
-  ├─ 分支B → 叶子B: ...
-  ├─ 分支C → 叶子C: ...
-  └─ ...
-  约束: 各叶子所导向的剧情真相必须互不关联(主题/反派/危机/动机不复用);
+- 主线梳理: 用一句话点明当前唯一主线(核心目标/冲突)及其推进进度
+- 支线梳理(可选): 仅当确有独立支线时才列出，无则写"暂无支线"
+  - 每条支线须与主线及其它支线保持独立: 反派/危机不复用(鼓励使用全新的反派/幕后黑手)
+- 交汇控制: 主线与支线默认平行推进，不得主动汇总/合流/收束
 
 Step 10:gametxt_setting回顾
 <gametxt_setting>各个要求为常驻规则，不可遗漏任何一条内容
@@ -164,13 +153,8 @@ Step 10:gametxt_setting回顾
   ...
 
 Step 11:文风设计
-基础:
-回顾<base_writing_guidance>与<Writing_style>
-  1. 如何进行文风设计？
-  2. 如何避免出现禁止词汇？
-  3. ...
-  ...{{getvar::文学g}}{{getvar::书籍参考g}}
-触发:{{getvar::sex_g}}
+- 回顾<base_writing_guidance>与<Writing_style>如何进行文风设计？{{getvar::文学g}}{{getvar::书籍参考g}}
+- 触发:{{getvar::sex_g}}
 
 </think>
 </think_format>

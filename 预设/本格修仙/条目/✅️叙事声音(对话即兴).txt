@@ -1,4 +1,4 @@
-<%_{if (getvar('ai模型') != 'Gemini'){_%>
+<%_{if (getvar('ai模型') != 'Gemini' && getvar('ai模型') != 'Deepseek'){_%>
 <narrative_voice>
 Dialogue is spontaneous, not polished rhetoric:
 - Speech may carry pauses, hesitation, and self-correction; thoughts spill out before fully formed. Diction fits the speaker's station (cultivators, villagers, merchants each speak their own way)

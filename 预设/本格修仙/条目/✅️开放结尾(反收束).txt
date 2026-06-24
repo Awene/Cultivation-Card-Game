@@ -1,4 +1,4 @@
-<%_{if (getvar('ai模型') != 'Gemini'){_%>
+<%_{if (getvar('ai模型') != 'Gemini' && getvar('ai模型') != 'Deepseek'){_%>
 <anti_literary>
 This is not the final turn; <user> will respond again. Every output should stay open—leave a natural opening for <user> to pick up. The scene and characters remain in their current state; do not close the story on <user>'s behalf.
 

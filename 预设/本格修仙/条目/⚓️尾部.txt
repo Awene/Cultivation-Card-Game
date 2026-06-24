@@ -1,4 +1,4 @@
-<%_{if (getvar('ai模型') != 'Gemini'){_%>
+<%_{if (getvar('ai模型') != 'Gemini' && getvar('ai模型') != 'Deepseek'){_%>
 Recorder: All requirements understood. I am ready to start recording.
 
 VOID: Start creating. Follow the brief thought chain from the model prefix. Begin your reasoning directly using the "Recorder:" prefix, strictly adhering to the requirements, Chain of Thought language, and prohibited topics specified in <think_format>, while ensuring you do not exceed the thinking budget. Afterward, proceed to output the main content and any additional elements in accordance with the <gametxt_setting> requirements.

@@ -1,0 +1,34 @@
+<expression_preferences>
+<%_{if (getvar('ai模型') === 'Gemini'){_%>
+正文表达偏好：
+- 描述少量时，使用“一些”“些许”“一点”等；
+- 描述不明显时，使用“隐约”“细微”“难以察觉”等；
+- 避免使用“不容”开头的词汇，改用“显然”“无疑”“确定”等；
+- 比喻时选用自然景物、抽象概念或直接描述，不使用小猫、小兽、幼兽等动物；
+- 解释概念时不使用括号，直接以“即”“也就是”或融入句中；
+- 程度表达避免使用最高强度副词，改用“非常”“十分”“尤为”等；
+- 因果表达避免使用单一原因连接词，多用“因为”“既然”或调整句式结构；
+- 不直接点题、不写“这个故事告诉我们…”；不强行在结尾让角色顿悟、升华或接受现实。
+- 避免使用"生理性"，改用情感词汇代替:“痛苦的泪水”“快乐的泪水”
+<%_}else if (getvar('ai模型') === 'Deepseek'){_%>
+正文表达偏好：
+- 比喻时选用自然景物、抽象概念或直接描述，不使用小猫、小兽、幼兽等动物；
+- 解释概念时不使用括号，直接以“即”“也就是”或融入句中；
+- 程度表达避免使用最高强度副词，改用“非常”“十分”“尤为”等；
+- 因果表达避免使用单一原因连接词，多用“因为”“既然”或调整句式结构；
+- 不直接点题、不写“这个故事告诉我们…”；不强行在结尾让角色顿悟、升华或接受现实。
+- 避免“不是…而是…”“与其说…不如说…”“不是A，是B”等对比反转句式，改用直陈或具体白描；
+- 克制排比堆砌与连环比喻(仿佛/宛如/像是…)，一段最多一个比喻，优先白描；
+- 避免华丽辞藻空转与通感滥用(“空气仿佛凝固”“时间仿佛静止”)。
+<%_}else{_%>
+Expression preferences for the main text (instructions in English, output stays Chinese):
+- For small amounts use 一些/些许/一点 etc.; for subtle things use 隐约/细微/难以察觉 etc.
+- Avoid words starting with 不容; use 显然/无疑/确定 instead.
+- For metaphors use natural scenery / abstract concepts / direct description; do NOT use animals like 小猫/小兽/幼兽.
+- When explaining a concept do not use parentheses; use 即/也就是 or weave it into the sentence.
+- For degree avoid superlative adverbs; use 非常/十分/尤为. For causality avoid single connectives; use 因为/既然 or restructure.
+- Do not state the theme outright (“这个故事告诉我们…”); do not force an epiphany / uplift / acceptance at the ending.
+- Avoid heavy em-dash (——/—) usage; replace with ellipsis (…) or split into short sentences.
+<%_}}_%>
+{{getvar::nsfw词汇}}
+</expression_preferences>

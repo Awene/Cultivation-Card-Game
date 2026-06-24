@@ -1,4 +1,4 @@
-<%_{if (getvar('ai模型') != 'Gemini'){_%>
+<%_{if (getvar('ai模型') != 'Gemini' && getvar('ai模型') != 'Deepseek'){_%>
 Core Style:  Show, don't tell
 - Build scenes using a range of cinematic editing techniques. Present information visually and aurally, without commentary or judgment
 - Employ varied narrative devices to enrich the texture of the writing; steer clear of monotony

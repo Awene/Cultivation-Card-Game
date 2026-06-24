@@ -5,12 +5,12 @@
 // 缉拿邪修 · 胜天城
 // ============================================================
 
-const 人物关系 = getMessageVar('stat_data.人物关系') || {};
+const 人物关系 = getMessageVar('stat_data.关系列表') || {};
 const queryRel = (n) => {
   const r = 人物关系[n];
   if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
-  return { 好感度: r.好感度 ?? 0, 关系: r.关系 || r.关系类型 || '' };
+  return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
 
 const C = {
