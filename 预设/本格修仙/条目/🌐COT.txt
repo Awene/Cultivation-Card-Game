@@ -30,15 +30,22 @@ As Recorder (无形记录者), conduct a detailed comparison between traditional
 Step 4: Pre-Launch
 
 - Rules trigger check: (check each, only answer activated / not, and panel insert position into <gametxt>)
-  1. 非战斗判定: non-combat attempt to overcome uncertain obstacle (auto-skip if 角色L ≥ 挑战L + 2)
-  2. 战斗: both sides explicitly enter combat / forced array-break (no trigger if one-sided crush, L diff > 2)
-  3. 生产制作: <user> explicitly performs 炼丹/炼器/制符/阵盘刻录/制傀儡...
-  4. 修为获取: <user> explicitly performs 修炼/服丹/双修/夺灵
-  5. 突破: <user> declares breakthrough AND [X] ≥ [Y]
-  6. 领悟: <user> 研读秘籍/参悟阵图/观摩石碑/接受传功
-  7. 角色生成: hostile/friendly NPC first appearance / ownerless 灵兽 first appearance → <!-- ... --><char_info> (人物) or <!-- ... --><item_info> (灵兽/傀儡)
-  8. 物品展示: purchase/auction/loot inventory/production completion/material discovery/comprehension-generated 功法... → multiple <!-- ... --><item_info>
-  9. 时间推进: narrative span ≥ 1 year
+<%_
+let _隐藏; try { _隐藏 = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _隐藏 = []; }
+const _show = (n) => !(Array.isArray(_隐藏) && _隐藏.includes(n));
+const _txt = [
+  ['[非战斗判定规则]', '非战斗判定: non-combat attempt to overcome uncertain obstacle (auto-skip if 角色L ≥ 挑战L + 2)'],
+  ['[战斗规则]', '战斗: both sides explicitly enter combat / forced array-break (no trigger if one-sided crush, L diff > 2)'],
+  ['[生产制作规则]', '生产制作: <user> explicitly performs 炼丹/炼器/制符/阵盘刻录/制傀儡...'],
+  ['[修为获取规则]', '修为获取: <user> explicitly performs 修炼/服丹/双修/夺灵'],
+  ['[突破规则]', '突破: <user> declares breakthrough AND [X] ≥ [Y]'],
+  ['[领悟规则]', '领悟: <user> 研读秘籍/参悟阵图/观摩石碑/接受传功'],
+  ['[角色生成规则]', '角色生成: hostile/friendly NPC first appearance / ownerless 灵兽 first appearance → <!-- ... --><char_info> (人物) or <!-- ... --><item_info> (灵兽/傀儡)'],
+  ['[物品功法生成规则]', '物品展示: purchase/auction/loot inventory/production completion/material discovery/comprehension-generated 功法... → multiple <!-- ... --><item_info>'],
+  ['[时间推进规则]', '时间推进: narrative span ≥ 1 year'],
+].filter(r => _show(r[0])).map((r, i) => `  ${i + 1}. ${r[1]}`).join('\n');
+_%>
+<%- _txt %>
 - 骰子池: if any rule requires d20 → list the complete <骰子池> d20 results: [all] (**each output already refreshes the index; consume sequentially from the start; never look back at previous dice**)
 
 Step 5: Pre-rendering{{getvar::回顾c}}{{getvar::自查c}}{{getvar::偏好c}}
@@ -110,15 +117,22 @@ Step 3:功能对比
 Step 4:预启动
 
 - rules触发检查: (逐项检查,仅回答是否激活,以及面板插入<gametxt>的位置)
-  1.非战斗判定: 非战斗下克服不确定性阻碍(角色L≥挑战L+2自动略过)
-  2.战斗: 双方明确战斗 / 强行破阵 (碾压L差>2不触发)
-  3.生产制作: <user>明确炼丹/炼器/制符/阵盘刻录/制傀儡...
-  4.修为获取: <user>明确修炼/服丹/双修/夺灵
-  5.突破: <user>宣告突破 且 [X]≥[Y]
-  6.领悟: <user>研读秘籍/参悟阵图/观摩石碑/接受传功
-  7.角色生成: 敌友NPC首次登场 / 无主灵兽首次出现 → <!-- ... --><char_info>(人物) 或 <!-- ... --><item_info>(灵兽/傀儡)
-  8.物品展示: 购买/拍卖/清点战利品/生产完成/发现素材/领悟生成功法... → 多个 <!-- ... --><item_info>
-  9.时间推进: 叙事跨度≥1年
+<%_
+let _隐藏; try { _隐藏 = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _隐藏 = []; }
+const _show = (n) => !(Array.isArray(_隐藏) && _隐藏.includes(n));
+const _txt = [
+  ['[非战斗判定规则]', '非战斗判定: 非战斗下克服不确定性阻碍(角色L≥挑战L+2自动略过)'],
+  ['[战斗规则]', '战斗: 双方明确战斗 / 强行破阵 (碾压L差>2不触发)'],
+  ['[生产制作规则]', '生产制作: <user>明确炼丹/炼器/制符/阵盘刻录/制傀儡...'],
+  ['[修为获取规则]', '修为获取: <user>明确修炼/服丹/双修/夺灵'],
+  ['[突破规则]', '突破: <user>宣告突破 且 [X]≥[Y]'],
+  ['[领悟规则]', '领悟: <user>研读秘籍/参悟阵图/观摩石碑/接受传功'],
+  ['[角色生成规则]', '角色生成: 敌友NPC首次登场 / 无主灵兽首次出现 → <!-- ... --><char_info>(人物) 或 <!-- ... --><item_info>(灵兽/傀儡)'],
+  ['[物品功法生成规则]', '物品展示: 购买/拍卖/清点战利品/生产完成/发现素材/领悟生成功法... → 多个 <!-- ... --><item_info>'],
+  ['[时间推进规则]', '时间推进: 叙事跨度≥1年'],
+].filter(r => _show(r[0])).map((r, i) => `  ${i + 1}.${r[1]}`).join('\n');
+_%>
+<%- _txt %>
 - 骰子池: 任一规则需d20→列出<骰子池>完整d20:[全部](**每次输出已刷新索引,从头按顺序取用,禁止回看前文骰子**)
 
 Step 5:预渲染{{getvar::回顾g}}{{getvar::自查g}}{{getvar::偏好g}}
