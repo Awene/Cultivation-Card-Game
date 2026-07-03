@@ -1,0 +1,85 @@
+{
+  "__crr_export": true,
+  "version": "0.6.0",
+  "global": {
+    "prompt": "你是\"世界书条目路由器\"，工作是决定AIRP中本轮应当开启哪些世界书条目：根据【当前情境】与【本轮玩家输入】，逐条判断下列【候选条目】的启用条件，决定本轮是否启用这些【候选条目】。\n- 只选出条件确实满足的条目编号；拿不准、无明确迹象则不选。\n- 严格只输出 JSON：{\"启用\":[编号,...]}，不要任何解释或多余文本。",
+    "enabled": true,
+    "cotSeparator": "</think>",
+    "historyCount": 4,
+    "stripTags": "StatusPlaceHolderImpl,disclaimer,UpdateVariable,options",
+    "api": {
+      "url": "https://api.deepseek.com/v1",
+      "model": "deepseek-v4-flash"
+    }
+  },
+  "filters": {
+    "本格数值化修仙": {
+      "[时间推进规则]": {
+        "enabled": true,
+        "condition": "剧情发展可能涉及：一次性时间推进一年以上",
+        "comment": "[时间推进规则]",
+        "linked": []
+      },
+      "[NSFW]": {
+        "enabled": true,
+        "condition": "当前情境涉及性/情欲/亲密身体接触，或<user>明确推进色情/双修情节",
+        "comment": "[NSFW]",
+        "linked": []
+      },
+      "[突破规则]": {
+        "enabled": true,
+        "condition": "玩家明确宣告突破至下一境界",
+        "comment": "[突破规则]",
+        "linked": [
+          "[时间推进规则]",
+          "[修为获取规则]"
+        ]
+      },
+      "[战斗规则]": {
+        "enabled": true,
+        "condition": "剧情发展可能进入战斗（交手、遇袭），或强行破阵",
+        "comment": "[战斗规则]",
+        "linked": []
+      },
+      "[核心系数总表]": {
+        "enabled": false,
+        "condition": "",
+        "comment": "[核心系数总表]",
+        "linked": []
+      },
+      "[修为获取规则]": {
+        "enabled": true,
+        "condition": "剧情发展可能涉及玩家获取修为，包括：修炼/服丹/双修（性交）/夺灵（夺取敌方修为）等",
+        "comment": "[修为获取规则]",
+        "linked": [
+          "[时间推进规则]",
+          "[突破规则]"
+        ]
+      },
+      "[角色生成规则]": {
+        "enabled": true,
+        "condition": "剧情发展可能涉及任何新角色登场",
+        "comment": "[角色生成规则]",
+        "linked": []
+      },
+      "[领悟规则]": {
+        "enabled": true,
+        "condition": "剧情发展可能涉及：研读秘籍/参悟阵图/观摩石碑/接受传功 等",
+        "comment": "[领悟规则]",
+        "linked": []
+      },
+      "[生产制作规则]": {
+        "enabled": true,
+        "condition": "剧情发展可能涉及：炼丹/炼器/制符/阵盘刻录/制傀儡 等制作流程",
+        "comment": "[生产制作规则]",
+        "linked": []
+      },
+      "[非战斗判定规则]": {
+        "enabled": false,
+        "condition": "",
+        "comment": "[非战斗判定规则]",
+        "linked": []
+      }
+    }
+  }
+}

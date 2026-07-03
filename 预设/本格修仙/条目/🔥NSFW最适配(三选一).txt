@@ -1,4 +1,4 @@
-在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
+<%_ let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%>在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
 性场景→激活<sex_style>，如何进行性场景描写？如何避免一些错误？}}{{setvar::sex_c::if(Sex_scene)Based on <sex_style>, thinking how to describe sexual scenes and how to conduct sexual scene descriptions;sex_thinking_results:}}
 <sex_style>
 性场景描写配置:
@@ -33,4 +33,4 @@
 </sex_word>
 
 NOTE: **如果<Participant_input>未要求，避免主动结束性爱**
-</sex_style>
+</sex_style><%_ } _%>
