@@ -410,6 +410,7 @@ export const Schema = z.object({
   姓名: z.string().prefault("User"),
   寿元: LifespanSchema,
   种族: z.string().prefault("人族"),
+  身份: z.array(z.string()).prefault([]), // 散修 / 宗门+地位,可多个(与 NPC 身份 一致)
   灵根: SpiritualRootSchema,
   体质: PhysiqueSchema,
   修炼进度: CultivationProgressSchema,
@@ -648,7 +649,7 @@ function tryParseValue(t) {
 
 // 全部合法顶级键 (与 Schema z.object 内字段名一致); 任一段命中即认为是真正的根入口
 const ALL_TOP_LEVEL_KEYS = new Set([
-  "姓名", "寿元", "种族", "灵根", "体质", "修炼进度",
+  "姓名", "寿元", "种族", "身份", "灵根", "体质", "修炼进度",
   "技艺", "资源池", "地点", "时间", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
   "关系列表", "传闻",

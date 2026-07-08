@@ -21,6 +21,10 @@ types:
       }
   种族: &race
     type: string #如人族、龙族等,妖族需注明物种,如狐妖、猫妖
+  身份: &status
+    type: string[] # 散修,或宗门+地位如:北辰学宫内门弟子、镇魔司缉魔使;可多个
+    check:
+      - 加入/离开宗门、职位晋升、身份揭露或重大身份变动时更新
   灵根: &root
     type: |-
       {
@@ -220,7 +224,7 @@ types:
               类型: '人物';
               在场: boolean;
               种族: *race
-              身份: string[]; # 散修,或宗门+地位如:万兽宗内门弟子、五毒教长老
+              身份: *status
               修炼进度: *realmDetails
               寿元: *age
               灵根: *root

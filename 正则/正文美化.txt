@@ -2920,7 +2920,7 @@
       const CHARACTER_CONFIG = {
         // 天玄剑宗
         莫决云: { color: '#7d8ec1', given_name: '莫决云', aliases: ['莫决云', '宗主', '莫宗主'] },
-        墨诗行: { color: '#9aa5d8', given_name: '墨诗行', aliases: ['墨诗行', '大师兄'] },
+        墨诗行: { color: '#9aa5d8', given_name: '墨诗行', aliases: ['墨诗行'] },
         白秋禾: { color: '#b8c4e0', given_name: '白秋禾', aliases: ['白秋禾'] },
         // 问道仙宗
         李道玄: { color: '#c8a045', given_name: '李道玄', aliases: ['李道玄'] },

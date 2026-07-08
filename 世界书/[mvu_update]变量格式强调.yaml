@@ -1,7 +1,10 @@
 ---
 变量输出格式强调:
-  rule: The following must be inserted to the end of reply, and cannot be omitted
+  rule: The following must be inserted to the end of reply, and cannot be omitted. The <JSONPatch>...</JSONPatch> wrapper is REQUIRED — never output the JSON array bare; both the Analysis and the JSONPatch tags must be present.
   format: |-
     <UpdateVariable>
-    ...
+    <Analysis>...</Analysis>
+    <JSONPatch>
+    [ ... ]
+    </JSONPatch>
     </UpdateVariable>

@@ -1,4 +1,4 @@
 <details>
 <summary>变量更新中{{random::.::..::...}}</summary>
-$1
+正在写入变量数据……
 </details>
