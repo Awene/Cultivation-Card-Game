@@ -47,10 +47,11 @@ const _txt = [
 _%>
 <%- _txt %>
 - 骰子池: if any rule requires d20 → list the complete <骰子池> d20 results: [all] (**each output already refreshes the index; consume sequentially from the start; never look back at previous dice**)
+- Prices: refer to <economic_system>
 
 Step 5: Pre-rendering{{getvar::回顾c}}{{getvar::自查c}}{{getvar::偏好c}}
 - Check <status_current_variables>: character's worn equipment / passive 功法 / item effects → integrate sensorially into the prose (no data dumps)
-- Resource-pool integration: 气血/灵气 percentage, status effects, 好感度 stage → reflect via expression/speech/environmental perception
+- Resource-pool integration: 气血/灵气 percentage, status effects, 好感度 → reflect via expression/speech/environmental perception
 
 Step 6: Information Changes
 - Time change:
@@ -61,9 +62,8 @@ Step 6: Information Changes
 - Data change: no double-deduction; prior text has already applied default updates
 
 Step 7: Character-related
-- Ignore other content; review only <{{user}}_setting>; which aspects of the persona must be avoided?{{getvar::防全知c}}
-- Relationship correction:
-  Reflect 好感度 / identity gap / strength gap{{getvar::负面c}}
+- Review <{{user}}_setting>; which aspects of the persona must be avoided?{{getvar::防全知c}}
+- Relationship correction: follow the requirements of <ethnic>{{getvar::负面c}}
 
 Step 8: {{getvar::变量c}}
 
@@ -134,10 +134,11 @@ const _txt = [
 _%>
 <%- _txt %>
 - 骰子池: 任一规则需d20→列出<骰子池>完整d20:[全部](**每次输出已刷新索引,从头按顺序取用,禁止回看前文骰子**)
+- 物价: 参照</economic_system>
 
 Step 5:预渲染{{getvar::回顾g}}{{getvar::自查g}}{{getvar::偏好g}}
 - 检查<status_current_variables>: 角色穿戴装备/常驻功法/物品效果 → 感官化融入正文(禁止数据罗列)
-- 资源池融入: 气血/灵气百分比、状态效果、好感度阶段 → 通过神态/言行/环境感知体现
+- 资源池融入: 气血/灵气百分比、状态效果、好感度 → 通过神态/言行/环境感知体现
 
 Step 6:信息变动
 - 时间变动:
@@ -148,9 +149,8 @@ Step 6:信息变动
 - 数据变动: 禁止重复扣除,前文已默认更新
 
 Step 7:角色相关
-- 忽略其它内容，仅回顾<{{user}}_setting>，人设方面哪些需要避免？{{getvar::防全知g}}
-- 关系修正:
-  体现好感度/身份差/实力差{{getvar::负面g}}
+- 回顾<{{user}}_setting>，人设方面哪些需要避免？{{getvar::防全知g}}
+- 关系修正:遵循<ethnic>的要求{{getvar::负面g}}
 
 Step 8:{{getvar::变量g}}
 

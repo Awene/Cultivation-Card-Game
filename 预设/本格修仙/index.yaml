@@ -853,6 +853,21 @@
         仅格式提示词: true
       最大深度: 1
 
+    - 正则名称: 深层楼层用小总结代替
+      id: c2f8d5b3-4e0a-4b7c-9d26-8f3a0e5b2d41
+      启用: true
+      查找表达式: /^[\s\S]*?(<summary>[\s\S]*?<\/summary>)[\s\S]*$/i
+      内容: $1
+      来源:
+        用户输入: false
+        AI输出: true
+      作用于:
+        仅格式显示: false
+        仅格式提示词: true
+      # 保留最新 5 个可见 AI 楼完整; 历史 user 楼被"隐藏历史用户楼层"脚本隐藏,
+      # 已从 coreChat 中排除,故此处按"仅数 AI 楼"计: depth0=当前指令, depth1~5=保留的5个AI楼
+      最小深度: 6
+
     - 正则名称: 去除多余信息4
       id: 2916dba3-68bb-4c60-8a65-95eafa682b77
       启用: true
@@ -1387,6 +1402,15 @@
                   "我会根据以上内容，按照<mega_summary_rules>进行整合。将所有记录合并为一份连贯精炼的记录，不包含任何html内容，生成整合后的记录\
                   :"
 
+      - 名称: 隐藏历史用户楼层
+        id: d3a9f1c6-5b2e-4f8a-9c07-1e6b3d8a2f50
+        启用: true
+        类型: 脚本
+        导出时携带:
+          数据: true
+          按钮: true
+        文件: 脚本\隐藏历史用户楼层
+
     变量: {}
 
   SPreset:
@@ -1419,7 +1443,7 @@
       regexes:
         - id: 27cb54ca-593d-48f2-ac5c-035c7b3e88f0
           scriptName: k3.3思维链转义标签1
-          禁用: true
+          禁用: false
           runOnEdit: true
           findRegex: /<([\s\S]*?)>(?=[\s\S]*?<\/think>)/g
           trimStrings: []
@@ -1708,6 +1732,20 @@
           substituteRegex: 0
           minDepth: null
           maxDepth: 1
+          markdownOnly: false
+          promptOnly: true
+        - id: c2f8d5b3-4e0a-4b7c-9d26-8f3a0e5b2d41
+          scriptName: 深层楼层用小总结代替
+          禁用: false
+          runOnEdit: true
+          findRegex: /^[\s\S]*?(<summary>[\s\S]*?<\/summary>)[\s\S]*$/i
+          trimStrings: []
+          replaceString: $1
+          placement:
+            - 2
+          substituteRegex: 0
+          minDepth: 6
+          maxDepth: null
           markdownOnly: false
           promptOnly: true
         - id: 2916dba3-68bb-4c60-8a65-95eafa682b77
