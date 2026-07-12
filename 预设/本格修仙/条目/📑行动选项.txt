@@ -1,7 +1,7 @@
 {{setvar::选项::
 <options>
 ...
-</options>}}<%_ let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%><option_format>
+</options>}}<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%><option_format>
 在每次正文结束后，严格按照以下格式输出行动选项模块。使用<options> </options>标签包裹
 <options>
 1. ${推进剧情向符合角色性癖的NSFW方向发展}
@@ -29,4 +29,4 @@
 3. 篇幅限制: 单个选项字数在30字左右，至少包含2句话
 4. 特殊状态规则: 在{{user}}失去行动能力或处于被动状态时，将选项改为叙述{{user}}的遭遇（如他人对{{user}}的行动或其处境变化）
 5. 选项数量: 4个
-</option_format><%_ } _%>
+</option_format><%_ } } _%>

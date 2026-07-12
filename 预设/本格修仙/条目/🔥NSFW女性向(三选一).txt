@@ -1,4 +1,4 @@
-<%_ let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%>在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
+<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%>在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
 性场景→激活<sex_style>，如何进行性场景描写？如何避免一些错误？}}{{setvar::sex_c::if(Sex_scene)Based on <sex_style>, thinking how to describe sexual scenes and how to conduct sexual scene descriptions;sex_thinking_results:}}<sex_style>
 性爱描写指导:
   理念:
@@ -24,4 +24,4 @@
       - 无论出于何种意图，具有攻击、贬低人格的词汇和侮辱性称谓
       - 过分的支配、征服和狂野元素
       - 将身体视为物品的客观审视或特写
-</sex_style><%_ } _%>
+</sex_style><%_ } } _%>
