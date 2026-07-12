@@ -1869,7 +1869,7 @@
         line-height: 1.4;
       }
 
-      /* —— Header: 元阳/元阴/天谴 tag —— */
+      /* —— Header: 元阳/元阴/天谴/丹毒 tag —— */
       .char-panel .char-header-purity-intact {
         background: linear-gradient(135deg, #f6e05e, #b7791f) !important;
         color: #1a0f00 !important;
@@ -1890,6 +1890,13 @@
         border-color: rgba(245, 101, 101, 0.6) !important;
         box-shadow: 0 0 12px rgba(245, 101, 101, 0.5);
         animation: rb-tag-pulse 2.6s ease-in-out infinite;
+      }
+      .char-panel .char-header-poison {
+        background: linear-gradient(135deg, #9f7aea, #553c9a) !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        border-color: rgba(159, 122, 234, 0.6) !important;
+        box-shadow: 0 0 12px rgba(159, 122, 234, 0.5);
       }
       .char-panel .char-card-field {
         display: flex;
@@ -4054,6 +4061,8 @@
               if (fr && fr.value && !headerMap['_境界']) headerMap['_境界'] = fr.value;
               const ft = item.fields.find(x => x.key === '天谴');
               if (ft && ft.value !== undefined && headerMap['_天谴'] === undefined) headerMap['_天谴'] = ft.value;
+              const fd = item.fields.find(x => x.key === '丹毒');
+              if (fd && fd.value !== undefined && headerMap['_丹毒'] === undefined) headerMap['_丹毒'] = fd.value;
             }
             continue;
           }
@@ -4065,6 +4074,11 @@
           // 顶级 scalar 形式的 天谴 也抽到 header
           if (item.kind === 'scalar' && item.key === '天谴') {
             if (headerMap['_天谴'] === undefined) headerMap['_天谴'] = item.value;
+            continue;
+          }
+          // 顶级 scalar 形式的 丹毒 也抽到 header
+          if (item.kind === 'scalar' && item.key === '丹毒') {
+            if (headerMap['_丹毒'] === undefined) headerMap['_丹毒'] = item.value;
             continue;
           }
           // 元阳/元阴 已并入 体质:从 体质 section 抽到 header(不 continue,体质仍照常渲染)
@@ -4111,6 +4125,11 @@
         // 天谴:>0 才显示(红色,危险感)
         if (headerMap['_天谴'] !== undefined && Number(headerMap['_天谴']) > 0) {
           headerTags.push(`<span class="tag char-header-tribulation">天谴 ${_.escape(headerMap['_天谴'])}</span>`);
+        }
+
+        // 丹毒:>0 才显示(紫色,毒性感)
+        if (headerMap['_丹毒'] !== undefined && Number(headerMap['_丹毒']) > 0) {
+          headerTags.push(`<span class="tag char-header-poison">丹毒 ${_.escape(headerMap['_丹毒'])}</span>`);
         }
 
         // 3) 按 tab 分组 remaining

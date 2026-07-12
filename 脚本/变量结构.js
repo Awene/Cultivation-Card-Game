@@ -81,8 +81,12 @@ const CultivationProgressSchema = z
       .number()
       .transform((n) => _.clamp(n, 0, Infinity))
       .prefault(0),
+    丹毒: z.coerce
+      .number()
+      .transform((n) => _.clamp(n, 0, Infinity))
+      .prefault(0),
   })
-  .prefault({ 境界: "凡人", 当前进度: 0, 进度上限: 100, 天谴: 0 });
+  .prefault({ 境界: "凡人", 当前进度: 0, 进度上限: 100, 天谴: 0, 丹毒: 0 });
 
 // ===== 技艺 Schema =====
 const SkillSchema = z
@@ -454,7 +458,7 @@ const NPC_FIELDS = new Set([
 const PHYSIQUE_FIELDS = new Set(["名称", "效果", "悟性", "根骨", "气感", "元阴", "元阳"]);
 const SPIRITUAL_ROOT_FIELDS = new Set(["名称", "五行", "品阶"]);
 const LIFESPAN_FIELDS = new Set(["年龄", "寿命", "外观年龄"]);
-const CULTIVATION_PROGRESS_FIELDS = new Set(["境界", "当前进度", "进度上限", "天谴"]);
+const CULTIVATION_PROGRESS_FIELDS = new Set(["境界", "当前进度", "进度上限", "天谴", "丹毒"]);
 const STATUS_EFFECT_FIELDS = new Set(["类型", "效果", "层数", "剩余时间", "来源"]);
 const CULTIVATION_ART_FIELDS = new Set([
   "使用中", "品质", "境界", "五行", "类型", "消耗", "标签", "效果", "描述",

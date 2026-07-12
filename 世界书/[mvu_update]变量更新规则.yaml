@@ -57,6 +57,7 @@ types:
         当前进度: number;
         进度上限: number; #进阶下一级所需的修为
         天谴: number;
+        丹毒: number;
       }
   技艺: &skill
     type: |-
