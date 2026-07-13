@@ -41,6 +41,12 @@ if (mode !== 'hidden') {
   const mentioned = (kws) => kws.some(kw => kw && scanText.includes(kw));
   const inLoc = (kw) => 具体地点.includes(kw);
 
+  // ========== 重要秘境白名单 ==========
+  // 仅这些秘境会在 'other' 模式(玩家身处凡界其他域)露出简介;其余秘境在他域完全隐藏。
+  // 'in' 模式(玩家身处本域)不受影响,全部照常显示。
+  // 判定标准: 与神兽(四象等)、归墟/大劫主线、天魔、或成链剧情任务相关。新增秘境时记得同步此表。
+  const 重要秘境 = new Set(['大禹故渎', '丹朱遗枰', '窥天残台']);
+
   // ========== 秘境 brief / detail 字典 (15处·皆与现存势力脱钩·无主上古遗存) ==========
   const M = {};
 
@@ -688,12 +694,13 @@ graph TD
   let geoOut, sectsOut, kingsOut, mapOut;
 
   if (mode === 'other') {
-    // 'other' 模式: 概述+秘境概述
+    // 'other' 模式: 概述 + 仅【重要秘境】概述 (不重要秘境在他域完全隐藏)
     const geoLine = (name) => {
       const e = ecoData[name];
       let s = '- ' + e.header;
-      if (e.mizing.length > 0) {
-        s += '\n' + e.mizing.map(n => M[n].brief.split('\n')[0]).join('\n');
+      const 重要 = e.mizing.filter(n => 重要秘境.has(n));
+      if (重要.length > 0) {
+        s += '\n' + 重要.map(n => M[n].brief.split('\n')[0]).join('\n');
       }
       return s;
     };
