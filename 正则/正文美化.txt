@@ -5,9 +5,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>正文美化 · 修真叙事</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!--
+      jQuery / lodash / FontAwesome 不在此引入：酒馆助手已经往每个消息 iframe 的 <head> 里
+      预注入了这三者（见 util/iframe_srcdoc.html）。本文档会被渲染成【每层楼一个】iframe，
+      在这里再引一遍等于每个 iframe 各自再解析编译一份 jQuery+lodash，纯浪费 JS 堆。
+      （状态栏正则里直接裸用 $('body').load(...) 而不引 jQuery，靠的就是这个预注入。）
+    -->
     <link
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap"
       rel="stylesheet"
@@ -5176,6 +5179,13 @@
           localStorage.setItem(THEME_KEY, t);
         } catch (e) {
           /* ignore */
+        }
+        // 广播给其它 realm（思维链美化等各自独立的 iframe）。它们据此即时同步主题，
+        // 从而不必各自跑一个永不停止的轮询定时器。同源无沙盒 iframe 才能拿到 window.top。
+        try {
+          (window.top || window).dispatchEvent(new CustomEvent('rb-theme-change', { detail: t }));
+        } catch (e) {
+          /* 跨源或 top 不可达时忽略：接收方仍有 storage 事件兜底 */
         }
         const btn = document.getElementById('themeToggle');
         if (btn) btn.textContent = t === 'dark' ? '🌙 夜' : '☀ 日';

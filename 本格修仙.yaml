@@ -1851,4 +1851,20 @@
           按钮: true
         文件: 脚本\变量结构
 
+      # 回收超出正则「最大深度」的陈旧楼层 iframe。
+      # 酒馆助手不会销毁已渲染的楼层 iframe，深度设置只在整页重载时才生效，
+      # 于是 iframe 随楼层线性累积 → 玩到 50~70 楼时手机标签页 OOM 被杀。
+      # 本脚本对掉出深度窗口的楼层逐个 refreshOneMessage()，让它按当前深度重新渲染成纯文本，
+      # iframe 元素随之被替换掉、realm 被 GC 回收。
+      # ⚠️ 版本号需与上面「状态栏 / 正文美化」正则里的 jsdelivr tag 一起升到 bot 新打的 tag。
+      - 名称: 楼层iframe回收
+        id: 4a0c13f7-6228-43de-8902-1eec3e70bb0c
+        启用: true
+        类型: 脚本
+        内容: import
+          'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.27/dist/楼层iframe回收/index.js';
+        导出时携带:
+          数据: true
+          按钮: true
+
     变量: {}
