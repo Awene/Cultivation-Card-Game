@@ -1,0 +1,10 @@
+---
+<status_current_variable>
+<%_ {
+  // 取完整变量并剔除「事件」——事件是幕后状态机指针,不该进状态面板、也不该被 AI 叙述
+  const data = getMessageVar('stat_data', { defaults: {} });
+  const cleanData = _.omit(_.cloneDeep(data), '事件');
+_%>
+<%= YAML.stringify(cleanData, { blockQuote: 'literal' }) _%>
+<%_ } _%>
+</status_current_variable>
