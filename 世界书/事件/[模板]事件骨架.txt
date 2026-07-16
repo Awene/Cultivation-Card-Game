@@ -20,14 +20,16 @@ const 身份List = getMessageVar('stat_data.身份', { defaults: [] });
 const 身份文本 = Array.isArray(身份List) ? 身份List.join(' ') : String(身份List);
 const 境界     = String(getMessageVar('stat_data.修炼进度.境界') || '凡人');
 const 具体地点 = getMessageVar('stat_data.地点.具体地点', { defaults: '' }) || '';
-const L = 境界.includes('化神') ? 5 : 境界.includes('元婴') ? 4
+const L = 境界.includes('渡劫') ? 9 : 境界.includes('大乘') ? 8
+        : 境界.includes('合体') ? 7 : (境界.includes('返虚') || 境界.includes('炼虚')) ? 6
+        : 境界.includes('化神') ? 5 : 境界.includes('元婴') ? 4
         : 境界.includes('金丹') ? 3 : 境界.includes('筑基') ? 2
-        : (境界.includes('炼气') || 境界.includes('练气')) ? 1 : 0;
+        : (境界.includes('炼气') || 境界.includes('练气')) ? 1 : 0; // 大境界谱系见[核心系数总表]
 
 let out = '';
 _%>
 <%_ /* ========== A · 触发器: 满足条件则开场, 并把状态机推入首个阶段 ========== */ _%>
-<%_ if (标题 !== 本事件 && !已完成.includes(本事件)
+<%_ if (标题 === '' && !已完成.includes(本事件)  /* 标题==='': 任何事件进行中都不再触发新事件, 防止顶掉进行中事件 */
         /* ★ 你的触发条件, 例如: && 身份文本.includes('五毒') && L >= 2 && 具体地点.includes('神木殿') */
         && false /* ← 模板默认 false(永不触发); 填好条件后删掉这一行 */
    ) { _%>
@@ -35,10 +37,10 @@ _%>
 <!-- ★ 开场叙述: 普通文字=照抄, ${...}=让模型现编, <!-- -->=导演注释、不直接演 -->
 ${在此描写事件如何降临到{{user}}身上}
 
-本轮必须在<UpdateVariable>中以 JSON Patch 更新以下变量(逐条照做, 变量不可见):
-  将'事件.开启'的布尔值设置为 true
-  将'事件.标题'的值设置为 `示例事件`
-  将'事件.阶段'的值设置为 `第一幕`
+本轮必须将下列操作原样并入<UpdateVariable>的<JSONPatch>数组(变量不可见, 逐条照做):
+  { "op": "replace", "path": "/事件/开启", "value": true }
+  { "op": "replace", "path": "/事件/标题", "value": "示例事件" }
+  { "op": "replace", "path": "/事件/阶段", "value": "第一幕" }
 </event>
 <%_ } _%>
 <%_ /* ========== B · 状态机: 仅当本事件进行中, 才按阶段逐段渲染 ========== */ _%>
@@ -49,8 +51,8 @@ ${在此描写事件如何降临到{{user}}身上}
 <event>
 [场景] ${描写第一幕}
 
-本轮必须在<UpdateVariable>中更新(变量不可见, 必须照做):
-  将'事件.阶段'的值设置为 `抉择`
+本轮必须将此操作原样并入<UpdateVariable>的<JSONPatch>数组(变量不可见, 必须照做):
+  { "op": "replace", "path": "/事件/阶段", "value": "抉择" }
 </event>
 <%_ } _%>
 
@@ -61,11 +63,11 @@ ${在此描写事件如何降临到{{user}}身上}
 
 **若{{user}}选择甲**
 本轮仅描写: ${甲的短过场}
-本轮必须在<UpdateVariable>中更新: 将'事件.阶段'的值设置为 `结局·甲`
+本轮必须将此操作原样并入<UpdateVariable>的<JSONPatch>数组: { "op": "replace", "path": "/事件/阶段", "value": "结局·甲" }
 
 **若{{user}}选择乙**
 本轮仅描写: ${乙的短过场}
-本轮必须在<UpdateVariable>中更新: 将'事件.阶段'的值设置为 `结局·乙`
+本轮必须将此操作原样并入<UpdateVariable>的<JSONPatch>数组: { "op": "replace", "path": "/事件/阶段", "value": "结局·乙" }
 </event>
 <%_ } _%>
 
@@ -77,11 +79,11 @@ ${在此描写事件如何降临到{{user}}身上}
 <!-- 结局发奖: 用项目既有的物品/功法/丹药格式, 让叙事落成机制收益 -->
 ${可选: 在此掉落一件奖励, 品质/类型/效果/描述齐全}
 
-本事件通关, 本轮必须在<UpdateVariable>中更新(变量不可见, 必须照做):
-  将'事件.已完成事件'数组中 add 一项 `示例事件`
-  将'事件.开启'的布尔值设置为 false
-  将'事件.标题'的值设置为 ``
-  将'事件.阶段'的值设置为 ``
+本事件通关, 本轮必须将下列操作原样并入<UpdateVariable>的<JSONPatch>数组(变量不可见, 逐条照做):
+  { "op": "insert", "path": "/事件/已完成事件/-", "value": "示例事件" }
+  { "op": "replace", "path": "/事件/开启", "value": false }
+  { "op": "replace", "path": "/事件/标题", "value": "" }
+  { "op": "replace", "path": "/事件/阶段", "value": "" }
 </event>
 <%_ } _%>
 
@@ -90,16 +92,19 @@ ${可选: 在此掉落一件奖励, 品质/类型/效果/描述齐全}
 <event>
 [尾声] ${乙结局的收束叙述}
 
-本事件通关, 本轮必须在<UpdateVariable>中更新(变量不可见, 必须照做):
-  将'事件.已完成事件'数组中 add 一项 `示例事件`
-  将'事件.开启'的布尔值设置为 false
-  将'事件.标题'的值设置为 ``
-  将'事件.阶段'的值设置为 ``
+本事件通关, 本轮必须将下列操作原样并入<UpdateVariable>的<JSONPatch>数组(变量不可见, 逐条照做):
+  { "op": "insert", "path": "/事件/已完成事件/-", "value": "示例事件" }
+  { "op": "replace", "path": "/事件/开启", "value": false }
+  { "op": "replace", "path": "/事件/标题", "value": "" }
+  { "op": "replace", "path": "/事件/阶段", "value": "" }
 </event>
 <%_ } _%>
 
 <%_ /* ========== 兜底阀门: 玩家出格致剧情无法继续时, 强制收尾 ========== */ _%>
-<!-- note: 当{{user}}做出使剧情无法继续的出格举动时, 直接终止本事件:
-     将'事件.已完成事件' add `示例事件`; 开启=false; 标题=""; 阶段="" -->
+<!-- note: 当{{user}}做出使剧情无法继续的出格举动时, 直接终止本事件——并入<JSONPatch>:
+     { "op": "insert", "path": "/事件/已完成事件/-", "value": "示例事件" }
+     { "op": "replace", "path": "/事件/开启", "value": false }
+     { "op": "replace", "path": "/事件/标题", "value": "" }
+     { "op": "replace", "path": "/事件/阶段", "value": "" } -->
 <%_ } _%>
 <%_ } _%>
