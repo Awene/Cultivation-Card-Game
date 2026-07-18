@@ -134,7 +134,7 @@ const _txt = [
 _%>
 <%- _txt %>
 - 骰子池: 任一规则需d20→列出<骰子池>完整d20:[全部](**每次输出已刷新索引,从头按顺序取用,禁止回看前文骰子**)
-- 物价: 参照</economic_system>
+- 物价: 参照<economic_system>
 
 Step 5:预渲染{{getvar::回顾g}}{{getvar::自查g}}{{getvar::偏好g}}
 - 检查<status_current_variables>: 角色穿戴装备/常驻功法/物品效果 → 感官化融入正文(禁止数据罗列)
@@ -151,6 +151,7 @@ Step 6:信息变动
 Step 7:角色相关
 - 回顾<{{user}}_setting>，人设方面哪些需要避免？{{getvar::防全知g}}
 - 关系修正:遵循<ethnic>的要求{{getvar::负面g}}
+- 重要NPC**首次**登场控制: 每轮尽量只让一个重要NPC首次登场；若有其他重要NPC需登场，延后至下轮（借镜头转移、出场先后等手法错开）
 
 Step 8:{{getvar::变量g}}
 

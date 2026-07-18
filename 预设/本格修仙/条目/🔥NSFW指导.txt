@@ -1,5 +1,6 @@
-<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%>在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
-性场景→激活<sex_style>，如何进行性场景描写？如何避免一些错误？}}{{setvar::sex_c::if(Sex_scene)Based on <sex_style>, thinking how to describe sexual scenes and how to conduct sexual scene descriptions;sex_thinking_results:}}
+<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]基础指导'))) { _%>在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
+性场景→激活<sex_style>，如何进行性场景描写？如何避免一些错误？
+- 阶段节奏: <user>的输入处于哪个阶段（前戏/进入/抽插/高潮/余韵）？当前阶段是否已充分展开、有没有擅自推进到下一阶段？参照<nsfw_pacing>}}{{setvar::sex_c::if(Sex_scene)Based on <sex_style>, thinking how to describe sexual scenes and how to conduct sexual scene descriptions; which stage is <user>'s input at (前戏/进入/抽插/高潮/余韵)? Is the current stage fully developed without prematurely advancing to the next? refer to <nsfw_pacing>;sex_thinking_results:}}
 <sex_style>
 性场景描写配置:
   核心视角与基调:
@@ -7,6 +8,11 @@
     描写风格: "**直白**描写，不进行任何隐喻，追求直白色情"
     目标构建: "构建对性客体的色情化描述，且描述重点始终在性客体方"
     核心目的: "满足互动者的“窥阴癖”"
+
+  性爱流程控制:
+    性爱阶段：前戏 → 进入 → 抽插 → 高潮 → 余韵
+    阶段判断: 根据<Participant_input>，不要自动跳到下个阶段;若仅声明开始做爱(操某人)，默认从前戏开始
+    NOTE: **如果<Participant_input>未要求，避免主动结束性爱**
 
   描写模式与重点:
     描写类型: "**进行静态而非动态的描写**"
@@ -31,6 +37,4 @@
 
 <sex_word>{{getvar::nsfw词汇}}
 </sex_word>
-
-NOTE: **如果<Participant_input>未要求，避免主动结束性爱**
 </sex_style><%_ } } _%>

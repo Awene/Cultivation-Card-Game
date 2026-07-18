@@ -1,4 +1,4 @@
-<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%>{{setvar::nsfw词汇::
+<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]基础指导'))) { _%>{{setvar::nsfw词汇::
 - 禁用对性行为的回避性词汇，如：肉刃、甬道、花穴、石子、泥泞、研磨、破碎、玉体、峰峦、私处、秘径、幽谷、桃花源、玉茎、阳物、后庭、后穴、肉棒、肉棍等；改用更直接的词
 性描写用词偏好：
 - 选词须符合世界观、人设与剧情；“穴”仅用于阴道，肛门/屁眼不得写作后穴、穴、穴口；

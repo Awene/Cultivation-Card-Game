@@ -1,13 +1,13 @@
 {{setvar::选项::
 <options>
 ...
-</options>}}<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]'))) { _%><option_format>
+</options>}}<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]基础指导'))) { _%><option_format>
 在每次正文结束后，严格按照以下格式输出行动选项模块。使用<options> </options>标签包裹
 <options>
 1. ${推进剧情向符合角色性癖的NSFW方向发展}
 2. ${推进剧情向特殊性癖的NSFW方向发展}
 3. ${推进剧情向另一种特殊性癖的NSFW方向发展}
-4. ${让更多角色一同加入NSFW剧情}
+4. ${推进剧情让更多角色一同加入NSFW剧情}
 </options>
 选项内容规则:
 1. 视角与人称: 必须符合世界规则与<{{user}}_setting>，以{{user}}为中心视角，使用第一人称称呼{{user}}
