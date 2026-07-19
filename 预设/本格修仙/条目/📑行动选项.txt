@@ -1,7 +1,7 @@
 {{setvar::选项::
 <options>
 ...
-</options>}}<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]基础指导'))) { _%><option_format>
+</options>}}<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[mvu_plot][NSFW]基础指导'))) { _%><option_format>
 在每次正文结束后，严格按照以下格式输出行动选项模块。使用<options> </options>标签包裹
 <options>
 1. ${推进剧情向符合角色性癖的NSFW方向发展}

@@ -1,0 +1,24 @@
+---
+<status_current_variable>
+<%_ {
+  // 取完整变量并剔除「事件」——事件是幕后状态机指针,不该进状态面板、也不该被 AI 叙述
+  const data = getMessageVar('stat_data', { defaults: {} });
+  const cleanData = _.omit(_.cloneDeep(data), ['事件', '性器']);
+  // 关系列表：对「细节可见 === false」的人物，隐藏其 物品/功法/装备/傀儡/灵兽（不发给 AI）；
+  //           并移除「细节可见」开关字段本身——它只是前端偏好，不该出现在发给 AI 的变量里。
+  const _rel = cleanData.关系列表;
+  if (_rel && typeof _rel === 'object') {
+    for (const _n of Object.keys(_rel)) {
+      const _npc = _rel[_n];
+      if (_npc && typeof _npc === 'object') {
+        if (_npc.细节可见 === false) {
+          delete _npc.物品; delete _npc.功法; delete _npc.装备; delete _npc.傀儡; delete _npc.灵兽;
+        }
+        delete _npc.细节可见; delete _npc.性器;
+      }
+    }
+  }
+_%>
+<%= YAML.stringify(cleanData, { blockQuote: 'literal' }) _%>
+<%_ } _%>
+</status_current_variable>

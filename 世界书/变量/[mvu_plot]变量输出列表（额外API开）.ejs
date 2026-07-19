@@ -1,0 +1,22 @@
+---
+<%_ /* 额外API模式·剧情模型视图：与随主版一致——隐藏事件 + 完整眼睛过滤（细节可见=false 的人物隐去其物品/功法/装备/傀儡/灵兽，并移除开关字段） */ _%>
+<status_current_variable>
+<%_ {
+  const data = getMessageVar('stat_data', { defaults: {} });
+  const cleanData = _.omit(_.cloneDeep(data), ['事件', '性器']);
+  const _rel = cleanData.关系列表;
+  if (_rel && typeof _rel === 'object') {
+    for (const _n of Object.keys(_rel)) {
+      const _npc = _rel[_n];
+      if (_npc && typeof _npc === 'object') {
+        if (_npc.细节可见 === false) {
+          delete _npc.物品; delete _npc.功法; delete _npc.装备; delete _npc.傀儡; delete _npc.灵兽;
+        }
+        delete _npc.细节可见; delete _npc.性器;
+      }
+    }
+  }
+_%>
+<%= YAML.stringify(cleanData, { blockQuote: 'literal' }) _%>
+<%_ } _%>
+</status_current_variable>

@@ -1,0 +1,24 @@
+---
+<%_ /* 额外API模式·记录模型视图：
+       - 隐藏「事件」(幕后状态机指针)
+       - 隐藏「传闻」(前端时间轴引擎生成，记录员不应更新)
+       - 移除各 NPC 的「细节可见」开关字段(纯前端偏好)
+       - 但【保留】各 NPC 的物品/功法/装备/傀儡/灵兽——记录员需看到全量才能准确更新变量，
+         「眼睛隐藏细节」只作用于剧情模型，不作用于记录模型 */ _%>
+<status_current_variable>
+<%_ {
+  const data = getMessageVar('stat_data', { defaults: {} });
+  const cleanData = _.omit(_.cloneDeep(data), ['事件', '传闻', '性器']);
+  const _rel = cleanData.关系列表;
+  if (_rel && typeof _rel === 'object') {
+    for (const _n of Object.keys(_rel)) {
+      const _npc = _rel[_n];
+      if (_npc && typeof _npc === 'object') {
+        delete _npc.细节可见; delete _npc.性器;
+      }
+    }
+  }
+_%>
+<%= YAML.stringify(cleanData, { blockQuote: 'literal' }) _%>
+<%_ } _%>
+</status_current_variable>

@@ -1,0 +1,25 @@
+<%_ /* 性器（名器）信息：随 NSFW 基础指导经路由「关联模式」一同激活，仅此时才发给剧情AI。
+       内容为外部脚本按角色五行随机判定并写入 stat_data.性器 的"描述"（不含名器名）。
+       AI 只读、不更新（该字段已从常规变量输出中剔除，AI 无从改动）。 */ _%>
+<%_ {
+  const data = getMessageVar('stat_data', { defaults: {} });
+  const lines = [];
+  const fmt = (name, xq) => {
+    if (!xq || typeof xq !== 'object') return;
+    const ks = Object.keys(xq).filter(k => xq[k] && String(xq[k]).trim());
+    if (!ks.length) return;
+    lines.push('【' + name + '】');
+    for (const k of ks) lines.push('  ' + k + '：' + xq[k]);
+  };
+  fmt(data.姓名 || '主角', data.性器);
+  const rel = (data.关系列表 && typeof data.关系列表 === 'object') ? data.关系列表 : {};
+  for (const n of Object.keys(rel)) {
+    const npc = rel[n];
+    if (npc && typeof npc === 'object' && npc.在场 && npc.性器) fmt(n, npc.性器);
+  }
+  const body = lines.length
+    ? '<性器信息>\n' + lines.join('\n') + '\n</性器信息>'
+    : '';
+_%>
+<%= body _%>
+<%_ } _%>

@@ -1,4 +1,4 @@
-<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[NSFW]基础指导'))) { _%>在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
+<%_ { let _hn; try { _hn = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch (e) { _hn = []; } if (!(Array.isArray(_hn) && _hn.includes('[mvu_plot][NSFW]基础指导'))) { _%>在性爱描写时，抛弃常规的创作思路，使用<sex_style>所要求的创作基调和手法{{setvar::sex_g::
 性场景→激活<sex_style>，如何进行性场景描写？如何避免一些错误？
 - 阶段节奏: <user>的输入处于哪个阶段（前戏/进入/抽插/高潮/余韵）？当前阶段是否已充分展开、有没有擅自推进到下一阶段？参照<nsfw_pacing>}}{{setvar::sex_c::if(Sex_scene)Based on <sex_style>, thinking how to describe sexual scenes and how to conduct sexual scene descriptions; which stage is <user>'s input at (前戏/进入/抽插/高潮/余韵)? Is the current stage fully developed without prematurely advancing to the next? refer to <nsfw_pacing>;sex_thinking_results:}}
 <sex_style>

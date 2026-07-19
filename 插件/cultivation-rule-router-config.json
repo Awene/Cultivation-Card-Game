@@ -20,11 +20,17 @@
         "comment": "[时间推进规则]",
         "linked": []
       },
-      "[NSFW]": {
+      "[mvu_plot][NSFW]基础指导": {
         "enabled": true,
         "condition": "当前情境涉及性/情欲/亲密身体接触，或<user>明确推进色情/双修情节",
-        "comment": "[NSFW]",
-        "linked": []
+        "comment": "[mvu_plot][NSFW]基础指导",
+        "linked": [
+          "➤NSFW-start",
+          "➤NSFW-end",
+          "[mvu_plot][NSFW]单人",
+          "[mvu_plot][NSFW]多人",
+          "[mvu_plot][NSFW]性器信息"
+        ]
       },
       "[突破规则]": {
         "enabled": true,

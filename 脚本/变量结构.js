@@ -309,6 +309,10 @@ const NPCSchema = z.object({
     .number()
     .transform((n) => _.clamp(n, -100, 100))
     .prefault(0),
+  // 细节可见(前端偏好, 默认true; false时变量输出EJS隐去该NPC的物品/功法/装备/傀儡/灵兽)
+  细节可见: z.boolean().prefault(true),
+  // 性器(外部脚本按五行随机填充, AI只读不更新; key=口腔/屄穴/肛门/乳房, value=描述)
+  性器: z.record(z.string(), z.string()).prefault({}),
 });
 
 // ===== 无主战斗单位 (关系列表条目, 类型='傀儡'|'灵兽') =====
@@ -417,6 +421,8 @@ export const Schema = z.object({
   身份: z.array(z.string()).prefault([]), // 散修 / 宗门+地位,可多个(与 NPC 身份 一致)
   灵根: SpiritualRootSchema,
   体质: PhysiqueSchema,
+  // 性器(外部脚本按五行随机填充, AI只读不更新; key=口腔/屄穴/肛门/乳房, value=描述)
+  性器: z.record(z.string(), z.string()).prefault({}),
   修炼进度: CultivationProgressSchema,
   技艺: SkillSchema,
   资源池: ResourcePoolSchema,
@@ -454,6 +460,7 @@ const NPC_FIELDS = new Set([
   "技艺", "资源池", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
   "性格", "外貌", "着装", "道侣", "好感度",
+  "细节可见", "性器",
 ]);
 const PHYSIQUE_FIELDS = new Set(["名称", "效果", "悟性", "根骨", "气感", "元阴", "元阳"]);
 const SPIRITUAL_ROOT_FIELDS = new Set(["名称", "五行", "品阶"]);
