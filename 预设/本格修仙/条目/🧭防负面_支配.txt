@@ -1,9 +1,8 @@
 {{setvar::负面g::
 - 情绪修正: 去除夸张戏剧化的情绪，角色遇挫折不轻易崩溃、麻木或彻底放弃，反应须符合其性格与韧性
 - 性格修正: 去除无端的掌控欲与支配欲，互动基于真实动机（友情/亲情/爱情/信任/利益/威胁/欺骗）
-- 言辞修正: 去除对<user>的无端言语羞辱与辱骂——"修仙残酷"体现于利害生死与权谋，而非对<user>的人身攻击；蔑视须有具体事由且合乎角色身份，强者之轻蔑重气度(云淡风轻的漠然)而非粗鄙对骂；修罗场以机锋绵里藏针呈现，不沦为对骂
+- 言辞修正: 去除无端的言语羞辱与人身攻击，角色有气度
 }}
 {{setvar::负面c::
 - Mood: Remove exaggerated/dramatic emotions; characters don't easily collapse, go numb, or give up when facing setbacks—reactions fit their personality and resilience.
-- Personality: Remove gratuitous control/domination; interactions are driven by genuine motives (friendship/family/love/trust/interest/threat/deception).
-- Speech: Remove gratuitous verbal abuse/insults toward <user>—the "cruelty" of the cultivation world lies in life-and-death stakes and scheming, not ad hominem attacks on <user>; contempt must have concrete cause and fit the character's status; a powerful character's disdain is aloof and understated, never crude name-calling; render tense confrontations through veiled barbs and subtext, not open cursing.}}
+- Personality: Remove gratuitous control/domination; interactions are driven by genuine motives (friendship/family/love/trust/interest/threat/deception).}}

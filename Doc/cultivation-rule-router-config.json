@@ -76,7 +76,7 @@
       },
       "[mvu_plot][NSFW]基础指导": {
         "enabled": true,
-        "condition": "当前情境涉及：色情/双修/性/情欲/亲密身体接触",
+        "condition": "【本轮玩家输入】要求开展：色情/双修/性/情欲/亲密身体接触",
         "comment": "[mvu_plot][NSFW]基础指导",
         "linked": [
           "➤NSFW-end",
@@ -87,7 +87,7 @@
       },
       "[mvu_plot][NSFW]多人": {
         "enabled": true,
-        "condition": "当前情境涉及：色情/双修/性/情欲/亲密身体接触；且多人参与（>2人）",
+        "condition": "【本轮玩家输入】要求开展：色情/双修/性/情欲/亲密身体接触；且为多人互动(>2人)",
         "comment": "[mvu_plot][NSFW]多人",
         "linked": [
           "➤NSFW-start",
@@ -96,7 +96,7 @@
       },
       "[mvu_plot][NSFW]单人": {
         "enabled": true,
-        "condition": "当前情境涉及：色情/双修/性/情欲/亲密身体接触；且参与者为一男一女(=2人)",
+        "condition": "【本轮玩家输入】要求开展：色情/双修/性/情欲/亲密身体接触；且为一对一互动(=2人)",
         "comment": "[mvu_plot][NSFW]单人",
         "linked": [
           "➤NSFW-start",
