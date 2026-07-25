@@ -30,5 +30,4 @@ Expression preferences for the main text (instructions in English, output stays 
 - Do not state the theme outright (“这个故事告诉我们…”); do not force an epiphany / uplift / acceptance at the ending.
 - Avoid heavy em-dash (——/—) usage; replace with ellipsis (…) or split into short sentences.
 <%_}}_%>
-{{getvar::nsfw词汇}}
 </expression_preferences>
