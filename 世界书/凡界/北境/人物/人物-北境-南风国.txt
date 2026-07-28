@@ -5,25 +5,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '南宫雀': {
-    brief: `### 南宫雀 (少女)
+    kws: ['南宫雀'],
+    locationKws: [],
+    moderate: `### 南宫雀 (少女)
+身份: 南风国公主
 外貌: 黑发双髻、桃花眸、额心朱钿如雀
 着装: 桃红露肩宫装、雀羽披帛、步摇、绣靴
-常用法器: 剑、扇、簪、羽毛`,
+法宝: 剑、扇、簪、羽毛`,
     detail: `### 南宫雀 (少女)
 女性魅力: 灵动俏皮、樱唇含笑、纤细
 着装(外): 桃红露肩宫装、雀羽披帛、步摇、绣靴
 着装(内): 缎带文胸、蕾丝内裙、罗袜
-常用法器: 剑、扇、簪、羽毛
+法宝: 剑、扇、簪、羽毛
 底色: 小国要活下去、公主的本份就是灵巧躲过大鹰
 
 [俏皮]
@@ -48,14 +60,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

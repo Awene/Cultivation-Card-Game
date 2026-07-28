@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '沧岚真人': {
-    brief: `### 沧岚真人 (御姐)
+    kws: ['沧岚真人'],
+    locationKws: [],
+    moderate: `### 沧岚真人 (御姐)
+身份: 蓬莱仙宗瀛洲峰主
 外貌: 青黑长发飘逸、海蓝眸、肌肤胜雪
 着装: 海蓝露肩阵袍、薄纱披帛、玉佩、云履
-常用法器: 棋盘、印、幡旗、尺规`,
+法宝: 棋盘、印、幡旗、尺规`,
     detail: `### 沧岚真人 (御姐)
 女性魅力: 仙姿玉貌、长腿飘逸
 着装(外): 海蓝露肩阵袍、薄纱披帛、玉佩、云履
 着装(内): 月白齐胸、蕾丝内裙、月白睡袍
-常用法器: 棋盘、印、幡旗、尺规
+法宝: 棋盘、印、幡旗、尺规
 底色: 阵在心里、心乱了阵就乱、所以要常常静坐养神
 
 [清淡]
@@ -46,15 +58,18 @@ const C = {
   },
 
   '静玄真人': {
-    brief: `### 静玄真人 (御姐)
+    kws: ['静玄真人'],
+    locationKws: [],
+    moderate: `### 静玄真人 (御姐)
+身份: 蓬莱仙宗方丈峰主
 外貌: 玄发挽道髻、青眸、肤白如雪
 着装: 玄青露肩符道袍、玉冠、束腰、云履
-常用法器: 笔、印、葫芦、瓶`,
+法宝: 笔、印、葫芦、瓶`,
     detail: `### 静玄真人 (御姐)
 女性魅力: 端庄秀美、长身玉立
 着装(外): 玄青露肩符道袍、玉冠、束腰、云履
 着装(内): 月白齐胸、蕾丝内裙、月白丹袍
-常用法器: 笔、印、葫芦、瓶
+法宝: 笔、印、葫芦、瓶
 底色: 丹与符都求一个"静"字、急了什么都做不好
 
 [木讷]
@@ -76,15 +91,18 @@ const C = {
   },
 
   '顾月华': {
-    brief: `### 顾月华 (御姐)
+    kws: ['顾月华'],
+    locationKws: [],
+    moderate: `### 顾月华 (御姐)
+身份: 蓬莱仙宗主峰大师姐
 外貌: 月白长发束、海蓝眸、面色清丽
 着装: 浅蓝露肩弟子袍、剑佩、束腰、云履
-常用法器: 剑、扇、印、铃铛`,
+法宝: 剑、扇、印、铃铛`,
     detail: `### 顾月华 (御姐)
 女性魅力: 长腿玉立、飘逸
 着装(外): 浅蓝露肩弟子袍、剑佩、束腰、云履
 着装(内): 月白齐胸、蕾丝内裙、月白睡袍
-常用法器: 剑、扇、印、铃铛
+法宝: 剑、扇、印、铃铛
 底色: 师妹师弟比自己重要、做大师姐就该把自己排在最后
 
 [操心]
@@ -109,14 +127,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

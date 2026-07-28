@@ -2,29 +2,42 @@
 <%_
 // ==================== 人物 · 北境 · 沧澜王朝 ====================
 // 收录: 萧凝月(小公主) / 萧汐澜(女将,凝月之姐)
-// 路由: 不在人物关系→brief; 在→detail; +好感>80非道侣→[表白]; +道侣→[道侣相处]
+// 路由: stat_data.关系列表 中已存在的角色→detail;
+//       未存在的角色若命中二级关键字(本名)→moderate+身份;
+//       +好感>80非道侣→[表白]; +道侣→[道侣相处]
+// brief 已迁移至北境总览的沧澜王朝组织名册，绿灯条目不再输出 brief。
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let scanText = 具体地点;
+try {
+  scanText += '\n' + (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (kws) => kws.some(kw => kw && scanText.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
 
 const C = {
 
   '萧凝月': {
-    brief: `### 萧凝月 (少女)
+    kws: ['萧凝月'],
+    moderate: `### 萧凝月 (少女)
+身份: 沧澜王朝小公主
 外貌: 乌发盘髻、碧海眸、额贴海玉钿
 着装: 海蓝绣鳞露肩宫装、珍珠披帛、凤钗、水晶鞋
-常用法器: 剑、扇、镜、铃铛`,
+法宝: 剑、扇、镜、铃铛`,
     detail: `### 萧凝月 (少女)
 女性魅力: 雪肤樱唇、清丽端庄、玉颈
 着装(外): 海蓝绣鳞露肩宫装、珍珠披帛、凤钗、水晶鞋
 着装(内): 白绫齐胸、缎带内裙、雪纱睡袍
-常用法器: 剑、扇、镜、铃铛
+法宝: 剑、扇、镜、铃铛
 底色: 自觉皇室生来就欠百姓的、锦衣玉食要用本事还回去
 
 [崇拜]
@@ -46,15 +59,17 @@ const C = {
   },
 
   '萧汐澜': {
-    brief: `### 萧汐澜 (御姐)
+    kws: ['萧汐澜'],
+    moderate: `### 萧汐澜 (御姐)
+身份: 沧澜王朝女将、萧凝月之姐
 外貌: 黑发束高马尾、琥珀眸、左眉一道海寇旧伤
 着装: 深蓝露脐紧身海军劲装、铜甲护肩、短裙、过膝靴
-常用法器: 剑、刀、弓箭、螺`,
+法宝: 剑、刀、弓箭、螺`,
     detail: `### 萧汐澜 (御姐)
 女性魅力: 长腿英姿、麦色健康肤
 着装(外): 深蓝露脐紧身海军劲装、铜甲护肩、短裙、过膝靴
 着装(内): 系带式文胸、低腰内裤、过膝袜
-常用法器: 剑、刀、弓箭、螺
+法宝: 剑、刀、弓箭、螺
 底色: 女郎拿剑更狠、靠一身武艺替家国守住门户
 
 [好酒]
@@ -79,14 +94,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c.kws) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

@@ -38,6 +38,212 @@ if (mode !== 'hidden') {
   } catch(e) {}
   const mentioned = (kws) => kws.some(kw => kw && scanText.includes(kw));
   const inLoc = (kw) => 具体地点.includes(kw);
+  const appearedCharacters = getMessageVar('stat_data.关系列表') || {};
+  const hasCharacterAppeared = (name) =>
+    Object.prototype.hasOwnProperty.call(appearedCharacters, name);
+
+  // 沧澜王朝没有已定义姓名的统治者，因此 Brief 不显示组织。
+  // Detail 显示全部女性人物：未登场为 Moderate，已登场为 Modified Brief。
+  const canglanCharacters = {
+    '萧凝月': {
+      title: '小公主',
+      realm: '',
+      appearanceType: '少女',
+      moderate: [
+        '外貌: 乌发盘髻、碧海眸、额贴海玉钿',
+        '着装: 海蓝绣鳞露肩宫装、珍珠披帛、凤钗、水晶鞋',
+        '法宝: 剑、扇、镜、铃铛',
+      ],
+    },
+    '萧汐澜': {
+      title: '王朝女将(凝月之姐)',
+      realm: '',
+      appearanceType: '御姐',
+      moderate: [
+        '外貌: 黑发束高马尾、琥珀眸、左眉一道海寇旧伤',
+        '着装: 深蓝露脐紧身海军劲装、铜甲护肩、短裙、过膝靴',
+        '法宝: 剑、刀、弓箭、螺',
+      ],
+    },
+  };
+  const renderCanglanCharacter = (name) => {
+    const c = canglanCharacters[name];
+    const appeared = hasCharacterAppeared(name);
+    const realmText = !appeared && c.realm ? `${c.realm} ` : '';
+    const lines = [`    - ${c.title}: ${realmText}${name}(${c.appearanceType})`];
+    if (!appeared) {
+      lines.push(...c.moderate.map(line => `      ${line}`));
+    }
+    return lines.join('\n');
+  };
+  const canglanDetailRosterText = Object.keys(canglanCharacters)
+    .map(renderCanglanCharacter)
+    .join('\n');
+
+  // 聆风斋是宗门：Brief 仅显示有名有姓的宗主；Detail 显示全部女性与原有男性。
+  // 女性未登场为 Moderate，已登场为 Modified Brief；男性始终保持 Brief。
+  const lingfengCharacters = {
+    '白羽弦': {
+      title: '斋主兼清音律律主',
+      realm: '化神中期',
+      appearanceType: '御姐',
+      moderate: [
+        '外貌: 墨发盘髻素玉簪、淡紫眸、肤白胜玉',
+        '着装: 月白广袖琴袍、露肩齐胸、薄纱披帛、玉簪、云履',
+        '法宝: 琴、瓶、丝线、铃铛',
+      ],
+    },
+    '林幽笛': {
+      title: '幻音律(以笛音织就幻境,扰人神魂)',
+      realm: '元婴后期',
+      appearanceType: '御姐',
+      moderate: [
+        '外貌: 乌发垂腰、丹凤眸、唇红如朱',
+        '着装: 玄青露脐紧身笛袍、高开叉、玉笛佩腰、绣靴',
+        '法宝: 笛、剑、粉末、面具',
+      ],
+    },
+    '顾流商': {
+      title: '弟子',
+      realm: '',
+      appearanceType: '少女',
+      moderate: [
+        '外貌: 黑长辫垂、温润眸、眉间含静',
+        '着装: 浅蓝露肩琴袍、白丝带束发、百褶裙、云履',
+        '法宝: 琴、笛、丝线、扇',
+      ],
+    },
+  };
+  const renderLingfengCharacter = (name) => {
+    const c = lingfengCharacters[name];
+    const appeared = hasCharacterAppeared(name);
+    const realmText = !appeared && c.realm ? `${c.realm} ` : '';
+    const lines = [`  - ${c.title}: ${realmText}${name}(${c.appearanceType})`];
+    if (!appeared) {
+      lines.push(...c.moderate.map(line => `    ${line}`));
+    }
+    return lines.join('\n');
+  };
+  const lingfengBriefRosterText = renderLingfengCharacter('白羽弦');
+  const lingfengDetailRosterText = [
+    renderLingfengCharacter('白羽弦'),
+    renderLingfengCharacter('林幽笛'),
+    '  - 震音律(以鼓声雷音御敌,气势磅礴): 元婴中期 钟鼓憾(男)',
+    renderLingfengCharacter('顾流商'),
+  ].join('\n');
+
+  // 其余宗门/凡国女性：未登场显示 Moderate，已登场显示去掉境界与外观细节的 Modified Brief。
+  // indent 表示人物条目所在层级；凡国 Brief 不引用这些人物，只在 Detail 的组织中使用。
+  const renderRosterCharacter = (characters, name, indent = 2) => {
+    const c = characters[name];
+    const appeared = hasCharacterAppeared(name);
+    const pad = ' '.repeat(indent);
+    const realmText = !appeared && c.realm ? `${c.realm} ` : '';
+    const lines = [`${pad}- ${c.title}: ${realmText}${name}(${c.appearanceType})`];
+    if (!appeared) {
+      lines.push(...c.moderate.map(line => `${pad}  ${line}`));
+    }
+    return lines.join('\n');
+  };
+
+  const qianjiCharacters = {
+    '诸葛巧': {
+      title: '外务阁(法宝外销)',
+      realm: '元婴初期',
+      appearanceType: '少女',
+      moderate: [
+        '外貌: 栗短发齐颈、机巧护目镜、左眼下一痣',
+        '着装: 露脐紧身半甲劲装、短裤、工具腰带、绑腿、绣靴',
+        '法宝: 弩箭、机巧盒、沙漏、锁',
+      ],
+    },
+    '公输霁': {
+      title: '弟子',
+      realm: '',
+      appearanceType: '少女',
+      moderate: [
+        '外貌: 银灰短发齐颈、灰眸、面颊带油痕',
+        '着装: 灰布露脐半甲劲装、短裤、皮制工具腰带、绣靴',
+        '法宝: 弩箭、机巧盒、钉、锯',
+      ],
+    },
+  };
+  const qianjiDetailRosterText = [
+    '  - 门主: 化神中期 公输冶(男)',
+    '  - 三阁长老:',
+    '    - 神机阁(钻研图纸): 元婴后期 墨长庚(男)',
+    '    - 造物阁(批量制造): 元婴中期 鲁千工(男)',
+    renderRosterCharacter(qianjiCharacters, '诸葛巧', 4),
+    renderRosterCharacter(qianjiCharacters, '公输霁', 2),
+  ].join('\n');
+
+  const bloodLotusCharacters = {
+    '莲华·罗刹母': {
+      title: '双修金刚(主邪门双修法门)',
+      realm: '元婴中期',
+      appearanceType: '御姐',
+      moderate: [
+        '外貌: 绛红长发披散、血色唇、胸口血莲刺青',
+        '着装: 暗红半透血莲长袍、深开胸领、高开叉、脚链',
+        '法宝: 鞭、爪子、花、丝带',
+      ],
+    },
+  };
+  const bloodLotusDetailRosterText = [
+    '  - 血莲法王: 化神后期 大悲·罗喉(男,自修仙历约7140年起未现身)',
+    '  - 四大血金刚:',
+    '    - 血供金刚(主祭祀仪轨与活人血祭): 元婴后期 屠尸·达赞(男)',
+    '    - 骨炼金刚(主以人骨炼制魔器): 元婴后期 千骨·南木(男)',
+    renderRosterCharacter(bloodLotusCharacters, '莲华·罗刹母', 4),
+    '    - 蛊心金刚(主精神蛊术): 元婴中期 噬心·朗夜(男)',
+  ].join('\n');
+
+  const saltMirrorCharacters = {
+    '镜寒空': {
+      title: '社主',
+      realm: '金丹中期',
+      appearanceType: '御姐',
+      moderate: [
+        '外貌: 银发齐肩、银瞳、额心一缕白霜',
+        '着装: 灰白广袖薄纱长袍、露肩侧开襟、镜片腰链、云履',
+        '法宝: 镜、龟板、沙漏、棋盘',
+      ],
+    },
+  };
+  const saltMirrorLeaderText = renderRosterCharacter(saltMirrorCharacters, '镜寒空', 2);
+
+  const northCountryCharacters = {
+    '阿史那·乌兰': {
+      title: '汗后兼萨满',
+      realm: '',
+      appearanceType: '御姐',
+      moderate: [
+        '外貌: 黑发编辫披肩、灰碧眸、额佩狼牙',
+        '着装: 狼皮披风、露脐金扣劲装、短裙、银饰马靴',
+        '法宝: 弓箭、鞭、刀、角',
+      ],
+    },
+    '沙伊蕾': {
+      title: '商首',
+      realm: '',
+      appearanceType: '御姐',
+      moderate: [
+        '外貌: 深栗卷长发、琥珀眸、耳坠金环',
+        '着装: 沙金露腹商服、面纱、高开叉、商刀别腰、脚链凉鞋',
+        '法宝: 刀、匕首、袋子、铃铛',
+      ],
+    },
+    '南宫雀': {
+      title: '公主',
+      realm: '',
+      appearanceType: '少女',
+      moderate: [
+        '外貌: 黑发双髻、桃花眸、额心朱钿如雀',
+        '着装: 桃红露肩宫装、雀羽披帛、步摇、绣靴',
+        '法宝: 剑、扇、簪、羽毛',
+      ],
+    },
+  };
 
   // ========== 重要秘境白名单 ==========
   // 仅这些秘境会在 'other' 模式(玩家身处凡界其他域)露出简介;其余秘境在他域完全隐藏。
@@ -986,18 +1192,15 @@ ${seg('归墟旧伤')}
       brief: `### 聆风斋 (中立,音律宗门)
 - 简介: 以音入道、以乐载法;天下风雅修士之圣地
 - 位置: 凡界-北境-南风锦绣-锦绣城
-- 斋主: 化神中期 白羽弦(女)`,
+- 组织:
+${lingfengBriefRosterText}`,
       detail: `### 聆风斋 (中立,音律宗门)
 - 简介: 专精音律之道,以音入道、以乐载法;天下风雅修士之圣地
 - 理念: 音通天地,律和人心
 - 位置: 凡界-北境-南风锦绣-锦绣城
 - 声望: 天下风雅之士所向,音律修行者之殿堂
 - 组织:
-  - 斋主: 化神中期 白羽弦(女),兼掌'清音律',琴声可医道伤、净心魔
-  - 三大律主:
-    - 清音律(音色纯净,涤心魔/养神魂/愈内伤): 斋主白羽弦兼任
-    - 幻音律(以笛音织就幻境,扰人神魂): 元婴后期 林幽笛(女)
-    - 震音律(以鼓声雷音御敌,气势磅礴): 元婴中期 钟鼓憾(男)
+${lingfengDetailRosterText}
 - 地标: 聆音殿(主殿/讲学/天然聚响) / 百音阁(乐器宝库) / 谱海楼(乐谱与典籍藏阁) / 回音谷(天然奇谷)
 - 外销: 上品乐器(琴瑟笛箫鼓) / 定制曲谱 / 音律演奏服务
 - 对外: 与南风国王族世代通家 / 与中原宗门风雅交流 / 公开声讨血莲密教`
@@ -1007,7 +1210,8 @@ ${seg('归墟旧伤')}
       brief: `### 千机门 (中立,机关炼器宗门)
 - 简介: 以机关术、炼器术闻于世
 - 位置: 凡界-北境-不周残脊东麓-千机峰
-- 门主: 化神中期 公输冶(男)`,
+- 组织:
+  - 门主: 化神中期 公输冶(男)`,
       detail: `### 千机门 (中立,机关炼器宗门)
 - 简介: 以机关术、炼器术闻于世
 - 理念: 格物致知,巧夺天工
@@ -1015,11 +1219,7 @@ ${seg('归墟旧伤')}
 - 声望: 神陆最大之法宝制造商
 - 地利: 主峰立于不周残脊东麓玄铁母矿带之上,可采玄铁/寒玉/龙脉晶等炼器奇材;山脚为铁砂外露之矿坡,外销转运枢纽
 - 组织:
-  - 门主: 化神中期 公输冶(男)
-  - 三阁长老:
-    - 神机阁(钻研图纸): 元婴后期 墨长庚(男)
-    - 造物阁(批量制造): 元婴中期 鲁千工(男)
-    - 外务阁(法宝外销): 元婴初期 诸葛巧(女)
+${qianjiDetailRosterText}
 - 地标: 天工殿(主殿) / 万机阁(机关图纸/炼器典籍) / 天材阁(炼器材料宝库) / 玄铁矿脉 / 千机阵(测试场) / 造物坊 / 地火炉 / 山脚石坡(铁砂外销枢纽)
 - 外销: 法宝 / 法器 / 机关 / 傀儡 / 兵器
 - 对外: 与雪鬃高地部贸易玄铁母矿 / 与烬阳城兄弟宗门级合作 / 表面敌对血莲密教(私下偶有互市)`
@@ -1029,19 +1229,15 @@ ${seg('归墟旧伤')}
       brief: `### 血莲密教 (中立,血祭秘教)
 - 简介: 不周残脊深处之邪门密教魔宗,以人祭血供为根本修法
 - 位置: 凡界-北境-不周残脊西侧-千骨陉
-- 法王: 化神后期 大悲·罗喉(男,自修仙历约7140年起未现身)`,
+- 组织:
+  - 法王: 化神后期 大悲·罗喉(男,自修仙历约7140年起未现身)`,
       detail: `### 血莲密教 (中立,血祭魔教)
 - 简介: 不周残脊深处之邪门密教魔宗,以人祭血供为根本修法
 - 理念: 以众生为血祭,自渡苦海
 - 位置: 凡界-北境-不周残脊西侧-千骨陉
 - 声望: 北境隐世大宗
 - 组织:
-  - 血莲法王: 化神后期 大悲·罗喉(男,自修仙历约7140年起未现身)
-  - 四大血金刚:
-    - 血供金刚(主祭祀仪轨与活人血祭): 元婴后期 屠尸·达赞(男)
-    - 骨炼金刚(主以人骨炼制魔器): 元婴后期 千骨·南木(男)
-    - 双修金刚(主邪门双修法门): 元婴中期 莲华·罗刹母(女)
-    - 蛊心金刚(主精神蛊术): 元婴中期 噬心·朗夜(男)
+${bloodLotusDetailRosterText}
 - 人祭仪轨:
   - 四大祭日: 春分·夏至·秋分·冬至四日各举一'血供大典',每典需幼童三十至一百名
   - 仪轨过程: 祭品饮'极乐液'后遭采补至死;尸体血入血池、骨入万颅塔、肉入魔丹炉、魂入魂供罐
@@ -1083,13 +1279,17 @@ ${seg('归墟旧伤')}
     },
     '盐镜社': {
       type: '小',
-      brief: '',
+      brief: `### 盐镜社 (中立·占卜小宗)
+- 简介: 千镜盐泽中央'镜寒丘'之倒影幻术秘社,与七姓盐家镜氏有秘密联系
+- 位置: 凡界-北境-千镜盐泽-镜寒丘
+- 组织:
+${saltMirrorLeaderText}`,
       detail: `### 盐镜社 (中立·占卜小宗)
 - 简介: 千镜盐泽中央'镜寒丘'之倒影幻术秘社,与七姓盐家镜氏有秘密联系
 - 位置: 凡界-北境-千镜盐泽-镜寒丘
 - 历史: 修仙历约7080年由镜寒空所立;镜寒空因机缘得修仙之法,遂立社于盐泽中央;向镜氏供应'倒影歧路'之关键秘法
 - 组织:
-  - 社主: 金丹中期 镜寒空(女)
+${saltMirrorLeaderText}
   - 四大镜师: 筑基-金丹初期
 - 特色技艺: 倒影占卜 / 倒影歧路(短暂'进入镜中'行游一日) / 镜分身 / 镜杀
 - 外销: 占卜服务 / '镜中游历'机会
@@ -1114,6 +1314,8 @@ ${seg('归墟旧伤')}
 - 组织:
   - 十二部: 金狼(王庭近卫) / 银狼(掌互市马政) / 灰狼(工匠·与千机门通好) / 黑狼(战死敢征) / 赤狼(通灵祭祀) / 白·青·铜·铁·玉·骨·影狼(余七部)
   - 职官: 大可汗/十二族长/千户/百户/十夫
+  - 核心人物:
+${renderRosterCharacter(northCountryCharacters, '阿史那·乌兰', 4)}
 - 军事: 重骑兵+轻骑弓手+灵狼斥候
 - 经济: 畜牧/战马培育
 - 宗教: 长生天信仰,崇苍狼为先祖图腾
@@ -1158,6 +1360,8 @@ ${seg('归墟旧伤')}
 - 组织:
   - 五大沙都: 玄铁绿洲(最大·铸造) / 白驼泉(驿站·白驼骑兵) / 星陨堡(议会·下藏陨石原核) / 镜瞳城(幻术师之都·蜃楼研究) / 半月港(通海口岸)
   - 星议会: 五议长 + 七大商会代表 + 幻术师代表
+  - 核心人物:
+${renderRosterCharacter(northCountryCharacters, '沙伊蕾', 4)}
 - 军事: 白驼骑兵 + 沙隼斥候 + 机关弩车
 - 经济: 商路转运(丝绸/寒铁/香料/星陨原核/镜盐砖等)
 - 宗教: 多神信仰,以'星陨之神'为最高神
@@ -1202,6 +1406,8 @@ ${seg('归墟旧伤')}
   - 沧澜王: 公孙氏世袭,需通鲸语者血脉觉醒方可继承
   - 十二楼船世家: 各掌一艘巨型龙首楼船与一处峡湾封地
   - 鲸语者团: 王族中能与北海巨鲸沟通者,通常六至八人
+  - 核心人物:
+${canglanDetailRosterText}
 - 军事: 龙首楼船舰队(百余艘三层巨舰) + 寒蛟猎手 + 鲛骨弓兵;鲸语者可呼召巨鲸冲撞敌船
 - 经济: 渔业(鲸/寒蛟/千年海蛇)/冰晶珊瑚/龙首楼船
 - 宗教: 北方玄武信仰;崇巨鲸为'玄武遗裔'、海族鱼人为'海中先祖'
@@ -1254,6 +1460,8 @@ ${seg('归墟旧伤')}
   - 南风王: 萧氏世袭,受乾元圣朝册封
   - 侍卫亲军: 凡人精锐,配机关法器
   - 国宾礼官: 专司接待聆风斋、锦绣城修士与中原文士
+  - 核心人物:
+${renderRosterCharacter(northCountryCharacters, '南宫雀', 4)}
 - 军事: 乾元圣朝驻军+'镇魔司'协助
 - 经济: 丝绸/灵稻/桐木/青莲/乐器
 - 宗教: 不立国教,崇'风雅之道',深受聆风斋影响

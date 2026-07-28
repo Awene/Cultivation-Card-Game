@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '窥微': {
-    brief: `### 窥微 (御姐)
+    kws: ['窥微'],
+    locationKws: [],
+    moderate: `### 窥微 (御姐)
+身份: 星蚀宗邃瞳长老
 外貌: 紫黑长发拖地、紫黑异瞳、眼下星纹刺青
 着装: 玄紫半透长袍、深开胸领、高开叉、双瞳袒露、脚链
-常用法器: 镜、针、面具、锁链`,
+法宝: 镜、针、面具、锁链`,
     detail: `### 窥微 (御姐)
 女性魅力: 妖艳魅惑、修长妖躯
 着装(外): 玄紫半透长袍、深开胸领、高开叉、双瞳袒露、脚链
 着装(内): 紫黑网纱托胸、阴贴、紫黑薄纱
-常用法器: 镜、针、面具、锁链
+法宝: 镜、针、面具、锁链
 底色: 星彼端的眼是真理、看穿凡人之心是她现在的乐趣
 
 [冷漠]
@@ -46,15 +58,18 @@ const C = {
   },
 
   '蚀光': {
-    brief: `### 蚀光 (御姐)
+    kws: ['蚀光'],
+    locationKws: [],
+    moderate: `### 蚀光 (御姐)
+身份: 星蚀宗噬星长老
 外貌: 银白长发披、星辰紫眸、唇紫
 着装: 玄黑露肩星纹袍、虚空配饰、束腰、云履
-常用法器: 面具、锁链、印、灯笼`,
+法宝: 面具、锁链、印、灯笼`,
     detail: `### 蚀光 (御姐)
 女性魅力: 邪美修长、骨削身姿
 着装(外): 玄黑露肩星纹袍、虚空配饰、束腰、云履
 着装(内): 黑纱网纱托胸、蕾丝低腰、黑纱睡袍
-常用法器: 面具、锁链、印、灯笼
+法宝: 面具、锁链、印、灯笼
 底色: 虚空里的东西比这世界更迷人、施法时她总像在向更深处听
 
 [恍惚]
@@ -76,15 +91,18 @@ const C = {
   },
 
   '妩烟': {
-    brief: `### 妩烟 (御姐)
+    kws: ['妩烟'],
+    locationKws: [],
+    moderate: `### 妩烟 (御姐)
+身份: 星蚀宗媚欲长老
 外貌: 长金红卷发垂、橙红妖瞳、左乳上方欲花刺青
 着装: 朱红半透长袍、深开胸领、高开叉、赤足脚链
-常用法器: 丝线、镜、花、铃铛`,
+法宝: 丝线、镜、花、铃铛`,
     detail: `### 妩烟 (御姐)
 女性魅力: 万种媚态、丰胸蛇腰翘臀、肌肤如玉、四肢柔嫩
 着装(外): 朱红半透长袍、深开胸领、高开叉、赤足脚链
 着装(内): 红绫网纱乳贴、阴贴、几近赤裸
-常用法器: 丝线、镜、花、铃铛
+法宝: 丝线、镜、花、铃铛
 底色: 欲望是人最大的弱点、撬开就能让对方变成她的奴
 
 [狡媚]
@@ -109,14 +127,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

@@ -4,23 +4,26 @@
 // 收录: 白羽弦 / 林幽笛 / 顾流商
 //
 // 路由策略:
-//   本条目被触发(yaml 关键字命中) → 文件内每位角色都"出现"
-//   对每位角色:
-//     - 不在 stat_data.关系列表 → 输出 brief
-//     - 在 人物关系  → 输出 detail
-//     - 在 人物关系 且 好感度>80 且 非道侣 → detail 末附 [表白]
-//     - 在 人物关系 且 关系='道侣'         → detail 末附 [道侣相处]
-//
-// 人物关系变量结构(假设):
-//   stat_data.关系列表[本名] = { 好感度: number, 道侣: boolean, ... }(道侣为布尔)
+//   - stat_data.关系列表 中已存在的角色 → detail
+//   - 未存在的角色若命中二级关键字(本名) → moderate+身份
+//   - 已存在且好感度>80、非道侣 → detail 末附 [表白]
+//   - 已存在且关系='道侣' → detail 末附 [道侣相处]
+// brief 已迁移至北境总览的聆风斋组织名册，绿灯条目不再输出 brief。
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let scanText = 具体地点;
+try {
+  scanText += '\n' + (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (kws) => kws.some(kw => kw && scanText.includes(kw));
 
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return {
     好感度: r.好感度 ?? 0,
     关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || ''),
@@ -31,15 +34,17 @@ const queryRel = (n) => {
 const C = {
 
   '白羽弦': {
-    brief: `### 白羽弦 (御姐)
+    kws: ['白羽弦'],
+    moderate: `### 白羽弦 (御姐)
+身份: 聆风斋斋主、清音律律主
 外貌: 墨发盘髻素玉簪、淡紫眸、肤白胜玉
 着装: 月白广袖琴袍、露肩齐胸、薄纱披帛、玉簪、云履
-常用法器: 琴、瓶、丝线、铃铛`,
+法宝: 琴、瓶、丝线、铃铛`,
     detail: `### 白羽弦 (御姐)
 女性魅力: 修长玉颈、纤纤葱指、清雅气韵
 着装(外): 月白广袖琴袍、露肩齐胸、薄纱披帛、玉簪、云履
 着装(内): 白绫齐胸、蕾丝内裙、素纱睡袍
-常用法器: 琴、瓶、丝线、铃铛
+法宝: 琴、瓶、丝线、铃铛
 底色: 心怀慈悲、把抚琴当治病救人、看人受苦比自己还难受
 
 [完美主义]
@@ -61,15 +66,17 @@ const C = {
   },
 
   '林幽笛': {
-    brief: `### 林幽笛 (御姐)
+    kws: ['林幽笛'],
+    moderate: `### 林幽笛 (御姐)
+身份: 聆风斋幻音律律主
 外貌: 乌发垂腰、丹凤眸、唇红如朱
 着装: 玄青露脐紧身笛袍、高开叉、玉笛佩腰、绣靴
-常用法器: 笛、剑、粉末、面具`,
+法宝: 笛、剑、粉末、面具`,
     detail: `### 林幽笛 (御姐)
 女性魅力: 樱唇朱艳、蜂腰、酥手
 着装(外): 玄青露脐紧身笛袍、高开叉、玉笛佩腰、绣靴
 着装(内): 网纱托胸、缎带阴贴、薄纱睡袍
-常用法器: 笛、剑、粉末、面具
+法宝: 笛、剑、粉末、面具
 底色: 喜欢看人心变化、用笛声引人入梦让对方自己看清自己
 
 [玩味]
@@ -91,15 +98,17 @@ const C = {
   },
 
   '顾流商': {
-    brief: `### 顾流商 (少女)
+    kws: ['顾流商'],
+    moderate: `### 顾流商 (少女)
+身份: 聆风斋弟子
 外貌: 黑长辫垂、温润眸、眉间含静
 着装: 浅蓝露肩琴袍、白丝带束发、百褶裙、云履
-常用法器: 琴、笛、丝线、扇`,
+法宝: 琴、笛、丝线、扇`,
     detail: `### 顾流商 (少女)
 女性魅力: 颀长腰肢、纤纤十指、举止含礼
 着装(外): 浅蓝露肩琴袍、白丝带束发、百褶裙、云履
 着装(内): 白绫齐胸、缎带内裙、素白睡袍
-常用法器: 琴、笛、丝线、扇
+法宝: 琴、笛、丝线、扇
 底色: 师承不能断在自己手里、把守住清音律当一辈子的事
 
 [守礼]
@@ -125,7 +134,7 @@ const C = {
 // ============ 输出 ============
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c.kws) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') {
     out += '\n\n' + c.道侣;
@@ -135,7 +144,10 @@ const renderChar = (n, c) => {
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

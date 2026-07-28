@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '田殊兰': {
-    brief: `### 田殊兰 (御姐)
+    kws: ['田殊兰'],
+    locationKws: [],
+    moderate: `### 田殊兰 (御姐)
+身份: 五毒教教主
 外貌: 黑长卷发、毒绿眸、唇朱嘴角一痣
 着装: 暗紫露肩毒纹长袍、高开叉、毒簪、绣靴
-常用法器: 簪、瓶、鞭、笼子`,
+法宝: 簪、瓶、鞭、笼子`,
     detail: `### 田殊兰 (御姐)
 女性魅力: 蛇腰美臀、肌肤如毒蜜
 着装(外): 暗紫露肩毒纹长袍、高开叉、毒簪、绣靴
 着装(内): 紫纱网纱托胸、阴贴、腿带
-常用法器: 簪、瓶、鞭、笼子
+法宝: 簪、瓶、鞭、笼子
 底色: 毒就是另一种道、用得好可活人无数、用不好才会害人
 
 [自信]
@@ -45,15 +57,18 @@ const C = {
   },
 
   '蓝幽月': {
-    brief: `### 蓝幽月 (少女) (田殊兰的养女,称田殊兰为师母)
+    kws: ['蓝幽月'],
+    locationKws: [],
+    moderate: `### 蓝幽月 (少女) (田殊兰的养女,称田殊兰为师母)
+身份: 五毒教圣女
 外貌: 深蓝长发、紫眸
 着装: 蓝紫露肩圣女裙、毒蛇饰腰链、步摇、绣靴
-常用法器: 针、镜、花、网兜`,
+法宝: 针、镜、花、网兜`,
     detail: `### 蓝幽月 (少女) (田殊兰的养女,称田殊兰为师母)
 女性魅力: 神秘魅气、纤细纯洁,肤如明月
 着装(外): 蓝紫露肩圣女裙、毒蛇饰腰链、步摇、绣靴
 着装(内): 蓝绸缎带文胸、蕾丝低腰、蓝纱睡袍
-常用法器: 针、镜、花、网兜
+法宝: 针、镜、花、网兜
 底色: 毒道传承等着她接、教主把她当女儿养、她必不能让她失望
 
 [好胜]
@@ -74,15 +89,18 @@ const C = {
   },
 
   '佘青丝': {
-    brief: `### 佘青丝 (御姐)
+    kws: ['佘青丝'],
+    locationKws: [],
+    moderate: `### 佘青丝 (御姐)
+身份: 五毒教灵蛇部长老
 外貌: 翠绿长辫、青蛇瞳、舌尖如蛇
 着装: 翠绿蛇皮露脐紧身胸衣、短裙、蛇杖、凉鞋
-常用法器: 鞭、棍、笼子、丝线`,
+法宝: 鞭、棍、笼子、丝线`,
     detail: `### 佘青丝 (御姐)
 女性魅力: 蛇态婀娜、纤腰
 着装(外): 翠绿蛇皮露脐紧身上、短裙、蛇杖、凉鞋
 着装(内): 系带式文胸、低腰内裤、绿纱睡袍
-常用法器: 鞭、棍、笼子、丝线
+法宝: 鞭、棍、笼子、丝线
 底色: 蛇懂蛇、人懂人、她是两边都站半步的人
 
 [冷淡]
@@ -104,15 +122,18 @@ const C = {
   },
 
   '詹金蟾': {
-    brief: `### 詹金蟾 (御姐)
+    kws: ['詹金蟾'],
+    locationKws: [],
+    moderate: `### 詹金蟾 (御姐)
+身份: 五毒教圣蟾部长老
 外貌: 金黄长发、金蟾瞳、面带金粉
 着装: 金黄露肩蟾纹袍、蟾佩腰链、步摇、绣靴
-常用法器: 锏、袋子、笼子、瓶`,
+法宝: 锏、袋子、笼子、瓶`,
     detail: `### 詹金蟾 (御姐)
 女性魅力: 丰润妖艳
 着装(外): 金黄露肩蟾纹袍、蟾佩腰链、步摇、绣靴
 着装(内): 金缎乳贴、蕾丝低腰、金纱睡袍
-常用法器: 锏、袋子、笼子、瓶
+法宝: 锏、袋子、笼子、瓶
 底色: 蟾蛊比剑更稳、最毒的东西往往看起来最不像样
 
 [贪财]
@@ -137,14 +158,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

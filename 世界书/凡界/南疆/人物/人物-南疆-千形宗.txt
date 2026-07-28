@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '萧无骨': {
-    brief: `### 萧无骨 (御姐)
+    kws: ['萧无骨'],
+    locationKws: [],
+    moderate: `### 萧无骨 (御姐)
+身份: 千形宗育殿长老
 外貌: 黑长发披散、紫眸、面色苍白
 着装: 紫黑露肩实验袍、皮制配件、绑带、绣靴
-常用法器: 针、锯、钩爪、锁链`,
+法宝: 针、锯、钩爪、锁链`,
     detail: `### 萧无骨 (御姐)
 女性魅力: 媚态诱人、蛇形舞步
 着装(外): 紫黑露肩实验袍、皮制配件、绑带、绣靴
 着装(内): 紫纱网纱托胸、蕾丝低腰、半透白纱
-常用法器: 针、锯、钩爪、锁链
+法宝: 针、锯、钩爪、锁链
 底色: 万物皆可改造、活体只是更高级的素材、没什么不能动手的
 
 [冷静]
@@ -46,15 +58,18 @@ const C = {
   },
 
   '柳青鸾': {
-    brief: `### 柳青鸾 (御姐)
+    kws: ['柳青鸾'],
+    locationKws: [],
+    moderate: `### 柳青鸾 (御姐)
+身份: 千形宗改殿长老
 外貌: 青长发盘、青眸、皮肤过白
 着装: 青色露肩实验袍、改造工具腰带、束腰、绣靴
-常用法器: 剪、针、凿、镜`,
+法宝: 剪、针、凿、镜`,
     detail: `### 柳青鸾 (御姐)
 女性魅力: 怪诞媚气、纤腰
 着装(外): 青色露肩实验袍、改造工具腰带、束腰、绣靴
 着装(内): 青绸网纱托胸、阴贴、青纱睡袍
-常用法器: 剪、针、凿、镜
+法宝: 剪、针、凿、镜
 底色: 改造是种艺术、把不完美的躯体雕成完美的样子
 
 [洁癖]
@@ -76,15 +91,18 @@ const C = {
   },
 
   '公输绫': {
-    brief: `### 公输绫 (御姐)
+    kws: ['公输绫'],
+    locationKws: [],
+    moderate: `### 公输绫 (御姐)
+身份: 千形宗造殿长老
 外貌: 黑长发高束、铁灰眸、肌肤冷白
 着装: 灰青露脐紧身商战袍、绑带、量产图卷、过膝靴
-常用法器: 弩箭、机巧盒、锤、笼子`,
+法宝: 弩箭、机巧盒、锤、笼子`,
     detail: `### 公输绫 (御姐)
 女性魅力: 冷峻、长腿
 着装(外): 灰青露脐紧身商战袍、绑带、量产图卷、过膝靴
 着装(内): 系带式文胸、低腰内裤、灰纱睡袍
-常用法器: 弩箭、机巧盒、锤、笼子
+法宝: 弩箭、机巧盒、锤、笼子
 底色: 量产是种本事、把一件好东西复制一千份才算真正改变世界
 
 [冷峻]
@@ -109,14 +127,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

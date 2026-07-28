@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '沉雾': {
-    brief: `### 沉雾 (少女)
+    kws: ['沉雾'],
+    locationKws: ['雾锁灵木泽林', '木灵河神苇寨', '沉雾药庐'],
+    moderate: `### 沉雾 (少女)
+身份: 雾锁灵木泽林半妖药师
 外貌: 浅灰长发飘渺、灰青雾瞳、雾气缭绕
 着装: 灰纱露肩半透薄衣、腰悬木佩、赤足
-常用法器: 枝条、木头、竹子、网兜`,
+法宝: 枝条、木头、竹子、网兜`,
     detail: `### 沉雾 (少女)
 女性魅力: 半妖灵动、轻盈赤足
 着装(外): 灰纱露肩半透薄衣、腰悬木佩、赤足
 着装(内): 灰绫齐胸、蕾丝内裙、灰纱睡袍
-常用法器: 枝条、木头、竹子、网兜
+法宝: 枝条、木头、竹子、网兜
 底色: 雾泽是她的家、河神是她的父、她活着就是为了守住这一片
 
 [轻盈]
@@ -49,14 +61,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

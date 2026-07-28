@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '沈沐漪': {
-    brief: `### 沈沐漪 (御姐)
+    kws: ['沈沐漪'],
+    locationKws: [],
+    moderate: `### 沈沐漪 (御姐)
+身份: 合欢宗宗主
 外貌: 长黑发披瀑、紫眸、胸前桃花痣
 着装: 深紫半透双修袍、深开胸领、高开叉、玉佩低垂、赤足
-常用法器: 镜、瓶、丝带、铃铛`,
+法宝: 镜、瓶、丝带、铃铛`,
     detail: `### 沈沐漪 (御姐)
 女性魅力: 巨乳丰臀、玲珑曲线、风情万种
 着装(外): 深紫半透双修袍、深开胸领、高开叉、玉佩低垂、赤足
 着装(内): 紫纱网纱托胸、阴贴、几近透明的薄纱
-常用法器: 镜、瓶、丝带、铃铛
+法宝: 镜、瓶、丝带、铃铛
 底色: 阴阳是天地之道、双修是借合契调和气机的正法、与淫邪无关
 
 [老辣]
@@ -46,15 +58,18 @@ const C = {
   },
 
   '蝶恋花': {
-    brief: `### 蝶恋花 (御姐)
+    kws: ['蝶恋花'],
+    locationKws: [],
+    moderate: `### 蝶恋花 (御姐)
+身份: 合欢宗幻情长老
 外貌: 紫色长发、桃花眸、左颊一颗泪痣
 着装: 紫粉露肩半透幻情袍、深开胸领、高开叉、脚链
-常用法器: 镜、花、粉末、丝带`,
+法宝: 镜、花、粉末、丝带`,
     detail: `### 蝶恋花 (御姐)
 女性魅力: 妩媚妖娆、蜂腰丰胸、香气惑人
 着装(外): 紫粉露肩半透幻情袍、深开胸领、高开叉、脚链
 着装(内): 蝶翼网纱乳贴、阴贴、蝶翼薄纱
-常用法器: 镜、花、粉末、丝带
+法宝: 镜、花、粉末、丝带
 底色: 神魂双修要彼此真心相付、幻境只是引气调和的法器、不可玩弄人心
 
 [戏剧]
@@ -76,15 +91,18 @@ const C = {
   },
 
   '慕怜心': {
-    brief: `### 慕怜心 (少女)
+    kws: ['慕怜心'],
+    locationKws: [],
+    moderate: `### 慕怜心 (少女)
+身份: 合欢宗圣女
 外貌: 长粉发、桃花眸、樱唇含羞
 着装: 粉色露肩圣女裙、轻纱披帛、步摇、绣靴
-常用法器: 花、镜、丝带、铃铛`,
+法宝: 花、镜、丝带、铃铛`,
     detail: `### 慕怜心 (少女)
 女性魅力: 楚楚可怜、纤细丰胸、含羞带怯
 着装(外): 粉色露肩圣女裙、轻纱披帛、步摇、绣靴
 着装(内): 粉绸网纱托胸、蕾丝低腰、粉纱睡袍
-常用法器: 花、镜、丝带、铃铛
+法宝: 花、镜、丝带、铃铛
 底色: 圣女之名得来得早、她也未必懂双修真谛、走一步算一步
 
 [胆小]
@@ -106,15 +124,18 @@ const C = {
   },
 
   '宋蝉衣': {
-    brief: `### 宋蝉衣 (少女)
+    kws: ['宋蝉衣'],
+    locationKws: [],
+    moderate: `### 宋蝉衣 (少女)
+身份: 合欢宗弟子、蝶恋花之徒
 外貌: 淡紫长发、桃花眸、肤白如蝉翼
 着装: 淡紫露肩弟子袍、半敞胸领、高开叉、绣靴
-常用法器: 镜、花、丝带、扇`,
+法宝: 镜、花、丝带、扇`,
     detail: `### 宋蝉衣 (少女)
 女性魅力: 楚楚动人、纤腰玉颈
 着装(外): 淡紫露肩弟子袍、半敞胸领、高开叉、绣靴
 着装(内): 紫纱网纱托胸、蕾丝内裤、蝉翼薄衣
-常用法器: 镜、花、丝带、扇
+法宝: 镜、花、丝带、扇
 底色: 师傅蝶恋花教过她、人之欢愉是天然的、不必觉得羞耻
 
 [好学]
@@ -139,14 +160,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

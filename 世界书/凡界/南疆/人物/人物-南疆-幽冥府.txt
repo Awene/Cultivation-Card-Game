@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '鬼母': {
-    brief: `### 鬼母 (御姐)
+    kws: ['鬼母'],
+    locationKws: [],
+    moderate: `### 鬼母 (御姐)
+身份: 幽冥府拘魂殿长老
 外貌: 银白长发、鬼火紫眸、唇色青紫
 着装: 玄黑露肩鬼袍、招魂铃腰链、高开叉、绣靴
-常用法器: 铃铛、锁链、幡旗、灯笼`,
+法宝: 铃铛、锁链、幡旗、灯笼`,
     detail: `### 鬼母 (御姐)
 女性魅力: 丰腴熟魅、阴气十足
 着装(外): 玄黑露肩鬼袍、招魂铃腰链、高开叉、绣靴
 着装(内): 黑绸网纱托胸、蕾丝低腰、黑纱睡袍
-常用法器: 铃铛、锁链、幡旗、灯笼
+法宝: 铃铛、锁链、幡旗、灯笼
 底色: 生死本无界、亡魂只是另一种活着的人、要敬重要安抚
 
 [母性]
@@ -49,14 +61,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

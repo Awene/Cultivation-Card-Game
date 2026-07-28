@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '湘九灵': {
-    brief: `### 湘九灵 (御姐)
+    kws: ['湘九灵'],
+    locationKws: [],
+    moderate: `### 湘九灵 (御姐)
+身份: 湘灵阁阁主、南疆道盟盟主
 外貌: 黑卷长发、紫眸、额贴九灵纹
 着装: 紫云露肩半透巫袍、九串玉佩腰链、步摇、云履
-常用法器: 铃铛、鼓、幡旗、面具`,
+法宝: 铃铛、鼓、幡旗、面具`,
     detail: `### 湘九灵 (御姐)
 女性魅力: 巫女之韵、丰腴神秘
 着装(外): 紫云露肩半透巫袍、九串玉佩腰链、步摇、云履
 着装(内): 紫纱网纱托胸、蕾丝低腰、紫纱睡袍
-常用法器: 铃铛、鼓、幡旗、面具
+法宝: 铃铛、鼓、幡旗、面具
 底色: 巫脉传承不能断、九歌之祭是她接过的不能放下的担子
 
 [威严]
@@ -46,15 +58,18 @@ const C = {
   },
 
   '湘洛凝': {
-    brief: `### 湘洛凝 (御姐)
+    kws: ['湘洛凝'],
+    locationKws: [],
+    moderate: `### 湘洛凝 (御姐)
+身份: 湘灵阁九歌长老
 外貌: 长黑发披、青眸、额心九歌符
 着装: 青纱露背巫袍、玉笛挂腰、步摇、绣靴
-常用法器: 笛、铃铛、鼓、幡旗`,
+法宝: 笛、铃铛、鼓、幡旗`,
     detail: `### 湘洛凝 (御姐)
 女性魅力: 修长玉颈、九歌神韵
 着装(外): 青纱露背巫袍、玉笛挂腰、步摇、绣靴
 着装(内): 青绫齐胸、缎带内裙、月白薄纱
-常用法器: 笛、铃铛、鼓、幡旗
+法宝: 笛、铃铛、鼓、幡旗
 底色: 歌祭是与神灵对话的方式、半分敷衍都是亵渎
 
 [敏感]
@@ -76,15 +91,18 @@ const C = {
   },
 
   '湘泠玉': {
-    brief: `### 湘泠玉 (御姐)
+    kws: ['湘泠玉'],
+    locationKws: [],
+    moderate: `### 湘泠玉 (御姐)
+身份: 湘灵阁巫祝长老
 外貌: 黑长发束、玉色眸、面色清冷
 着装: 玉色露肩巫祝袍、玉钏、步摇、云履
-常用法器: 龟板、镜、铃铛、幡旗`,
+法宝: 龟板、镜、铃铛、幡旗`,
     detail: `### 湘泠玉 (御姐)
 女性魅力: 清冷玉立、纤手玲珑
 着装(外): 玉色露肩巫祝袍、玉钏、步摇、云履
 着装(内): 白绫齐胸、蕾丝内裙、月白睡袍
-常用法器: 龟板、镜、铃铛、幡旗
+法宝: 龟板、镜、铃铛、幡旗
 底色: 占卜要诚、要静、要不带私心、不然神不应答
 
 [寡言]
@@ -109,14 +127,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

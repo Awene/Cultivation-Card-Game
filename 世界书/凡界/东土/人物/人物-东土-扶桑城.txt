@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '扶曜·绫姬': {
-    brief: `### 扶曜·绫姬 (御姐)
+    kws: ['扶曜·绫姬'],
+    locationKws: ['扶桑城神社', '扶桑城', '列星海'],
+    moderate: `### 扶曜·绫姬 (御姐)
+身份: 扶桑城神社剑修
 外貌: 黑长直发披、墨眸、樱唇朱艳
 着装: 朱白露肩巫女剑装、长刀别腰、高开叉、赤足木屐
-常用法器: 刀、扇、铃铛、面具`,
+法宝: 刀、扇、铃铛、面具`,
     detail: `### 扶曜·绫姬 (御姐)
 女性魅力: 修长剑姿、东瀛风韵
 着装(外): 朱白露肩巫女剑装、长刀别腰、高开叉、赤足木屐
 着装(内): 白绫齐胸、缎带内裤、白色单衣
-常用法器: 刀、扇、铃铛、面具
+法宝: 刀、扇、铃铛、面具
 底色: 神社的剑是用来护神社的、不该出鞘换名利
 
 [礼数]
@@ -49,14 +61,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

@@ -6,25 +6,37 @@
 // ============================================================
 
 const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
 const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
   const r = 人物关系[n];
-  if (!r) return null;
   if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
   return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
 };
-
 const C = {
 
   '卓回烟': {
-    brief: `### 卓回烟 (御姐)
+    kws: ['卓回烟'],
+    locationKws: ['中州沃野', '胜天城', '试玉殿'],
+    moderate: `### 卓回烟 (御姐)
+身份: 中州沃野剑客散修
 外貌: 黑长发束马尾、墨眸、左颊朱砂痣
 着装: 玄青露脐紧身剑客劲装、长剑斜挂、短裙、过膝靴
-常用法器: 剑、刀、葫芦、匕首`,
+法宝: 剑、刀、葫芦、匕首`,
     detail: `### 卓回烟 (御姐)
 女性魅力: 剑姿飒爽、长腿
 着装(外): 玄青露脐紧身剑客劲装、长剑斜挂、短裙、过膝靴
 着装(内): 系带式文胸、低腰内裤、过膝袜
-常用法器: 剑、刀、葫芦、匕首
+法宝: 剑、刀、葫芦、匕首
 底色: 散修不靠门派靠剑、看不过去的事她管、管完就走
 
 [豪爽]
@@ -49,14 +61,17 @@ const C = {
 
 const renderChar = (n, c) => {
   const r = queryRel(n);
-  if (!r) return c.brief;
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
   let out = c.detail;
   if (r.关系 === '道侣') out += '\n\n' + c.道侣;
   else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
   return out;
 };
 
-const outputText = Object.entries(C).map(([n, c]) => renderChar(n, c)).join('\n\n');
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>
