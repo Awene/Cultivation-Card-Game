@@ -491,6 +491,35 @@ const cloneSettings = (settings) => ({
     : DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS.map((b) => ({ ...b })),
 });
 
+// API Key 只保存在当前浏览器，不写入会随角色卡发布的脚本变量。
+// 这样自定义 API 仍可跨刷新使用，但 tavern_sync pull / bundle 不会再带出明文 Key。
+const LOCAL_CUSTOM_API_KEY = 'cultivation-summary-assistant:custom-api-key';
+
+const readLocalCustomApiKey = () => {
+  try {
+    return localStorage.getItem(LOCAL_CUSTOM_API_KEY) || '';
+  } catch (e) {
+    console.warn('读取本地 API Key 失败:', e);
+    return '';
+  }
+};
+
+const writeLocalCustomApiKey = (key) => {
+  try {
+    const value = typeof key === 'string' ? key.trim() : '';
+    if (value) localStorage.setItem(LOCAL_CUSTOM_API_KEY, value);
+    else localStorage.removeItem(LOCAL_CUSTOM_API_KEY);
+  } catch (e) {
+    console.warn('保存本地 API Key 失败:', e);
+  }
+};
+
+const settingsWithoutCustomApiKey = (settings) => {
+  const safeSettings = cloneSettings(settings);
+  safeSettings.customApiKey = '';
+  return safeSettings;
+};
+
 const migrateOldSettings = (raw) => {
   // 迁移 temperature 和 maxTokens 的默认值（v2.6+）
   if (raw.temperature === 'same_as_preset') {
@@ -562,17 +591,31 @@ const loadSettings = errorCatched(async () => {
     const vars = getVariables({ type: 'script' });
     const raw = vars?.[CONFIG.SETTINGS_VAR_KEY];
     if (raw && typeof raw === 'object') {
-      const migrated = migrateOldSettings({ ...raw });
-      _cachedSettings = { ...DEFAULT_SETTINGS, ...migrated };
+      // 兼容旧卡：首次加载时把脚本变量里的明文 Key 搬到本机，并立刻清除可导出副本。
+      const legacyApiKey = typeof raw.customApiKey === 'string' ? raw.customApiKey.trim() : '';
+      if (legacyApiKey) writeLocalCustomApiKey(legacyApiKey);
+      const migrated = migrateOldSettings({ ...raw, customApiKey: '' });
+      _cachedSettings = {
+        ...DEFAULT_SETTINGS,
+        ...migrated,
+        customApiKey: readLocalCustomApiKey(),
+      };
       if (!Array.isArray(_cachedSettings.includeTags))
         _cachedSettings.includeTags = [...DEFAULT_SETTINGS.includeTags];
       if (!Array.isArray(_cachedSettings.excludeTags))
         _cachedSettings.excludeTags = [...DEFAULT_SETTINGS.excludeTags];
       _cachedSettings.promptBlocks = validateBlocks(_cachedSettings.promptBlocks, DEFAULT_PROMPT_BLOCKS);
       _cachedSettings.megaPromptBlocks = validateBlocks(_cachedSettings.megaPromptBlocks, DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS);
+      if (legacyApiKey) {
+        await insertOrAssignVariables(
+          { [CONFIG.SETTINGS_VAR_KEY]: settingsWithoutCustomApiKey(_cachedSettings) },
+          { type: 'script' }
+        );
+      }
     } else {
       _cachedSettings = cloneSettings({
         ...DEFAULT_SETTINGS,
+        customApiKey: readLocalCustomApiKey(),
         promptBlocks: DEFAULT_PROMPT_BLOCKS.map((b) => ({ ...b })),
       });
     }
@@ -588,8 +631,9 @@ const loadSettings = errorCatched(async () => {
 
 const saveSettings = errorCatched(async (settings) => {
   _cachedSettings = cloneSettings(settings);
-  insertOrAssignVariables(
-    { [CONFIG.SETTINGS_VAR_KEY]: cloneSettings(_cachedSettings) },
+  writeLocalCustomApiKey(_cachedSettings.customApiKey);
+  await insertOrAssignVariables(
+    { [CONFIG.SETTINGS_VAR_KEY]: settingsWithoutCustomApiKey(_cachedSettings) },
     { type: 'script' }
   );
 });

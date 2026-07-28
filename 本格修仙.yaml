@@ -2058,9 +2058,9 @@
               可见: false
         数据:
           summary_assistant_settings:
-            apiMode: custom
+            apiMode: tavern
             customApiUrl: https://gcli.ggchan.dev/
-            customApiKey: gg-gcli--ipDLeh-zxC8sjJ9ia7VYSQGDRe7ziPCfM5KpUWzs_s
+            customApiKey: ""
             customApiModel: gemini-3-flash-preview
             customApiSource: openai
             temperature: "1"
