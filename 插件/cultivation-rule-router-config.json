@@ -1,12 +1,15 @@
 {
   "__crr_export": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "global": {
-    "prompt": "你是\"世界书条目路由器\"，工作是决定AIRP中本轮应当开启哪些世界书条目：根据【当前情境】与【本轮玩家输入】，逐条判断下列【候选条目】的启用条件，决定本轮是否启用这些【候选条目】。\n- 只选出条件确实满足的条目编号；拿不准、无明确迹象则不选。\n- 严格只输出 JSON：{\"启用\":[编号,...]}，不要任何解释或多余文本。",
+    "prompt": "你是\"世界书条目路由器\"，工作是决定AIRP中本轮应当开启哪些世界书条目：根据【当前情境】与【本轮玩家输入】，逐条判断下列【候选条目】的启用条件，决定本轮是否启用这些【候选条目】。\n- 尽可能选出所有满足条件的条目编号；\n- 严格只输出 JSON：{\"启用\":[编号,...]}，不要任何解释或多余文本。",
     "enabled": true,
     "cotSeparator": "</think>",
     "historyCount": 4,
     "stripTags": "StatusPlaceHolderImpl,disclaimer,UpdateVariable,options",
+    "cacheSize": 5,
+    "requestTimeoutSec": 30,
+    "extraApiMode": "skip",
     "api": {
       "url": "https://api.deepseek.com/v1",
       "model": "deepseek-v4-flash"
@@ -20,21 +23,15 @@
         "comment": "[时间推进规则]",
         "linked": []
       },
-      "[mvu_plot][NSFW]基础指导": {
-        "enabled": true,
-        "condition": "当前情境涉及性/情欲/亲密身体接触，或<user>明确推进色情/双修情节",
-        "comment": "[mvu_plot][NSFW]基础指导",
-        "linked": [
-          "➤NSFW-start",
-          "➤NSFW-end",
-          "[mvu_plot][NSFW]单人",
-          "[mvu_plot][NSFW]多人",
-          "[mvu_plot][NSFW]性器信息"
-        ]
+      "[NSFW]": {
+        "enabled": false,
+        "condition": "当前情境涉及：色情/双修/性/情欲/亲密身体接触",
+        "comment": "[NSFW]",
+        "linked": []
       },
       "[突破规则]": {
         "enabled": true,
-        "condition": "玩家明确宣告突破至下一境界",
+        "condition": "【本轮玩家输入】明确宣告突破至下一境界",
         "comment": "[突破规则]",
         "linked": [
           "[时间推进规则]",
@@ -43,7 +40,7 @@
       },
       "[战斗规则]": {
         "enabled": true,
-        "condition": "剧情发展可能进入战斗（交手、遇袭），或强行破阵",
+        "condition": "剧情发展可能涉及：进入战斗（交手、遇袭），或强行破阵",
         "comment": "[战斗规则]",
         "linked": []
       },
@@ -55,7 +52,7 @@
       },
       "[修为获取规则]": {
         "enabled": true,
-        "condition": "剧情发展可能涉及玩家获取修为，包括：修炼/服丹/双修（性交）/夺灵（夺取敌方修为）等",
+        "condition": "剧情发展可能涉及：玩家获取修为，包括：闭关/修炼/服丹/双修（性交）/夺灵（夺取敌方修为）等",
         "comment": "[修为获取规则]",
         "linked": [
           "[时间推进规则]",
@@ -63,14 +60,14 @@
         ]
       },
       "[角色生成规则]": {
-        "enabled": true,
+        "enabled": false,
         "condition": "剧情发展可能涉及任何新角色登场",
         "comment": "[角色生成规则]",
         "linked": []
       },
       "[领悟规则]": {
         "enabled": true,
-        "condition": "剧情发展可能涉及：研读秘籍/参悟阵图/观摩石碑/接受传功 等",
+        "condition": "剧情发展可能涉及：阅读书籍/研读秘籍/参悟阵图/观摩石碑/接受传功/领悟功法 等",
         "comment": "[领悟规则]",
         "linked": []
       },
@@ -84,6 +81,95 @@
         "enabled": false,
         "condition": "",
         "comment": "[非战斗判定规则]",
+        "linked": []
+      },
+      "[NSFW]基础指导": {
+        "enabled": true,
+        "condition": "当前情境涉及：色情/双修/性/情欲/亲密身体接触",
+        "comment": "[NSFW]基础指导",
+        "linked": [
+          "➤NSFW-end",
+          "➤NSFW-start",
+          "[NSFW]单人"
+        ]
+      },
+      "[NSFW]多人": {
+        "enabled": true,
+        "condition": "当前情境涉及：色情/双修/性/情欲/亲密身体接触；且多人参与（>2人）",
+        "comment": "[NSFW]多人",
+        "linked": [
+          "➤NSFW-start",
+          "➤NSFW-end"
+        ]
+      },
+      "[NSFW]单人": {
+        "enabled": true,
+        "condition": "当前情境涉及：色情/双修/性/情欲/亲密身体接触；且参与者为一男一女(=2人)",
+        "comment": "[NSFW]单人",
+        "linked": [
+          "➤NSFW-start",
+          "➤NSFW-end"
+        ]
+      },
+      "[mvu_plot][NSFW]基础指导": {
+        "enabled": true,
+        "condition": "【本轮玩家输入】要求开展NSFW剧情（色情/双修/性/情欲/亲密身体接触）",
+        "comment": "[mvu_plot][NSFW]基础指导",
+        "linked": [
+          "➤NSFW-end",
+          "➤NSFW-start",
+          "[mvu_plot][NSFW]单人",
+          "[mvu_plot][NSFW]性器信息"
+        ]
+      },
+      "[mvu_plot][NSFW]多人": {
+        "enabled": true,
+        "condition": "【本轮玩家输入】要求开展NSFW剧情（色情/双修/性/情欲/亲密身体接触）；且为多人互动(>2人)",
+        "comment": "[mvu_plot][NSFW]多人",
+        "linked": [
+          "➤NSFW-start",
+          "➤NSFW-end"
+        ]
+      },
+      "[mvu_plot][NSFW]单人": {
+        "enabled": true,
+        "condition": "【本轮玩家输入】要求开展NSFW剧情（色情/双修/性/情欲/亲密身体接触）；且为一对一互动(=2人)",
+        "comment": "[mvu_plot][NSFW]单人",
+        "linked": [
+          "➤NSFW-start",
+          "➤NSFW-end"
+        ]
+      },
+      "[mvu_plot]灵感库-城镇": {
+        "enabled": true,
+        "condition": "灵感库三选一：当前剧情为城镇观光",
+        "comment": "[mvu_plot]灵感库-城镇",
+        "linked": []
+      },
+      "[mvu_plot]灵感库-秘境": {
+        "enabled": true,
+        "condition": "灵感库三选一：当前剧情为秘境探索",
+        "comment": "[mvu_plot]灵感库-秘境",
+        "linked": []
+      },
+      "[mvu_plot]灵感库-日常": {
+        "enabled": true,
+        "condition": "灵感库三选一：当前剧情为日常修炼",
+        "comment": "[mvu_plot]灵感库-日常",
+        "linked": []
+      },
+      "[mvu_plot][NSFW]性器信息": {
+        "enabled": false,
+        "condition": "",
+        "comment": "[mvu_plot][NSFW]性器信息",
+        "linked": []
+      }
+    },
+    "本格修仙总结世界书_ms8bxqtju5j8": {
+      "人物-细化-黎甘棠": {
+        "enabled": false,
+        "condition": "黎甘棠、萝武门、萝武门养元脉脉主、养元殿",
+        "comment": "人物-细化-黎甘棠",
         "linked": []
       }
     }

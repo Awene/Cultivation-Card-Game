@@ -56,13 +56,13 @@
 #### 地理与势力
 
 - **`世界层级-凡界.txt`、`世界地图-凡界.txt`** — 凡界全景
-- **`地域-凡界-{东土,中原,北境,南疆,西域}.txt`** — 五大地域
+- **`[mvu_plot]地域-凡界-{东土,中原,北境,南疆,西域}.txt`** — 五大地域
 - **`门派-*.txt`** — 17 个门派（问道仙宗、霸体宗、血杀殿、合欢宗、琉璃丹宗、魔渊阁、天衍楼、天玄剑宗、玉女宗、五毒教、幽冥府、万兽宗、千机门、聆风斋、北辰学宫……）
 - **`王朝-凡界-中原-乾元圣朝.txt`、`组织-*.txt`** — 王朝、镇魔司、万妖盟
 
 #### 人物（NPC 卡池）
 
-- **`人物-*.txt`** — 50+ 张可被关键字激活的角色面板，覆盖正道、魔道、皇朝、妖族（潜龙族 / 落凤族 / 青丘狐族）等阵营
+- **`[mvu_plot]人物-*.txt`** — 50+ 张可被关键字激活的角色面板，覆盖正道、魔道、皇朝、妖族（潜龙族 / 落凤族 / 青丘狐族）等阵营
 
 #### MVU 变量框架
 
@@ -113,6 +113,25 @@ node tavern_sync.mjs push 本格修仙    # 推送到酒馆
 node tavern_sync.mjs watch 本格修仙   # 监听本地修改自动同步
 node tavern_sync.mjs bundle 本格修仙  # 打包成可导入的角色卡
 ```
+
+### `router_sync.config.json` & `router_sync.mjs`
+
+`router_sync` 用于在本地文件与已打开的 SillyTavern 之间双向同步“规则路由”插件配置。默认预设“本格修仙”对应 [插件/cultivation-rule-router-config.json](插件/cultivation-rule-router-config.json)。
+
+```bash
+node router_sync.mjs list
+node router_sync.mjs pull 本格修仙            # 从酒馆拉取插件配置到本地
+node router_sync.mjs push 本格修仙            # 合并推送到酒馆
+node router_sync.mjs push 本格修仙 --force    # 完整替换文件中包含的同名世界书配置
+```
+
+执行 `pull` / `push` 时需要保持 SillyTavern 页面已打开，并加载支持本地同步的规则路由插件。同步服务仅临时监听本机 `127.0.0.1:6622`，命令完成后自动关闭。
+
+- 同步文件绝不包含 API Key；`push` 也不会覆盖酒馆本地已有的 API Key。
+- 普通 `push` 合并世界书规则，适合增量修改。
+- `--force` 仅完整替换文件中出现的同名世界书，不删除文件未包含的其它世界书配置。
+- 可在 VSCode 中运行“任务：运行任务”，直接选择“规则路由：List / Pull / Push / Push（强制替换）”。
+- 如需增加其它命名预设，在 [router_sync.config.json](router_sync.config.json) 的 `presets` 中添加“预设名 → JSON 文件路径”即可。
 
 ---
 
