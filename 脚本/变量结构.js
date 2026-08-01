@@ -1,7 +1,81 @@
 import { registerMvuSchema } from "https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js";
 
 // ===== 公用枚举 =====
-const FiveElementsEnum = z.enum(["金", "木", "水", "火", "土", "阴", "阳", "混沌"]);
+const FiveElementValues = ["金", "木", "水", "火", "土", "阴", "阳", "混沌"];
+
+// AI 有时会把单值五行写成数组、复合字符串或变异属性名；统一取输入中最先出现的可识别属性。
+// 变异属性映射遵循世界书《世界设定-灵根与体质》，并补充常见的同义描述。
+const FIVE_ELEMENT_ALIAS_MAP = {
+  金: "金",
+  木: "木",
+  水: "水",
+  火: "火",
+  土: "土",
+  阴: "阴",
+  阳: "阳",
+  混沌: "混沌",
+  剑: "金",
+  血: "金",
+  metal: "金",
+  风: "木",
+  毒: "木",
+  wood: "木",
+  冰: "水",
+  雾: "水",
+  霜: "水",
+  雪: "水",
+  寒: "水",
+  water: "水",
+  ice: "水",
+  雷: "火",
+  冥火: "火",
+  炎: "火",
+  焰: "火",
+  fire: "火",
+  磁: "土",
+  沙: "土",
+  岩: "土",
+  earth: "土",
+  soil: "土",
+  幽: "阴",
+  煞: "阴",
+  暗: "阴",
+  影: "阴",
+  冥: "阴",
+  yin: "阴",
+  龙: "阳",
+  梵: "阳",
+  光: "阳",
+  日: "阳",
+  yang: "阳",
+  虚空: "混沌",
+  混元: "混沌",
+  时空: "混沌",
+  chaos: "混沌",
+};
+
+const FiveElementAliases = Object.entries(FIVE_ELEMENT_ALIAS_MAP).sort(
+  ([left], [right]) => right.length - left.length,
+);
+
+function normalizeFiveElement(input) {
+  const candidates = Array.isArray(input) ? input.flat(Infinity) : [input];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") continue;
+    const normalizedCandidate = candidate.toLowerCase();
+
+    for (let index = 0; index < normalizedCandidate.length; index += 1) {
+      const matched = FiveElementAliases.find(([alias]) => normalizedCandidate.startsWith(alias, index));
+      if (matched) return matched[1];
+    }
+  }
+
+  // 完全无法识别时删除这个可选字段，避免一个非法五行导致整个人物或物品更新失败。
+  return undefined;
+}
+
+const FiveElementsEnum = z.preprocess(normalizeFiveElement, z.enum(FiveElementValues).optional());
 const FiveElementsExtEnum = z.enum(["金", "木", "水", "火", "土", "阴", "阳", "混沌", "未知", "无"]);
 const QualityEnum = z.enum(["凡", "黄", "玄", "地", "天"]);
 const SpiritualRootRankEnum = z.enum([
