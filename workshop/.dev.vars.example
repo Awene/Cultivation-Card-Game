@@ -1,0 +1,3 @@
+DISCORD_CLIENT_SECRET="仅在本机填写，不要提交"
+SESSION_SECRET="使用至少 32 字节的随机值"
+

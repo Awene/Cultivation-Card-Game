@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cultivation-illustration-workshop",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-02",
+  "workers_dev": true,
+  "secrets": {
+    "required": ["DISCORD_CLIENT_SECRET", "SESSION_SECRET"]
+  },
+  "vars": {
+    "DISCORD_CLIENT_ID": "1533494278263935108",
+    "ADMIN_DISCORD_IDS": "808684321153482812",
+    "PUBLIC_BASE_URL": "http://localhost:8787",
+    "DISCORD_REDIRECT_URI": "http://localhost:8787/auth/discord/callback"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cultivation-workshop-db",
+      "database_id": "REPLACE_AFTER_D1_CREATION",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "cultivation-workshop-images"
+    }
+  ],
+  "limits": {
+    "cpu_ms": 30000
+  }
+}
+
