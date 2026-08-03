@@ -4,20 +4,17 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-08-02",
   "workers_dev": true,
-  "secrets": {
-    "required": ["DISCORD_CLIENT_SECRET", "SESSION_SECRET"]
-  },
   "vars": {
     "DISCORD_CLIENT_ID": "1533494278263935108",
     "ADMIN_DISCORD_IDS": "808684321153482812",
-    "PUBLIC_BASE_URL": "http://localhost:8787",
-    "DISCORD_REDIRECT_URI": "http://localhost:8787/auth/discord/callback"
+    "PUBLIC_BASE_URL": "https://cultivation-illustration-workshop.awenewilly1.workers.dev",
+    "DISCORD_REDIRECT_URI": "https://cultivation-illustration-workshop.awenewilly1.workers.dev/auth/discord/callback"
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "cultivation-workshop-db",
-      "database_id": "REPLACE_AFTER_D1_CREATION",
+      "database_id": "e4ff7a37-a2a7-4253-83b2-a1e4cb9e5036",
       "migrations_dir": "migrations"
     }
   ],
@@ -27,8 +24,7 @@
       "bucket_name": "cultivation-workshop-images"
     }
   ],
-  "limits": {
-    "cpu_ms": 30000
+  "secrets": {
+    "required": ["DISCORD_CLIENT_SECRET", "SESSION_SECRET"]
   }
 }
-

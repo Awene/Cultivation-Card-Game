@@ -12,7 +12,13 @@ npm run db:local
 npm run dev
 ```
 
-`wrangler.jsonc` 中的 D1 `database_id` 是部署占位符。本地 D1 可直接运行；远程部署前使用 Wrangler 创建数据库并替换该值。
+生产 D1、R2 与 Worker 已于 2026-08-03 创建并完成首次部署。正式服务地址为：
+
+```text
+https://cultivation-illustration-workshop.awenewilly1.workers.dev
+```
+
+本地开发继续使用 Wrangler 的本地 D1/R2 模拟；只有带 `--remote` 的迁移和正式部署会访问生产资源。
 
 本地 `.dev.vars` 使用无效占位密钥，只用于健康接口和公开目录联调；真实 Discord 登录必须配置真实 Client Secret。该文件已被 Git 忽略。
 
@@ -23,6 +29,7 @@ npm run dev
 - 私有 R2：`cultivation-workshop-images`，绑定 `IMAGES`
 - Discord Application ID：`1533494278263935108`
 - 管理员 Discord ID：`808684321153482812`
+- D1 Database ID：`e4ff7a37-a2a7-4253-83b2-a1e4cb9e5036`
 
 不要启用 R2 的 `r2.dev` 公共访问。`DISCORD_CLIENT_SECRET` 与 `SESSION_SECRET` 必须通过 Cloudflare Secret 配置。
 
