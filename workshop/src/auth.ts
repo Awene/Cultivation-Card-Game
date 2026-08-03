@@ -21,16 +21,11 @@ export async function requireAuth(context: AppContext, next: Next): Promise<Resp
   await next();
 }
 
-export async function requireAdmin(context: AppContext, next: Next): Promise<Response | void> {
-  const authResult = await requireAuth(context, async () => undefined);
-  if (authResult instanceof Response) return authResult;
-  if (!context.get('user').isAdmin) return context.json({ error: '需要管理员权限' }, 403);
-  await next();
-}
-
 export async function startDiscordLogin(context: AppContext): Promise<Response> {
   const openerOrigin = parseOpenerOrigin(context.req.query('opener_origin') ?? null);
-  const state = randomToken();
+  const loginIdValue = context.req.query('login_id');
+  const loginId = loginIdValue ? requireString(loginIdValue, '登录标识', 32, 128) : null;
+  const state = loginId ? `${loginId}.${randomToken()}` : randomToken();
   const verifier = randomToken(48);
   const now = nowSeconds();
   await context.env.DB.prepare(
@@ -96,7 +91,8 @@ export async function finishDiscordLogin(context: AppContext): Promise<Response>
   )
     .bind(profile.id, profile.username, profile.global_name ?? null, profile.avatar ?? null, now, now)
     .run();
-  const loginCode = randomToken();
+  const loginIdSeparator = state.indexOf('.');
+  const loginCode = loginIdSeparator > 0 ? state.slice(0, loginIdSeparator) : randomToken();
   await context.env.DB.prepare(
     'INSERT INTO login_codes (code_hash, user_id, opener_origin, expires_at, created_at) VALUES (?, ?, ?, ?, ?)',
   )
@@ -151,4 +147,3 @@ export async function logout(context: AppContext): Promise<Response> {
   if (token) await context.env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(await sha256Hex(token)).run();
   return context.json({ ok: true });
 }
-

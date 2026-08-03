@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
-import { exchangeLoginCode, finishDiscordLogin, logout, requireAdmin, requireAuth, startDiscordLogin } from './auth';
+import { exchangeLoginCode, finishDiscordLogin, logout, requireAuth, startDiscordLogin } from './auth';
 import { enforceRateLimit } from './db';
 import {
   createPack,
@@ -20,13 +20,19 @@ import {
   updatePack,
   uploadImage,
 } from './packs';
-import { adminHideImage, adminUnpublishPack, createReport, handleReport, listReports } from './reports';
 import type { AppVariables, Bindings } from './types';
 import { InputError } from './validation';
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
 
-app.use('*', secureHeaders({ referrerPolicy: 'no-referrer' }));
+app.use('*', secureHeaders({ referrerPolicy: 'no-referrer', crossOriginOpenerPolicy: false }));
+app.use('*', async (context, next) => {
+  await next();
+  context.header(
+    'Cross-Origin-Opener-Policy',
+    context.req.path.startsWith('/auth/discord/') ? 'unsafe-none' : 'same-origin',
+  );
+});
 app.use(
   '/api/*',
   cors({
@@ -76,15 +82,6 @@ app.post('/api/packs/:packId/images', requireAuth, async context => {
 });
 app.patch('/api/packs/:packId/images/:imageId', requireAuth, updateImage);
 app.delete('/api/packs/:packId/images/:imageId', requireAuth, removeImage);
-
-app.post('/api/reports', requireAuth, async context => {
-  await enforceRateLimit(context.env, 'report-create', context.get('user').id, 20, 86400);
-  return createReport(context);
-});
-app.get('/api/admin/reports', requireAdmin, listReports);
-app.patch('/api/admin/reports/:reportId', requireAdmin, handleReport);
-app.post('/api/admin/images/:imageId/hide', requireAdmin, adminHideImage);
-app.post('/api/admin/packs/:packId/unpublish', requireAdmin, adminUnpublishPack);
 
 app.notFound(context => context.json({ error: '接口不存在' }, 404));
 app.onError((error, context) => {

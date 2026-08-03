@@ -45,7 +45,7 @@ https://cultivation-illustration-workshop.awenewilly1.workers.dev
 - 每账号最多 20 个未删除图包。
 - 每图包最多 200 张未删除图片。
 - 每账号最多 1GB 有效图片。
-- 单图最大 8MB；OAuth、建包、上传和举报另有频率限制。
+- 单图最大 8MB；OAuth、建包和上传另有频率限制。
 
 ## 已验证
 

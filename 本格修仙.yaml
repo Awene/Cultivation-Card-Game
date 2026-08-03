@@ -2075,20 +2075,33 @@
           数据: true
           按钮: true
 
-      - 名称: 【本格修仙】创意工坊
+      - 名称: 创意工坊
         id: f8c85e47-b70e-47a7-aa08-291089955cc9
         启用: true
         类型: 脚本
-        内容: import
-          'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.33/dist/创意工坊/index.js';
         导出时携带:
           数据: true
           按钮: true
+        文件: 脚本\【本格修仙】创意工坊
         按钮:
-          启用: true
+          启用: false
           按钮列表:
             - 名称: 创意工坊
-              可见: true
+              可见: false
+
+      - 名称: 创意工坊（测试）
+        id: 4a92327e-51d0-443f-bf0a-b92bb2387380
+        启用: false
+        类型: 脚本
+        导出时携带:
+          数据: true
+          按钮: true
+        文件: 脚本\【本格修仙】创意工坊（测试）
+        按钮:
+          启用: false
+          按钮列表:
+            - 名称: 创意工坊
+              可见: false
 
       - 名称: 【本格修仙】总结
         id: 3eb6e3eb-7a14-47dc-900c-759cd2f0bf64
