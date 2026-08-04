@@ -20,21 +20,14 @@ function positiveInteger(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
 }
 
-export function retentionScore(input: {
-  ageDays: number;
-  graceDays: number;
-  likes: number;
-  downloads: number;
-}): number {
+export function retentionScore(input: { ageDays: number; graceDays: number; likes: number; downloads: number }): number {
   const ageRatio = Math.max(input.ageDays, input.graceDays) / input.graceDays;
   const freshness = 12 / Math.sqrt(ageRatio);
   return 8 * Math.log1p(Math.max(0, input.likes)) + 3 * Math.log1p(Math.max(0, input.downloads)) + freshness;
 }
 
 async function permanentlyRemovePack(env: Bindings, pack: CapacityCandidate): Promise<void> {
-  const images = await env.DB.prepare("SELECT object_key FROM images WHERE pack_id = ? AND status != 'removed'")
-    .bind(pack.id)
-    .all<{ object_key: string }>();
+  const images = await env.DB.prepare("SELECT object_key FROM images WHERE pack_id = ? AND status != 'removed'").bind(pack.id).all<{ object_key: string }>();
   const keys = images.results.map(image => image.object_key);
   for (let offset = 0; offset < keys.length; offset += 1000) {
     await env.IMAGES.delete(keys.slice(offset, offset + 1000));
@@ -43,14 +36,8 @@ async function permanentlyRemovePack(env: Bindings, pack: CapacityCandidate): Pr
   await env.DB.batch([
     env.DB.prepare('DELETE FROM pack_likes WHERE pack_id = ?').bind(pack.id),
     env.DB.prepare('DELETE FROM pack_downloads WHERE pack_id = ?').bind(pack.id),
-    env.DB.prepare("UPDATE images SET status = 'removed', updated_at = ? WHERE pack_id = ? AND status != 'removed'").bind(
-      now,
-      pack.id,
-    ),
-    env.DB.prepare("UPDATE packs SET status = 'removed', version = version + 1, updated_at = ? WHERE id = ?").bind(
-      now,
-      pack.id,
-    ),
+    env.DB.prepare("UPDATE images SET status = 'removed', updated_at = ? WHERE pack_id = ? AND status != 'removed'").bind(now, pack.id),
+    env.DB.prepare("UPDATE packs SET status = 'removed', version = version + 1, updated_at = ? WHERE id = ?").bind(now, pack.id),
   ]);
   await writeAudit(env, null, 'pack.capacity_remove', 'pack', pack.id, {
     name: pack.name,
@@ -65,8 +52,11 @@ export async function ensureUploadCapacity(env: Bindings, incomingBytes: number,
   const configuredTarget = positiveInteger(env.STORAGE_TARGET_BYTES, DEFAULT_TARGET_BYTES);
   const target = Math.min(configuredTarget, softLimit);
   const graceDays = positiveInteger(env.PACK_GRACE_PERIOD_DAYS, DEFAULT_GRACE_PERIOD_DAYS);
-  const usage = await env.DB.prepare("SELECT COALESCE(SUM(byte_size), 0) AS bytes FROM images WHERE status != 'removed'")
-    .first<{ bytes: number }>();
+  const usage = await env.DB.prepare(
+    `SELECT
+       (SELECT COALESCE(SUM(byte_size), 0) FROM images WHERE status != 'removed') +
+       (SELECT COALESCE(SUM(cover_byte_size), 0) FROM worldbook_packs WHERE status != 'removed') AS bytes`,
+  ).first<{ bytes: number }>();
   const projectedBytes = Number(usage?.bytes ?? 0) + incomingBytes;
   if (projectedBytes <= softLimit) return;
 

@@ -34,9 +34,11 @@ import {
   removeWorldbookPack,
   replaceWorldbookContent,
   serveOwnWorldbookContent,
+  serveWorldbookCover,
   serveWorldbookContent,
   unpublishWorldbook,
   updateWorldbookPack,
+  uploadWorldbookCover,
 } from './worldbooks';
 
 const app = new Hono<{ Bindings: Bindings; Variables: AppVariables }>();
@@ -51,10 +53,7 @@ app.use(
 );
 app.use('*', async (context, next) => {
   await next();
-  context.header(
-    'Cross-Origin-Opener-Policy',
-    context.req.path.startsWith('/auth/discord/') ? 'unsafe-none' : 'same-origin',
-  );
+  context.header('Cross-Origin-Opener-Policy', context.req.path.startsWith('/auth/discord/') ? 'unsafe-none' : 'same-origin');
 });
 app.use(
   '/api/*',
@@ -72,7 +71,13 @@ app.get('/', context =>
 <title>本格数值化修仙创意工坊</title></head><body><main><h1>本格数值化修仙创意工坊</h1>
 <p>服务已经运行。请从酒馆角色卡中的创意工坊界面访问图包。</p></main></body></html>`),
 );
-app.get('/api/health', context => context.json({ ok: true, service: 'cultivation-illustration-workshop', version: '0.2.0' }));
+app.get('/api/health', context =>
+  context.json({
+    ok: true,
+    service: 'cultivation-illustration-workshop',
+    version: '0.2.0',
+  }),
+);
 
 app.get('/auth/discord/start', async context => {
   await enforceRateLimit(context.env, 'oauth-start', context.req.header('CF-Connecting-IP') ?? 'unknown', 20, 600);
@@ -88,13 +93,7 @@ app.get('/api/packs/:packId', getPublicPack);
 app.get('/api/packs/:packId/version', getPackVersion);
 app.get('/api/images/:imageId', serveImage);
 app.post('/api/packs/:packId/download', async context => {
-  await enforceRateLimit(
-    context.env,
-    'pack-download',
-    context.req.header('CF-Connecting-IP') ?? 'unknown',
-    100,
-    86400,
-  );
+  await enforceRateLimit(context.env, 'pack-download', context.req.header('CF-Connecting-IP') ?? 'unknown', 100, 86400);
   return recordPackDownload(context);
 });
 
@@ -126,6 +125,7 @@ app.get('/api/worldbooks', listPublicWorldbooks);
 app.get('/api/worldbooks/:packId', getPublicWorldbook);
 app.get('/api/worldbooks/:packId/version', getWorldbookVersion);
 app.get('/api/worldbooks/:packId/content', serveWorldbookContent);
+app.get('/api/worldbooks/:packId/cover', serveWorldbookCover);
 app.get('/api/me/worldbooks', requireAuth, listOwnWorldbooks);
 app.get('/api/me/worldbooks/:packId', requireAuth, getOwnWorldbook);
 app.get('/api/me/worldbooks/:packId/content', requireAuth, serveOwnWorldbookContent);
@@ -137,6 +137,10 @@ app.patch('/api/worldbooks/:packId', requireAuth, updateWorldbookPack);
 app.post('/api/worldbooks/:packId/content', requireAuth, async context => {
   await enforceRateLimit(context.env, 'worldbook-upload', context.get('user').id, 100, 86400);
   return replaceWorldbookContent(context);
+});
+app.post('/api/worldbooks/:packId/cover', requireAuth, async context => {
+  await enforceRateLimit(context.env, 'worldbook-cover-upload', context.get('user').id, 100, 86400);
+  return uploadWorldbookCover(context);
 });
 app.post('/api/worldbooks/:packId/publish', requireAuth, publishWorldbook);
 app.post('/api/worldbooks/:packId/unpublish', requireAuth, unpublishWorldbook);
