@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { ensureUploadCapacity } from './capacity';
 import { newId, nowSeconds, writeAudit } from './db';
 import { inspectImage } from './image';
 import type { AppVariables, AuthUser, Bindings, PackCategory } from './types';
@@ -31,6 +32,9 @@ interface PackRow {
   updated_at: number;
   published_at: number | null;
   image_count?: number;
+  like_count: number;
+  download_count: number;
+  preview_image_id: string | null;
 }
 
 interface ImageRow {
@@ -50,7 +54,7 @@ interface ImageRow {
   updated_at: number;
 }
 
-function publicPack(row: PackRow) {
+function publicPack(row: PackRow, baseUrl: string) {
   return {
     id: row.id,
     owner_id: row.owner_id,
@@ -61,6 +65,10 @@ function publicPack(row: PackRow) {
     status: row.status,
     version: row.version,
     image_count: row.image_count,
+    like_count: row.like_count ?? 0,
+    download_count: row.download_count ?? 0,
+    preview_image_id: row.preview_image_id ?? null,
+    preview_url: row.preview_image_id ? `${baseUrl}/api/images/${row.preview_image_id}` : null,
     created_at: row.created_at,
     updated_at: row.updated_at,
     published_at: row.published_at,
@@ -126,7 +134,7 @@ export async function listPublicPacks(context: AppContext): Promise<Response> {
   )
     .bind(...bindings)
     .all<PackRow>();
-  const items = rows.results.slice(0, limit).map(publicPack);
+  const items = rows.results.slice(0, limit).map(row => publicPack(row, context.env.PUBLIC_BASE_URL));
   return context.json({ items, next_offset: rows.results.length > limit ? offset + limit : null });
 }
 
@@ -143,7 +151,10 @@ export async function getPublicPack(context: AppContext): Promise<Response> {
   )
     .bind(pack.id)
     .all<ImageRow>();
-  return context.json({ pack: publicPack(pack), images: images.results.map(row => publicImage(row, context.env.PUBLIC_BASE_URL)) });
+  return context.json({
+    pack: publicPack(pack, context.env.PUBLIC_BASE_URL),
+    images: images.results.map(row => publicImage(row, context.env.PUBLIC_BASE_URL)),
+  });
 }
 
 export async function getPackVersion(context: AppContext): Promise<Response> {
@@ -161,7 +172,7 @@ export async function listOwnPacks(context: AppContext): Promise<Response> {
   )
     .bind(context.get('user').id)
     .all<PackRow>();
-  return context.json({ items: rows.results.map(publicPack) });
+  return context.json({ items: rows.results.map(row => publicPack(row, context.env.PUBLIC_BASE_URL)) });
 }
 
 export async function getOwnPack(context: AppContext): Promise<Response> {
@@ -171,7 +182,10 @@ export async function getOwnPack(context: AppContext): Promise<Response> {
   )
     .bind(pack.id)
     .all<ImageRow>();
-  return context.json({ pack: publicPack(pack), images: images.results.map(row => publicImage(row, context.env.PUBLIC_BASE_URL)) });
+  return context.json({
+    pack: publicPack(pack, context.env.PUBLIC_BASE_URL),
+    images: images.results.map(row => publicImage(row, context.env.PUBLIC_BASE_URL)),
+  });
 }
 
 export async function createPack(context: AppContext): Promise<Response> {
@@ -197,7 +211,25 @@ export async function createPack(context: AppContext): Promise<Response> {
     .bind(pack.id, user.id, pack.name, pack.description, pack.category, now, now)
     .run();
   await writeAudit(context.env, user.id, 'pack.create', 'pack', id);
-  return context.json({ pack: { ...pack, owner_id: user.id, status: 'draft', version: 1, created_at: now, updated_at: now } }, 201);
+  return context.json(
+    {
+      pack: {
+        ...pack,
+        owner_id: user.id,
+        status: 'draft',
+        version: 1,
+        image_count: 0,
+        like_count: 0,
+        download_count: 0,
+        preview_image_id: null,
+        preview_url: null,
+        created_at: now,
+        updated_at: now,
+        published_at: null,
+      },
+    },
+    201,
+  );
 }
 
 export async function updatePack(context: AppContext): Promise<Response> {
@@ -206,14 +238,33 @@ export async function updatePack(context: AppContext): Promise<Response> {
   const name = body.name === undefined ? pack.name : requireString(body.name, '图包名称', 1, 60);
   const description = body.description === undefined ? pack.description : optionalString(body.description, '图包简介', 500);
   const category = body.category === undefined ? pack.category : parseCategory(body.category);
+  let previewImageId = pack.preview_image_id;
+  if (body.preview_image_id !== undefined) {
+    const candidate = optionalString(body.preview_image_id, '预览图', 100);
+    if (candidate) {
+      const image = await context.env.DB.prepare(
+        "SELECT id FROM images WHERE id = ? AND pack_id = ? AND status = 'active'",
+      )
+        .bind(candidate, pack.id)
+        .first<{ id: string }>();
+      if (!image) throw new InputError('只能选择图包中的有效图片作为预览图');
+      previewImageId = image.id;
+    } else {
+      previewImageId = null;
+    }
+  }
   const now = nowSeconds();
   await context.env.DB.prepare(
-    `UPDATE packs SET name = ?, description = ?, category = ?,
+    `UPDATE packs SET name = ?, description = ?, category = ?, preview_image_id = ?,
        version = version + CASE WHEN status = 'published' THEN 1 ELSE 0 END, updated_at = ? WHERE id = ?`,
   )
-    .bind(name, description, category, now, pack.id)
+    .bind(name, description, category, previewImageId, now, pack.id)
     .run();
-  await writeAudit(context.env, context.get('user').id, 'pack.update', 'pack', pack.id, { name, category });
+  await writeAudit(context.env, context.get('user').id, 'pack.update', 'pack', pack.id, {
+    name,
+    category,
+    previewImageId,
+  });
   return context.json({ ok: true });
 }
 
@@ -251,9 +302,26 @@ export async function unpublishPack(context: AppContext): Promise<Response> {
 
 export async function removePack(context: AppContext): Promise<Response> {
   const pack = await ownPack(context, context.req.param('packId')!);
-  await context.env.DB.prepare("UPDATE packs SET status = 'removed', version = version + 1, updated_at = ? WHERE id = ?")
-    .bind(nowSeconds(), pack.id)
-    .run();
+  const images = await context.env.DB.prepare("SELECT object_key FROM images WHERE pack_id = ? AND status != 'removed'")
+    .bind(pack.id)
+    .all<{ object_key: string }>();
+  const keys = images.results.map(image => image.object_key);
+  for (let offset = 0; offset < keys.length; offset += 1000) {
+    await context.env.IMAGES.delete(keys.slice(offset, offset + 1000));
+  }
+  const now = nowSeconds();
+  await context.env.DB.batch([
+    context.env.DB.prepare('DELETE FROM pack_likes WHERE pack_id = ?').bind(pack.id),
+    context.env.DB.prepare('DELETE FROM pack_downloads WHERE pack_id = ?').bind(pack.id),
+    context.env.DB.prepare("UPDATE images SET status = 'removed', updated_at = ? WHERE pack_id = ? AND status != 'removed'").bind(
+      now,
+      pack.id,
+    ),
+    context.env.DB.prepare("UPDATE packs SET status = 'removed', version = version + 1, updated_at = ? WHERE id = ?").bind(
+      now,
+      pack.id,
+    ),
+  ]);
   await writeAudit(context.env, context.get('user').id, 'pack.remove', 'pack', pack.id);
   return context.json({ ok: true });
 }
@@ -288,6 +356,7 @@ export async function uploadImage(context: AppContext): Promise<Response> {
   } catch (error) {
     throw new InputError(error instanceof Error ? error.message : '图片校验失败');
   }
+  await ensureUploadCapacity(context.env, bytes.byteLength, pack.id);
   const rating = parseRating(form.get('rating'));
   const keywords = parseKeywords(form.get('keywords'));
   const characterName = optionalString(form.get('character_name'), '角色名', 60);
@@ -323,6 +392,11 @@ export async function uploadImage(context: AppContext): Promise<Response> {
         now,
       )
       .run();
+    if (!pack.preview_image_id) {
+      await context.env.DB.prepare('UPDATE packs SET preview_image_id = ? WHERE id = ? AND preview_image_id IS NULL')
+        .bind(imageId, pack.id)
+        .run();
+    }
     await bumpPublishedPack(context, pack);
   } catch (error) {
     await context.env.IMAGES.delete(objectKey);
@@ -387,6 +461,16 @@ export async function removeImage(context: AppContext): Promise<Response> {
   await context.env.DB.prepare("UPDATE images SET status = 'removed', updated_at = ? WHERE id = ?")
     .bind(nowSeconds(), image.id)
     .run();
+  if (pack.preview_image_id === image.id) {
+    const replacement = await context.env.DB.prepare(
+      "SELECT id FROM images WHERE pack_id = ? AND status = 'active' ORDER BY created_at, id LIMIT 1",
+    )
+      .bind(pack.id)
+      .first<{ id: string }>();
+    await context.env.DB.prepare('UPDATE packs SET preview_image_id = ? WHERE id = ?')
+      .bind(replacement?.id ?? null, pack.id)
+      .run();
+  }
   await context.env.IMAGES.delete(image.object_key);
   await bumpPublishedPack(context, pack);
   await writeAudit(context.env, context.get('user').id, 'image.remove', 'image', image.id, { packId: pack.id });
@@ -425,5 +509,6 @@ async function imageObjectResponse(context: AppContext, image: ImageRow, publicC
   headers.set('Cache-Control', publicCache ? 'public, max-age=31536000, immutable' : 'private, no-store');
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('Content-Security-Policy', "default-src 'none'; sandbox");
+  headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
   return new Response('body' in object ? object.body : null, { status: 'body' in object ? 200 : 304, headers });
 }

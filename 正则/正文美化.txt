@@ -2564,12 +2564,162 @@
         height: auto;
         max-width: 100%;
         object-fit: contain;
+        cursor: zoom-in;
       }
       .rb-workshop-caption {
         padding: 7px 10px;
         color: var(--rb-text-muted);
         font-size: 11px;
         line-height: 1.5;
+      }
+
+      /* —— 插图大图查看器 —— */
+      .rb-img-wrap img {
+        cursor: zoom-in;
+      }
+      .rb-img-wrap img:focus-visible,
+      .rb-workshop-figure img:focus-visible {
+        outline: 2px solid var(--rb-accent);
+        outline-offset: 3px;
+      }
+      .rb-image-viewer {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: none;
+        overflow: hidden;
+        background: #090710;
+        color: #f3eadc;
+        touch-action: none;
+        overscroll-behavior: contain;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .rb-image-viewer.active {
+        display: block;
+      }
+      .rb-image-viewer:fullscreen {
+        width: 100vw;
+        height: 100vh;
+        background: #090710;
+      }
+      .rb-image-viewer-backdrop {
+        position: absolute;
+        z-index: 0;
+        inset: -36px;
+        width: calc(100% + 72px);
+        height: calc(100% + 72px);
+        object-fit: cover;
+        filter: blur(30px) brightness(0.3) saturate(0.82);
+        transform: scale(1.06);
+        opacity: 0.82;
+        pointer-events: none;
+      }
+      .rb-image-viewer-stage {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        cursor: grab;
+      }
+      .rb-image-viewer-stage.dragging {
+        cursor: grabbing;
+      }
+      .rb-image-viewer-image {
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: calc(100% - 28px);
+        max-height: calc(100% - 104px);
+        object-fit: contain;
+        pointer-events: none;
+        transform-origin: center center;
+        will-change: transform;
+        box-shadow: 0 12px 46px rgba(0, 0, 0, 0.55);
+      }
+      .rb-image-viewer-toolbar {
+        position: absolute;
+        z-index: 2;
+        top: max(12px, env(safe-area-inset-top));
+        right: max(12px, env(safe-area-inset-right));
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        background: rgba(20, 16, 32, 0.82);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .rb-image-viewer-btn,
+      .rb-image-viewer-scale {
+        min-width: 38px;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        color: inherit;
+        font: inherit;
+        line-height: 32px;
+        text-align: center;
+      }
+      .rb-image-viewer-btn {
+        cursor: pointer;
+      }
+      .rb-image-viewer-btn:hover,
+      .rb-image-viewer-btn:focus-visible {
+        border-color: var(--rb-accent);
+        background: rgba(212, 175, 55, 0.18);
+        outline: none;
+      }
+      .rb-image-viewer-scale {
+        min-width: 62px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 12px;
+      }
+      .rb-image-viewer-caption {
+        position: absolute;
+        z-index: 2;
+        left: 50%;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        max-width: min(720px, calc(100% - 28px));
+        transform: translateX(-50%);
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(20, 16, 32, 0.78);
+        color: rgba(255, 255, 255, 0.76);
+        font-size: 12px;
+        line-height: 1.45;
+        text-align: center;
+        pointer-events: none;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      @media (max-width: 600px) {
+        .rb-image-viewer-toolbar {
+          left: 50%;
+          right: auto;
+          transform: translateX(-50%);
+          gap: 5px;
+          width: max-content;
+          max-width: calc(100% - 16px);
+        }
+        .rb-image-viewer-btn,
+        .rb-image-viewer-scale {
+          min-width: 34px;
+          height: 32px;
+          padding: 0 8px;
+          line-height: 30px;
+          font-size: 12px;
+        }
+        .rb-image-viewer-scale { min-width: 54px; }
+        .rb-image-viewer-image { max-height: calc(100% - 96px); }
       }
 
       /* —— Toast —— */
@@ -2687,8 +2837,8 @@
 
       function renderNarration(text) {
         const cleaned = String(text || '')
-          .replace(/^\s*\{\{([^}]+)\}\}\s*$/g, '$1')
-          .replace(/^\s*\{([^}]+)\}\s*/, '$1：')
+          .replace(/^\s*\{\{([^}]+)\}\}\s*$/g, (_match, content) => content)
+          .replace(/^\s*\{([^}]+)\}\s*/, (_match, title) => `${title}：`)
           .trim();
         if (!cleaned) return '';
         return `<div class="rb-narration">${escapeHtml(cleaned)}</div>`;
@@ -2970,7 +3120,8 @@
         ['人物', '法宝', '灵兽', '傀儡', '阵法'].forEach(type => {
           html = html.replace(
             new RegExp(`(${type})([A-Z]|集群)`, 'g'),
-            `<span class="tag tag-unit-type"><i class="fa-solid fa-users"></i> $1$2</span>`,
+            (_match, unitType, suffix) =>
+              `<span class="tag tag-unit-type"><i class="fa-solid fa-users"></i> ${unitType}${suffix}</span>`,
           );
         });
         html = html.replace(/结阵中/g, `<span class="tag tag-formation"><i class="fa-solid fa-circle-notch"></i> 结阵中</span>`);
@@ -4519,7 +4670,7 @@
           //   <source> 是 <picture> 的子元素,单独保留会被 escapeHtml 显示为字面 HTML
           raw = raw.replace(
             /<(figure|picture|aside|section)\b[^>]*>([\s\S]*?)<\/\1>/gi,
-            '$2',
+            (_match, _wrapperTag, content) => content,
           );
           raw = raw.replace(/<\/?(?:figure|picture|aside|section)\b[^>]*>?/gi, '');
           raw = raw.replace(/<source\b[^>]*\/?>/gi, '');
@@ -4539,7 +4690,7 @@
             return (
               '\n\n' +
               stashPanel(
-                `<figure class="rb-img-wrap"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy"></figure>`,
+                `<figure class="rb-img-wrap"><img src="${safeSrc}" alt="${safeAlt}" loading="lazy" tabindex="0" role="button" title="点击查看大图"></figure>`,
               ) +
               '\n\n'
             );
@@ -4660,6 +4811,291 @@
         setTimeout(() => el.remove(), 2000);
       }
 
+      // ============== 插图大图查看器 ==============
+      let rbImageViewerState = null;
+
+      function initImageViewer() {
+        if (rbImageViewerState) return;
+        const container = document.getElementById('readingContent');
+        if (!container) return;
+
+        const viewer = document.createElement('div');
+        viewer.className = 'rb-image-viewer';
+        viewer.setAttribute('aria-hidden', 'true');
+        viewer.innerHTML = `
+          <img class="rb-image-viewer-backdrop" alt="" aria-hidden="true">
+          <div class="rb-image-viewer-stage">
+            <img class="rb-image-viewer-image" alt="">
+          </div>
+          <div class="rb-image-viewer-toolbar" role="toolbar" aria-label="大图查看工具">
+            <button type="button" class="rb-image-viewer-btn" data-viewer-action="zoom-out" aria-label="缩小">−</button>
+            <button type="button" class="rb-image-viewer-btn rb-image-viewer-scale" data-viewer-action="reset" title="恢复原始缩放">100%</button>
+            <button type="button" class="rb-image-viewer-btn" data-viewer-action="zoom-in" aria-label="放大">＋</button>
+            <button type="button" class="rb-image-viewer-btn" data-viewer-action="fullscreen">全屏</button>
+            <button type="button" class="rb-image-viewer-btn" data-viewer-action="close">关闭</button>
+          </div>
+          <div class="rb-image-viewer-caption" hidden></div>`;
+        document.body.appendChild(viewer);
+
+        const backdropImage = viewer.querySelector('.rb-image-viewer-backdrop');
+        const stage = viewer.querySelector('.rb-image-viewer-stage');
+        const displayImage = viewer.querySelector('.rb-image-viewer-image');
+        const scaleLabel = viewer.querySelector('.rb-image-viewer-scale');
+        const fullscreenButton = viewer.querySelector('[data-viewer-action="fullscreen"]');
+        const caption = viewer.querySelector('.rb-image-viewer-caption');
+        const pointers = new Map();
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let dragStart = null;
+        let pinchStart = null;
+        let previousFocus = null;
+        let fullscreenTarget = viewer;
+        let fullscreenDocument = document;
+        let fallbackFullscreen = false;
+        let fallbackFrameStyle = null;
+        try {
+          if (window.frameElement && typeof window.frameElement.requestFullscreen === 'function') {
+            fullscreenTarget = window.frameElement;
+            fullscreenDocument = window.frameElement.ownerDocument || window.parent.document;
+          }
+        } catch (e) { /* cross-origin: use the viewer itself */ }
+
+        const clampScale = value => Math.min(5, Math.max(1, value));
+        const isOpen = () => viewer.classList.contains('active');
+        const isNativeFullscreen = () =>
+          fullscreenDocument.fullscreenElement === fullscreenTarget || document.fullscreenElement === viewer;
+        const isFullscreen = () => fallbackFullscreen || isNativeFullscreen();
+        const applyTransform = () => {
+          if (scale <= 1.001) {
+            scale = 1;
+            offsetX = 0;
+            offsetY = 0;
+          }
+          displayImage.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0) scale(${scale})`;
+          scaleLabel.textContent = `${Math.round(scale * 100)}%`;
+        };
+        const resetView = () => {
+          scale = 1;
+          offsetX = 0;
+          offsetY = 0;
+          applyTransform();
+        };
+        const zoomAt = (nextScale, clientX, clientY) => {
+          const next = clampScale(nextScale);
+          const rect = stage.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const ratio = next / scale;
+          offsetX += (clientX - centerX - offsetX) * (1 - ratio);
+          offsetY += (clientY - centerY - offsetY) * (1 - ratio);
+          scale = next;
+          applyTransform();
+        };
+        const zoomFromCenter = factor => {
+          const rect = stage.getBoundingClientRect();
+          zoomAt(scale * factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        };
+        const updateFullscreenButton = () => {
+          fullscreenButton.textContent = isFullscreen() ? '退出全屏' : '全屏';
+        };
+        const enterFallbackFullscreen = () => {
+          if (fullscreenTarget !== viewer && fullscreenTarget.style) {
+            fallbackFrameStyle = {
+              position: fullscreenTarget.style.position,
+              inset: fullscreenTarget.style.inset,
+              width: fullscreenTarget.style.width,
+              height: fullscreenTarget.style.height,
+              maxWidth: fullscreenTarget.style.maxWidth,
+              maxHeight: fullscreenTarget.style.maxHeight,
+              zIndex: fullscreenTarget.style.zIndex,
+              border: fullscreenTarget.style.border,
+            };
+            Object.assign(fullscreenTarget.style, {
+              position: 'fixed',
+              inset: '0',
+              width: '100vw',
+              height: '100vh',
+              maxWidth: 'none',
+              maxHeight: 'none',
+              zIndex: '2147483647',
+              border: '0',
+            });
+          }
+          fallbackFullscreen = true;
+          updateFullscreenButton();
+        };
+        const exitFallbackFullscreen = () => {
+          if (fallbackFrameStyle && fullscreenTarget.style) Object.assign(fullscreenTarget.style, fallbackFrameStyle);
+          fallbackFrameStyle = null;
+          fallbackFullscreen = false;
+          updateFullscreenButton();
+        };
+        const closeViewer = async () => {
+          if (!isOpen()) return;
+          if (fallbackFullscreen) exitFallbackFullscreen();
+          if (isNativeFullscreen() && fullscreenDocument.exitFullscreen) {
+            try { await fullscreenDocument.exitFullscreen(); } catch (e) { /* ignore */ }
+          }
+          viewer.classList.remove('active');
+          viewer.setAttribute('aria-hidden', 'true');
+          pointers.clear();
+          displayImage.removeAttribute('src');
+          backdropImage.removeAttribute('src');
+          if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
+        };
+        const toggleFullscreen = async () => {
+          if (fallbackFullscreen) {
+            exitFallbackFullscreen();
+            return;
+          }
+          try {
+            if (isNativeFullscreen()) {
+              await fullscreenDocument.exitFullscreen();
+            } else if (fullscreenTarget.requestFullscreen) {
+              await fullscreenTarget.requestFullscreen();
+            } else {
+              enterFallbackFullscreen();
+            }
+          } catch (e) {
+            console.warn('[正文美化] 切换图片全屏失败:', e);
+            enterFallbackFullscreen();
+            showToast('浏览器未允许系统全屏，已切换为页面全屏');
+          }
+          updateFullscreenButton();
+        };
+        const openViewer = sourceImage => {
+          const src = sourceImage.currentSrc || sourceImage.src;
+          if (!src) return;
+          previousFocus = document.activeElement;
+          displayImage.src = src;
+          backdropImage.src = src;
+          displayImage.alt = sourceImage.alt || '';
+          caption.textContent = sourceImage.alt || '';
+          caption.hidden = !caption.textContent;
+          viewer.classList.add('active');
+          viewer.setAttribute('aria-hidden', 'false');
+          resetView();
+          viewer.querySelector('[data-viewer-action="close"]').focus();
+        };
+        const imageFromEvent = event => {
+          const target = event.target;
+          return target && target.closest
+            ? target.closest('.rb-img-wrap img, .rb-workshop-figure img')
+            : null;
+        };
+
+        container.addEventListener('click', event => {
+          const image = imageFromEvent(event);
+          if (image) openViewer(image);
+        });
+        container.addEventListener('keydown', event => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          const image = imageFromEvent(event);
+          if (!image) return;
+          event.preventDefault();
+          openViewer(image);
+        });
+        viewer.addEventListener('click', event => {
+          const button = event.target.closest && event.target.closest('[data-viewer-action]');
+          if (!button) return;
+          switch (button.getAttribute('data-viewer-action')) {
+            case 'zoom-out': zoomFromCenter(1 / 1.2); break;
+            case 'reset': resetView(); break;
+            case 'zoom-in': zoomFromCenter(1.2); break;
+            case 'fullscreen': void toggleFullscreen(); break;
+            case 'close': void closeViewer(); break;
+          }
+        });
+        viewer.addEventListener('wheel', event => {
+          if (!isOpen()) return;
+          event.preventDefault();
+          zoomAt(scale * (event.deltaY < 0 ? 1.15 : 1 / 1.15), event.clientX, event.clientY);
+        }, { passive: false });
+        stage.addEventListener('dblclick', event => {
+          if (scale > 1.01) resetView();
+          else zoomAt(2, event.clientX, event.clientY);
+        });
+
+        const beginSinglePointer = point => {
+          dragStart = { id: point.pointerId, x: point.clientX, y: point.clientY, offsetX, offsetY };
+          pinchStart = null;
+        };
+        const beginPinch = () => {
+          const points = [...pointers.values()].slice(0, 2);
+          if (points.length < 2) return;
+          const [a, b] = points;
+          const midX = (a.clientX + b.clientX) / 2;
+          const midY = (a.clientY + b.clientY) / 2;
+          const rect = stage.getBoundingClientRect();
+          pinchStart = {
+            distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
+            scale,
+            worldX: (midX - (rect.left + rect.width / 2) - offsetX) / scale,
+            worldY: (midY - (rect.top + rect.height / 2) - offsetY) / scale,
+          };
+          dragStart = null;
+        };
+        stage.addEventListener('pointerdown', event => {
+          if (event.pointerType === 'mouse' && event.button !== 0) return;
+          event.preventDefault();
+          stage.setPointerCapture(event.pointerId);
+          pointers.set(event.pointerId, event);
+          stage.classList.add('dragging');
+          if (pointers.size === 1) beginSinglePointer(event);
+          else beginPinch();
+        });
+        stage.addEventListener('pointermove', event => {
+          if (!pointers.has(event.pointerId)) return;
+          event.preventDefault();
+          pointers.set(event.pointerId, event);
+          if (pointers.size >= 2 && pinchStart) {
+            const [a, b] = [...pointers.values()].slice(0, 2);
+            const midX = (a.clientX + b.clientX) / 2;
+            const midY = (a.clientY + b.clientY) / 2;
+            const rect = stage.getBoundingClientRect();
+            scale = clampScale(
+              pinchStart.scale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinchStart.distance,
+            );
+            offsetX = midX - (rect.left + rect.width / 2) - pinchStart.worldX * scale;
+            offsetY = midY - (rect.top + rect.height / 2) - pinchStart.worldY * scale;
+            applyTransform();
+          } else if (dragStart && dragStart.id === event.pointerId && scale > 1) {
+            offsetX = dragStart.offsetX + event.clientX - dragStart.x;
+            offsetY = dragStart.offsetY + event.clientY - dragStart.y;
+            applyTransform();
+          }
+        });
+        const endPointer = event => {
+          pointers.delete(event.pointerId);
+          if (!pointers.size) {
+            dragStart = null;
+            pinchStart = null;
+            stage.classList.remove('dragging');
+          } else if (pointers.size === 1) {
+            beginSinglePointer([...pointers.values()][0]);
+          } else {
+            beginPinch();
+          }
+        };
+        stage.addEventListener('pointerup', endPointer);
+        stage.addEventListener('pointercancel', endPointer);
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        if (fullscreenDocument !== document) {
+          fullscreenDocument.addEventListener('fullscreenchange', updateFullscreenButton);
+        }
+        document.addEventListener('keydown', event => {
+          if (!isOpen()) return;
+          if (event.key === 'Escape' && !isFullscreen()) void closeViewer();
+          else if (event.key === '+' || event.key === '=') zoomFromCenter(1.2);
+          else if (event.key === '-') zoomFromCenter(1 / 1.2);
+          else if (event.key === '0') resetView();
+          else if (event.key.toLowerCase() === 'f') void toggleFullscreen();
+        });
+
+        rbImageViewerState = { viewer, openViewer, closeViewer };
+      }
+
       // ============== 创意工坊桥接 ==============
       const workshopObjectUrls = [];
 
@@ -4771,6 +5207,9 @@
             img.src = objectUrl;
             img.alt = image.characterName || image.packName || '创意工坊插图';
             img.loading = 'lazy';
+            img.tabIndex = 0;
+            img.setAttribute('role', 'button');
+            img.title = '点击查看大图';
             img.addEventListener('load', () => {
               void bridge.confirmDisplayed({ ...context, imageId: image.id });
             }, { once: true });
@@ -4885,6 +5324,7 @@
         safeRun('cleanupLegacyAvatarStorage', cleanupLegacyAvatarStorage);
         safeRun('initTheme', initTheme);
         safeRun('initFontSize', initFontSize);
+        safeRun('initImageViewer', initImageViewer);
         safeRun('processContent', processContent);
         safeRun('initWorkshopBridge', initWorkshopBridge);
       }

@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { inspectImage } from '../src/image';
 
 describe('inspectImage', () => {
+  it('拒绝超过 6MB 的图片', () => {
+    const oversized = new Uint8Array(6 * 1024 * 1024 + 1);
+    expect(() => inspectImage(oversized)).toThrow('图片不能超过 6MB');
+  });
+
   it('拒绝 GIF', () => {
     const gif = new TextEncoder().encode('GIF89a');
     expect(() => inspectImage(gif, 'image/gif')).toThrow('不支持 GIF');

@@ -12,6 +12,9 @@ export interface Bindings {
   ADMIN_DISCORD_IDS: string;
   PUBLIC_BASE_URL: string;
   DISCORD_REDIRECT_URI: string;
+  STORAGE_SOFT_LIMIT_BYTES?: string;
+  STORAGE_TARGET_BYTES?: string;
+  PACK_GRACE_PERIOD_DAYS?: string;
 }
 
 export interface AuthUser {

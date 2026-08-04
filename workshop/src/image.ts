@@ -1,6 +1,6 @@
 import type { ImageInspection } from './types';
 
-export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+export const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 export const MAX_IMAGE_EDGE = 1600;
 
 function ascii(bytes: Uint8Array, start: number, length: number): string {
@@ -86,7 +86,7 @@ function inspectWebp(bytes: Uint8Array): ImageInspection | null {
 
 export function inspectImage(bytes: Uint8Array, declaredMime?: string): ImageInspection {
   if (bytes.byteLength === 0) throw new Error('图片内容为空');
-  if (bytes.byteLength > MAX_IMAGE_BYTES) throw new Error('图片不能超过 8MB');
+  if (bytes.byteLength > MAX_IMAGE_BYTES) throw new Error('图片不能超过 6MB');
   const result = inspectPng(bytes) ?? inspectJpeg(bytes) ?? inspectWebp(bytes);
   if (!result) throw new Error('只支持 JPEG、PNG、WebP，且不支持 GIF');
   if (declaredMime && declaredMime !== result.mimeType) throw new Error('图片 MIME 与实际内容不一致');

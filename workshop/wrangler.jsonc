@@ -8,7 +8,10 @@
     "DISCORD_CLIENT_ID": "1533494278263935108",
     "ADMIN_DISCORD_IDS": "808684321153482812",
     "PUBLIC_BASE_URL": "https://cultivation-illustration-workshop.awenewilly1.workers.dev",
-    "DISCORD_REDIRECT_URI": "https://cultivation-illustration-workshop.awenewilly1.workers.dev/auth/discord/callback"
+    "DISCORD_REDIRECT_URI": "https://cultivation-illustration-workshop.awenewilly1.workers.dev/auth/discord/callback",
+    "STORAGE_SOFT_LIMIT_BYTES": "9000000000",
+    "STORAGE_TARGET_BYTES": "8500000000",
+    "PACK_GRACE_PERIOD_DAYS": "30"
   },
   "d1_databases": [
     {
