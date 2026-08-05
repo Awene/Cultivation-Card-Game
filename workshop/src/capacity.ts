@@ -55,7 +55,8 @@ export async function ensureUploadCapacity(env: Bindings, incomingBytes: number,
   const usage = await env.DB.prepare(
     `SELECT
        (SELECT COALESCE(SUM(byte_size), 0) FROM images WHERE status != 'removed') +
-       (SELECT COALESCE(SUM(cover_byte_size), 0) FROM worldbook_packs WHERE status != 'removed') AS bytes`,
+       (SELECT COALESCE(SUM(byte_size + COALESCE(cover_byte_size, 0)), 0)
+        FROM worldbook_packs WHERE status != 'removed') AS bytes`,
   ).first<{ bytes: number }>();
   const projectedBytes = Number(usage?.bytes ?? 0) + incomingBytes;
   if (projectedBytes <= softLimit) return;

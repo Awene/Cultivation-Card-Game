@@ -2,13 +2,14 @@
   'use strict';
 
   const workshopUrl = `http://localhost:5500/dist/创意工坊/index.js?workshop_test=${Date.now()}`;
+  const positionKey = 'cultivation-workshop-launcher-test-position';
   const $tavernDocument = $(window.parent.document);
   const launcherZIndex = 2147483500;
   const themeKey = 'rb-theme';
-  const size = () => (window.parent.innerWidth < 600 ? 46 : 54);
+  const launcherSize = () => (window.parent.innerWidth < 600 ? 46 : 54);
   let loadingPromise = null;
   let dragged = false;
-  let position = { x: window.parent.innerWidth - size() - 24, y: window.parent.innerHeight - size() - 92 };
+  let position = readPosition();
 
   installVueFeatureFlags();
 
@@ -28,9 +29,10 @@
   const $launcher = $('<button type="button">')
     .attr({ script_id: getScriptId(), class: 'cultivation-workshop-launcher-test', title: '打开创意工坊测试版（可拖动）', 'aria-label': '打开创意工坊测试版' })
     .text('坊')
-    .css({ position:'fixed',left:0,top:0,width:`${size()}px`,height:`${size()}px`,zIndex:launcherZIndex,cursor:'grab',userSelect:'none',touchAction:'none',willChange:'transform' })
+    .css({ position:'fixed',left:0,top:0,width:`${launcherSize()}px`,height:`${launcherSize()}px`,zIndex:launcherZIndex,cursor:'grab',userSelect:'none',touchAction:'none',willChange:'transform' })
     .appendTo('body');
   syncLauncherTheme();
+  clampPosition();
   applyPosition();
 
   $launcher.on('click', async () => {
@@ -44,6 +46,7 @@
     } finally { $launcher.removeClass('is-loading'); }
   });
   bindDrag();
+  window.parent.addEventListener('resize', handleResize, { passive: true });
   window.parent.addEventListener('rb-theme-change', handleThemeChange);
   window.parent.addEventListener('storage', syncLauncherTheme);
   void loadWorkshop().catch(error => console.error('[创意工坊（测试）] 预加载失败:', error));
@@ -79,6 +82,13 @@
     })();
     return loadingPromise;
   }
+  function readPosition() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(positionKey) || 'null');
+      if (Number.isFinite(saved?.x) && Number.isFinite(saved?.y)) return saved;
+    } catch (_) {}
+    return { x: window.parent.innerWidth - launcherSize() - 24, y: window.parent.innerHeight - launcherSize() - 92 };
+  }
   function applyPosition() { $launcher.css('transform', `translate3d(${position.x}px, ${position.y}px, 0)`); }
   function syncLauncherTheme() {
     let theme = 'dark';
@@ -91,8 +101,8 @@
     else syncLauncherTheme();
   }
   function clampPosition() {
-    position.x = Math.max(0, Math.min(window.parent.innerWidth - size(), position.x));
-    position.y = Math.max(0, Math.min(window.parent.innerHeight - size(), position.y));
+    position.x = Math.max(0, Math.min(window.parent.innerWidth - launcherSize(), position.x));
+    position.y = Math.max(0, Math.min(window.parent.innerHeight - launcherSize(), position.y));
   }
   function bindDrag() {
     $launcher.on('pointerdown', event => {
@@ -100,6 +110,7 @@
       const start = { x:event.clientX, y:event.clientY };
       const origin = { ...position };
       let moved = false;
+      $launcher.css('animation', 'none');
       event.preventDefault();
       const onMove = moveEvent => {
         const dx = moveEvent.clientX - start.x, dy = moveEvent.clientY - start.y;
@@ -110,13 +121,23 @@
       };
       const onUp = upEvent => {
         $tavernDocument.off('pointermove', onMove).off('pointerup pointercancel', onUp);
-        if (moved) dragged = true;
+        $launcher.css('animation', '');
+        if (moved) {
+          dragged = true;
+          localStorage.setItem(positionKey, JSON.stringify(position));
+        }
         upEvent.preventDefault();
       };
       $tavernDocument.on('pointermove', onMove).on('pointerup pointercancel', onUp);
     });
   }
+  function handleResize() {
+    clampPosition();
+    $launcher.css({ width: `${launcherSize()}px`, height: `${launcherSize()}px` });
+    applyPosition();
+  }
   $(window).on('pagehide', () => {
+    window.parent.removeEventListener('resize', handleResize);
     window.parent.removeEventListener('rb-theme-change', handleThemeChange);
     window.parent.removeEventListener('storage', syncLauncherTheme);
     $launcher.remove();

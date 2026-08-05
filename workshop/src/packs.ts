@@ -68,7 +68,7 @@ function publicPack(row: PackRow, baseUrl: string) {
     like_count: row.like_count ?? 0,
     download_count: row.download_count ?? 0,
     preview_image_id: row.preview_image_id ?? null,
-    preview_url: row.preview_image_id ? `${baseUrl}/api/images/${row.preview_image_id}` : null,
+    preview_url: row.preview_image_id ? `${baseUrl}/api/images/${row.preview_image_id}?v=${row.updated_at}` : null,
     created_at: row.created_at,
     updated_at: row.updated_at,
     published_at: row.published_at,
@@ -87,7 +87,7 @@ function publicImage(row: ImageRow, baseUrl: string) {
     byte_size: row.byte_size,
     sha256: row.sha256,
     status: row.status,
-    download_url: `${baseUrl}/api/images/${row.id}`,
+    download_url: `${baseUrl}/api/images/${row.id}?v=${row.sha256.slice(0, 12)}`,
     updated_at: row.updated_at,
   };
 }

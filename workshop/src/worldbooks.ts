@@ -111,8 +111,8 @@ async function readUpload(context: AppContext): Promise<{
   };
 }
 
-async function storeCover(context: AppContext, packId: string, cover: CoverUpload): Promise<string> {
-  await ensureUploadCapacity(context.env, cover.bytes.byteLength, packId);
+async function storeCover(context: AppContext, packId: string, cover: CoverUpload, capacityChecked = false): Promise<string> {
+  if (!capacityChecked) await ensureUploadCapacity(context.env, cover.bytes.byteLength, packId);
   const objectKey = `worldbooks/${packId}/cover/${cover.sha256}.${cover.extension}`;
   await context.env.IMAGES.put(objectKey, cover.bytes, {
     httpMetadata: {
@@ -211,6 +211,7 @@ export async function createWorldbookPack(context: AppContext): Promise<Response
   const digest = await sha256Hex(upload.bytes);
   const objectKey = `worldbooks/${id}/${digest}.json`;
   const now = nowSeconds();
+  await ensureUploadCapacity(context.env, upload.bytes.byteLength + (upload.cover?.bytes.byteLength ?? 0), id);
   await context.env.IMAGES.put(objectKey, upload.bytes, {
     httpMetadata: {
       contentType: 'application/json; charset=utf-8',
@@ -220,7 +221,7 @@ export async function createWorldbookPack(context: AppContext): Promise<Response
   });
   let coverObjectKey: string | null = null;
   try {
-    coverObjectKey = upload.cover ? await storeCover(context, id, upload.cover) : null;
+    coverObjectKey = upload.cover ? await storeCover(context, id, upload.cover, true) : null;
     await context.env.DB.prepare(
       `INSERT INTO worldbook_packs
        (id, owner_id, name, description, category, dlc_key, relations_json, entry_count, object_key, byte_size, sha256,
@@ -307,6 +308,7 @@ export async function replaceWorldbookContent(context: AppContext): Promise<Resp
   const digest = await sha256Hex(upload.bytes);
   const objectKey = `worldbooks/${row.id}/${digest}.json`;
   const now = nowSeconds();
+  if (objectKey !== row.object_key) await ensureUploadCapacity(context.env, upload.bytes.byteLength, row.id);
   await context.env.IMAGES.put(objectKey, upload.bytes, {
     httpMetadata: {
       contentType: 'application/json; charset=utf-8',
