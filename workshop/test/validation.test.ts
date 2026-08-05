@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { parseKeywords, parseOpenerOrigin } from '../src/validation';
+import { parseAliases, parseOpenerOrigin } from '../src/validation';
 
-describe('parseKeywords', () => {
-  it('去重并清理关键词', () => {
-    expect(parseKeywords('慕璇玑, 月夜，慕璇玑')).toEqual(['慕璇玑', '月夜']);
+describe('parseAliases', () => {
+  it('去重并清理别名', () => {
+    expect(parseAliases('慕璇玑, 璇玑，慕璇玑')).toEqual(['慕璇玑', '璇玑']);
   });
 
-  it('拒绝空关键词', () => {
-    expect(() => parseKeywords(' , ， ')).toThrow('关键词数量');
+  it('允许没有别名', () => {
+    expect(parseAliases(' , ， ')).toEqual([]);
   });
 });
 
@@ -17,4 +17,3 @@ describe('parseOpenerOrigin', () => {
     expect(() => parseOpenerOrigin('javascript:alert(1)')).toThrow('HTTP(S)');
   });
 });
-

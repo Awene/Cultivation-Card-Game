@@ -29,11 +29,11 @@ export function parseRating(value: unknown): ImageRating {
   return value;
 }
 
-export function parseKeywords(value: unknown): string[] {
+export function parseAliases(value: unknown): string[] {
   const source = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[，,\n]/u) : [];
   const result = [...new Set(source.map(item => String(item).normalize('NFKC').trim()).filter(Boolean))];
-  if (result.length < 1 || result.length > 30) throw new InputError('关键词数量必须为 1～30 个');
-  if (result.some(item => item.length > 30)) throw new InputError('单个关键词不能超过 30 字');
+  if (result.length > 30) throw new InputError('别名数量不能超过 30 个');
+  if (result.some(item => item.length > 30)) throw new InputError('单个别名不能超过 30 字');
   return result;
 }
 

@@ -1,0 +1,1 @@
+ALTER TABLE images ADD COLUMN aliases_json TEXT NOT NULL DEFAULT '[]';

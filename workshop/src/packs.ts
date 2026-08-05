@@ -8,7 +8,7 @@ import {
   optionalString,
   parseCategory,
   parseJsonObject,
-  parseKeywords,
+  parseAliases,
   parseRating,
   requireString,
 } from './validation';
@@ -44,6 +44,7 @@ interface ImageRow {
   character_name: string;
   rating: string;
   keywords_json: string;
+  aliases_json: string;
   mime_type: string;
   width: number;
   height: number;
@@ -80,7 +81,7 @@ function publicImage(row: ImageRow, baseUrl: string) {
     id: row.id,
     character_name: row.character_name,
     rating: row.rating,
-    keywords: JSON.parse(row.keywords_json) as string[],
+    aliases: JSON.parse(row.aliases_json || '[]') as string[],
     mime_type: row.mime_type,
     width: row.width,
     height: row.height,
@@ -270,15 +271,12 @@ export async function updatePack(context: AppContext): Promise<Response> {
 
 export async function publishPack(context: AppContext): Promise<Response> {
   const pack = await ownPack(context, context.req.param('packId')!);
-  const images = await context.env.DB.prepare("SELECT character_name, keywords_json FROM images WHERE pack_id = ? AND status = 'active'")
+  const images = await context.env.DB.prepare("SELECT character_name FROM images WHERE pack_id = ? AND status = 'active'")
     .bind(pack.id)
-    .all<{ character_name: string; keywords_json: string }>();
+    .all<{ character_name: string }>();
   if (!images.results.length) throw new InputError('图包至少需要一张有效图片才能发布');
   if (pack.category === '人物' && images.results.some(image => !image.character_name.trim())) {
     throw new InputError('人物图包中的每张图片都必须填写角色名');
-  }
-  if (images.results.some(image => (JSON.parse(image.keywords_json) as string[]).length === 0)) {
-    throw new InputError('每张图片都必须填写关键词');
   }
   const now = nowSeconds();
   await context.env.DB.prepare(
@@ -358,7 +356,7 @@ export async function uploadImage(context: AppContext): Promise<Response> {
   }
   await ensureUploadCapacity(context.env, bytes.byteLength, pack.id);
   const rating = parseRating(form.get('rating'));
-  const keywords = parseKeywords(form.get('keywords'));
+  const aliases = parseAliases(form.get('aliases'));
   const characterName = optionalString(form.get('character_name'), '角色名', 60);
   if (pack.category === '人物' && !characterName) throw new InputError('人物图包必须填写角色名');
   const digest = await crypto.subtle.digest('SHA-256', bytes);
@@ -373,8 +371,8 @@ export async function uploadImage(context: AppContext): Promise<Response> {
   try {
     await context.env.DB.prepare(
       `INSERT INTO images
-       (id, pack_id, object_key, character_name, rating, keywords_json, mime_type, width, height, byte_size, sha256, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, pack_id, object_key, character_name, rating, keywords_json, aliases_json, mime_type, width, height, byte_size, sha256, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         imageId,
@@ -382,7 +380,8 @@ export async function uploadImage(context: AppContext): Promise<Response> {
         objectKey,
         characterName,
         rating,
-        JSON.stringify(keywords),
+        '[]',
+        JSON.stringify(aliases),
         inspection.mimeType,
         inspection.width,
         inspection.height,
@@ -412,7 +411,8 @@ export async function uploadImage(context: AppContext): Promise<Response> {
           object_key: objectKey,
           character_name: characterName,
           rating,
-          keywords_json: JSON.stringify(keywords),
+          keywords_json: '[]',
+          aliases_json: JSON.stringify(aliases),
           mime_type: inspection.mimeType,
           width: inspection.width,
           height: inspection.height,
@@ -437,15 +437,15 @@ export async function updateImage(context: AppContext): Promise<Response> {
   if (!image) return context.json({ error: '图片不存在' }, 404);
   const body = parseJsonObject(await context.req.json());
   const rating = body.rating === undefined ? image.rating : parseRating(body.rating);
-  const keywords = body.keywords === undefined ? (JSON.parse(image.keywords_json) as string[]) : parseKeywords(body.keywords);
+  const aliases = body.aliases === undefined ? (JSON.parse(image.aliases_json || '[]') as string[]) : parseAliases(body.aliases);
   const characterName = body.character_name === undefined
     ? image.character_name
     : optionalString(body.character_name, '角色名', 60);
   if (pack.category === '人物' && !characterName) throw new InputError('人物图包必须填写角色名');
   await context.env.DB.prepare(
-    'UPDATE images SET character_name = ?, rating = ?, keywords_json = ?, updated_at = ? WHERE id = ?',
+    'UPDATE images SET character_name = ?, rating = ?, aliases_json = ?, updated_at = ? WHERE id = ?',
   )
-    .bind(characterName, rating, JSON.stringify(keywords), nowSeconds(), image.id)
+    .bind(characterName, rating, JSON.stringify(aliases), nowSeconds(), image.id)
     .run();
   await bumpPublishedPack(context, pack);
   await writeAudit(context.env, context.get('user').id, 'image.update', 'image', image.id, { packId: pack.id });
