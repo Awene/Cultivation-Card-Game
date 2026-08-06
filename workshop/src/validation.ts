@@ -37,6 +37,14 @@ export function parseAliases(value: unknown): string[] {
   return result;
 }
 
+export function parseMatchTerms(value: unknown): string[] {
+  const source = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[，,\n]/u) : [];
+  const result = [...new Set(source.map(item => String(item).normalize('NFKC').trim()).filter(Boolean))];
+  if (result.length > 30) throw new InputError('抓取词数量不能超过 30 个');
+  if (result.some(item => item.length > 60)) throw new InputError('单个抓取词不能超过 60 字');
+  return result;
+}
+
 export function parseJsonObject(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new InputError('请求体必须是对象');
   return value as Record<string, unknown>;

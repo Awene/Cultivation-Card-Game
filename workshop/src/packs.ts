@@ -9,6 +9,7 @@ import {
   parseCategory,
   parseJsonObject,
   parseAliases,
+  parseMatchTerms,
   parseRating,
   requireString,
 } from './validation';
@@ -35,6 +36,8 @@ interface PackRow {
   like_count: number;
   download_count: number;
   preview_image_id: string | null;
+  preview_rating?: string | null;
+  match_terms_json: string;
 }
 
 interface ImageRow {
@@ -69,7 +72,9 @@ function publicPack(row: PackRow, baseUrl: string) {
     like_count: row.like_count ?? 0,
     download_count: row.download_count ?? 0,
     preview_image_id: row.preview_image_id ?? null,
+    preview_rating: row.preview_rating === 'nsfw' ? 'nsfw' : row.preview_rating === 'sfw' ? 'sfw' : null,
     preview_url: row.preview_image_id ? `${baseUrl}/api/images/${row.preview_image_id}?v=${row.updated_at}` : null,
+    match_terms: JSON.parse(row.match_terms_json || '[]') as string[],
     created_at: row.created_at,
     updated_at: row.updated_at,
     published_at: row.published_at,
@@ -129,7 +134,8 @@ export async function listPublicPacks(context: AppContext): Promise<Response> {
   bindings.push(limit + 1, offset);
   const rows = await context.env.DB.prepare(
     `SELECT p.*, COALESCE(u.global_name, u.username) AS owner_name,
-       (SELECT COUNT(*) FROM images i WHERE i.pack_id = p.id AND i.status = 'active') AS image_count
+       (SELECT COUNT(*) FROM images i WHERE i.pack_id = p.id AND i.status = 'active') AS image_count,
+       (SELECT pi.rating FROM images pi WHERE pi.id = p.preview_image_id AND pi.status = 'active') AS preview_rating
      FROM packs p JOIN users u ON u.id = p.owner_id
      WHERE ${clauses.join(' AND ')} ORDER BY p.updated_at DESC LIMIT ? OFFSET ?`,
   )
@@ -168,7 +174,8 @@ export async function getPackVersion(context: AppContext): Promise<Response> {
 
 export async function listOwnPacks(context: AppContext): Promise<Response> {
   const rows = await context.env.DB.prepare(
-    `SELECT p.*, (SELECT COUNT(*) FROM images i WHERE i.pack_id = p.id AND i.status = 'active') AS image_count
+    `SELECT p.*, (SELECT COUNT(*) FROM images i WHERE i.pack_id = p.id AND i.status = 'active') AS image_count,
+       (SELECT pi.rating FROM images pi WHERE pi.id = p.preview_image_id AND pi.status = 'active') AS preview_rating
      FROM packs p WHERE p.owner_id = ? AND p.status != 'removed' ORDER BY p.updated_at DESC`,
   )
     .bind(context.get('user').id)
@@ -200,16 +207,22 @@ export async function createPack(context: AppContext): Promise<Response> {
   }
   const id = newId('pack');
   const now = nowSeconds();
+  const category = parseCategory(body.category);
+  const matchTerms = category === '人物' ? [] : parseMatchTerms(body.match_terms);
+  if (category !== '人物' && !matchTerms.length) {
+    throw new InputError(category === '风景' ? '风景图包至少需要一个地点抓取词' : '其他图包至少需要一个抓取词');
+  }
   const pack = {
     id,
     name: requireString(body.name, '图包名称', 1, 60),
     description: optionalString(body.description, '图包简介', 500),
-    category: parseCategory(body.category),
+    category,
+    matchTerms,
   };
   await context.env.DB.prepare(
-    'INSERT INTO packs (id, owner_id, name, description, category, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO packs (id, owner_id, name, description, category, match_terms_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
   )
-    .bind(pack.id, user.id, pack.name, pack.description, pack.category, now, now)
+    .bind(pack.id, user.id, pack.name, pack.description, pack.category, JSON.stringify(pack.matchTerms), now, now)
     .run();
   await writeAudit(context.env, user.id, 'pack.create', 'pack', id);
   return context.json(
@@ -223,7 +236,9 @@ export async function createPack(context: AppContext): Promise<Response> {
         like_count: 0,
         download_count: 0,
         preview_image_id: null,
+        preview_rating: null,
         preview_url: null,
+        match_terms: pack.matchTerms,
         created_at: now,
         updated_at: now,
         published_at: null,
@@ -239,6 +254,14 @@ export async function updatePack(context: AppContext): Promise<Response> {
   const name = body.name === undefined ? pack.name : requireString(body.name, '图包名称', 1, 60);
   const description = body.description === undefined ? pack.description : optionalString(body.description, '图包简介', 500);
   const category = body.category === undefined ? pack.category : parseCategory(body.category);
+  const matchTerms = category === '人物'
+    ? []
+    : body.match_terms === undefined
+      ? parseMatchTerms(JSON.parse(pack.match_terms_json || '[]'))
+      : parseMatchTerms(body.match_terms);
+  if (category !== '人物' && !matchTerms.length) {
+    throw new InputError(category === '风景' ? '风景图包至少需要一个地点抓取词' : '其他图包至少需要一个抓取词');
+  }
   let previewImageId = pack.preview_image_id;
   if (body.preview_image_id !== undefined) {
     const candidate = optionalString(body.preview_image_id, '预览图', 100);
@@ -255,15 +278,25 @@ export async function updatePack(context: AppContext): Promise<Response> {
     }
   }
   const now = nowSeconds();
-  await context.env.DB.prepare(
-    `UPDATE packs SET name = ?, description = ?, category = ?, preview_image_id = ?,
-       version = version + CASE WHEN status = 'published' THEN 1 ELSE 0 END, updated_at = ? WHERE id = ?`,
-  )
-    .bind(name, description, category, previewImageId, now, pack.id)
-    .run();
+  const updates = [
+    context.env.DB.prepare(
+      `UPDATE packs SET name = ?, description = ?, category = ?, match_terms_json = ?, preview_image_id = ?,
+         version = version + CASE WHEN status = 'published' THEN 1 ELSE 0 END, updated_at = ? WHERE id = ?`,
+    ).bind(name, description, category, JSON.stringify(matchTerms), previewImageId, now, pack.id),
+  ];
+  if (category !== '人物') {
+    updates.push(
+      context.env.DB.prepare("UPDATE images SET rating = 'sfw', updated_at = ? WHERE pack_id = ? AND status != 'removed'").bind(
+        now,
+        pack.id,
+      ),
+    );
+  }
+  await context.env.DB.batch(updates);
   await writeAudit(context.env, context.get('user').id, 'pack.update', 'pack', pack.id, {
     name,
     category,
+    matchTerms,
     previewImageId,
   });
   return context.json({ ok: true });
@@ -277,6 +310,9 @@ export async function publishPack(context: AppContext): Promise<Response> {
   if (!images.results.length) throw new InputError('图包至少需要一张有效图片才能发布');
   if (pack.category === '人物' && images.results.some(image => !image.character_name.trim())) {
     throw new InputError('人物图包中的每张图片都必须填写角色名');
+  }
+  if (pack.category !== '人物' && !parseMatchTerms(JSON.parse(pack.match_terms_json || '[]')).length) {
+    throw new InputError(pack.category === '风景' ? '风景图包至少需要一个地点抓取词' : '其他图包至少需要一个抓取词');
   }
   const now = nowSeconds();
   await context.env.DB.prepare(
@@ -355,7 +391,7 @@ export async function uploadImage(context: AppContext): Promise<Response> {
     throw new InputError(error instanceof Error ? error.message : '图片校验失败');
   }
   await ensureUploadCapacity(context.env, bytes.byteLength, pack.id);
-  const rating = parseRating(form.get('rating'));
+  const rating = pack.category === '人物' ? parseRating(form.get('rating')) : 'sfw';
   const aliases = parseAliases(form.get('aliases'));
   const characterName = optionalString(form.get('character_name'), '角色名', 60);
   if (pack.category === '人物' && !characterName) throw new InputError('人物图包必须填写角色名');
@@ -436,7 +472,11 @@ export async function updateImage(context: AppContext): Promise<Response> {
     .first<ImageRow>();
   if (!image) return context.json({ error: '图片不存在' }, 404);
   const body = parseJsonObject(await context.req.json());
-  const rating = body.rating === undefined ? image.rating : parseRating(body.rating);
+  const rating = pack.category === '人物'
+    ? body.rating === undefined
+      ? image.rating
+      : parseRating(body.rating)
+    : 'sfw';
   const aliases = body.aliases === undefined ? (JSON.parse(image.aliases_json || '[]') as string[]) : parseAliases(body.aliases);
   const characterName = body.character_name === undefined
     ? image.character_name

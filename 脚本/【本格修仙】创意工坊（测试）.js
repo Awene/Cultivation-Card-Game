@@ -67,18 +67,17 @@
     }
   }
   function loadWorkshop() {
-    const existing = findWorkshopBridge();
-    if (existing) return Promise.resolve(existing);
     if (loadingPromise) return loadingPromise;
+    const previousBridge = findWorkshopBridge();
     loadingPromise = (async () => {
       let importError = null;
       try { await import(workshopUrl); } catch (error) { importError = error; console.warn('[创意工坊（测试）] 前端模块加载异常:', error); }
       for (let index = 0; index < 100; index += 1) {
         const bridge = findWorkshopBridge();
-        if (bridge) return bridge;
+        if (bridge && bridge !== previousBridge) return bridge;
         await new Promise(resolve => setTimeout(resolve, 100));
       }
-      throw importError || new Error('创意工坊测试前端接口初始化超时');
+      throw importError || new Error('创意工坊测试前端未替换现有正式版接口，请检查 5500 构建文件');
     })();
     return loadingPromise;
   }
