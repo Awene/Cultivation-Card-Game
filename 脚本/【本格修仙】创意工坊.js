@@ -2,7 +2,7 @@
   'use strict';
 
   const workshopUrl =
-    'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.38/dist/创意工坊/index.js';
+    'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.41/dist/创意工坊/index.js';
   const positionKey = 'cultivation-workshop-launcher-position';
   const themeKey = 'rb-theme';
   const launcherSize = () => (window.parent.innerWidth < 600 ? 46 : 54);
@@ -109,18 +109,17 @@
   }
 
   function loadWorkshop() {
-    const existing = findWorkshopBridge();
-    if (existing) return Promise.resolve(existing);
     if (loadingPromise) return loadingPromise;
+    const previousBridge = findWorkshopBridge();
     loadingPromise = (async () => {
       let importError = null;
       try { await import(workshopUrl); } catch (error) { importError = error; console.warn('[创意工坊] 前端模块加载异常:', error); }
       for (let index = 0; index < 100; index += 1) {
         const bridge = findWorkshopBridge();
-        if (bridge) return bridge;
+        if (bridge && bridge !== previousBridge) return bridge;
         await new Promise(resolve => setTimeout(resolve, 100));
       }
-      throw importError || new Error('创意工坊前端接口初始化超时');
+      throw importError || new Error('创意工坊正式前端未替换现有接口，请检查固定版本构建文件');
     })();
     return loadingPromise;
   }

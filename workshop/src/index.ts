@@ -75,7 +75,7 @@ app.get('/api/health', context =>
   context.json({
     ok: true,
     service: 'cultivation-illustration-workshop',
-    version: '0.2.0',
+    version: '0.4.0',
   }),
 );
 
