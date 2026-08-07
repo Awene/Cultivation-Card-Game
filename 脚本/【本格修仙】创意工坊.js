@@ -2,7 +2,7 @@
   'use strict';
 
   const workshopUrl =
-    'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.41/dist/创意工坊/index.js';
+    'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.42/dist/创意工坊/index.js';
   const positionKey = 'cultivation-workshop-launcher-position';
   const themeKey = 'rb-theme';
   const launcherSize = () => (window.parent.innerWidth < 600 ? 46 : 54);

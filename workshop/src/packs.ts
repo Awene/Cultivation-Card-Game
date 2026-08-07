@@ -38,6 +38,8 @@ interface PackRow {
   preview_image_id: string | null;
   preview_rating?: string | null;
   match_terms_json: string;
+  character_name: string;
+  aliases_json: string;
 }
 
 interface ImageRow {
@@ -75,6 +77,8 @@ function publicPack(row: PackRow, baseUrl: string) {
     preview_rating: row.preview_rating === 'nsfw' ? 'nsfw' : row.preview_rating === 'sfw' ? 'sfw' : null,
     preview_url: row.preview_image_id ? `${baseUrl}/api/images/${row.preview_image_id}?v=${row.updated_at}` : null,
     match_terms: JSON.parse(row.match_terms_json || '[]') as string[],
+    character_name: row.character_name || '',
+    aliases: JSON.parse(row.aliases_json || '[]') as string[],
     created_at: row.created_at,
     updated_at: row.updated_at,
     published_at: row.published_at,
@@ -123,9 +127,11 @@ export async function listPublicPacks(context: AppContext): Promise<Response> {
   const clauses = ["p.status = 'published'"];
   const bindings: unknown[] = [];
   if (query) {
-    clauses.push('(p.name LIKE ? OR p.description LIKE ? OR u.username LIKE ? OR u.global_name LIKE ?)');
+    clauses.push(
+      '(p.name LIKE ? OR p.description LIKE ? OR p.character_name LIKE ? OR p.aliases_json LIKE ? OR u.username LIKE ? OR u.global_name LIKE ?)',
+    );
     const pattern = `%${query}%`;
-    bindings.push(pattern, pattern, pattern, pattern);
+    bindings.push(pattern, pattern, pattern, pattern, pattern, pattern);
   }
   if (category) {
     clauses.push('p.category = ?');
@@ -208,6 +214,8 @@ export async function createPack(context: AppContext): Promise<Response> {
   const id = newId('pack');
   const now = nowSeconds();
   const category = parseCategory(body.category);
+  const characterName = category === '人物' ? requireString(body.character_name, '角色名', 1, 60) : '';
+  const aliases = category === '人物' ? parseAliases(body.aliases) : [];
   const matchTerms = category === '人物' ? [] : parseMatchTerms(body.match_terms);
   if (category !== '人物' && !matchTerms.length) {
     throw new InputError(category === '风景' ? '风景图包至少需要一个地点抓取词' : '其他图包至少需要一个抓取词');
@@ -217,12 +225,27 @@ export async function createPack(context: AppContext): Promise<Response> {
     name: requireString(body.name, '图包名称', 1, 60),
     description: optionalString(body.description, '图包简介', 500),
     category,
+    characterName,
+    aliases,
     matchTerms,
   };
   await context.env.DB.prepare(
-    'INSERT INTO packs (id, owner_id, name, description, category, match_terms_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    `INSERT INTO packs
+     (id, owner_id, name, description, category, match_terms_json, character_name, aliases_json, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
-    .bind(pack.id, user.id, pack.name, pack.description, pack.category, JSON.stringify(pack.matchTerms), now, now)
+    .bind(
+      pack.id,
+      user.id,
+      pack.name,
+      pack.description,
+      pack.category,
+      JSON.stringify(pack.matchTerms),
+      pack.characterName,
+      JSON.stringify(pack.aliases),
+      now,
+      now,
+    )
     .run();
   await writeAudit(context.env, user.id, 'pack.create', 'pack', id);
   return context.json(
@@ -239,6 +262,8 @@ export async function createPack(context: AppContext): Promise<Response> {
         preview_rating: null,
         preview_url: null,
         match_terms: pack.matchTerms,
+        character_name: pack.characterName,
+        aliases: pack.aliases,
         created_at: now,
         updated_at: now,
         published_at: null,
@@ -254,24 +279,35 @@ export async function updatePack(context: AppContext): Promise<Response> {
   const name = body.name === undefined ? pack.name : requireString(body.name, '图包名称', 1, 60);
   const description = body.description === undefined ? pack.description : optionalString(body.description, '图包简介', 500);
   const category = body.category === undefined ? pack.category : parseCategory(body.category);
+  const characterName = category === '人物'
+    ? body.character_name === undefined
+      ? pack.character_name
+      : requireString(body.character_name, '角色名', 1, 60)
+    : '';
+  const aliases = category === '人物'
+    ? body.aliases === undefined
+      ? parseAliases(JSON.parse(pack.aliases_json || '[]'))
+      : parseAliases(body.aliases)
+    : [];
   const matchTerms = category === '人物'
     ? []
     : body.match_terms === undefined
       ? parseMatchTerms(JSON.parse(pack.match_terms_json || '[]'))
       : parseMatchTerms(body.match_terms);
+  if (category === '人物' && !characterName.trim()) throw new InputError('人物图包必须填写角色名');
   if (category !== '人物' && !matchTerms.length) {
     throw new InputError(category === '风景' ? '风景图包至少需要一个地点抓取词' : '其他图包至少需要一个抓取词');
   }
   let previewImageId = pack.preview_image_id;
   if (body.preview_image_id !== undefined) {
-    const candidate = optionalString(body.preview_image_id, '预览图', 100);
+    const candidate = optionalString(body.preview_image_id, '图包封面', 100);
     if (candidate) {
       const image = await context.env.DB.prepare(
         "SELECT id FROM images WHERE id = ? AND pack_id = ? AND status = 'active'",
       )
         .bind(candidate, pack.id)
         .first<{ id: string }>();
-      if (!image) throw new InputError('只能选择图包中的有效图片作为预览图');
+      if (!image) throw new InputError('只能选择图包中的有效图片作为封面');
       previewImageId = image.id;
     } else {
       previewImageId = null;
@@ -281,15 +317,31 @@ export async function updatePack(context: AppContext): Promise<Response> {
   const updates = [
     context.env.DB.prepare(
       `UPDATE packs SET name = ?, description = ?, category = ?, match_terms_json = ?, preview_image_id = ?,
+         character_name = ?, aliases_json = ?,
          version = version + CASE WHEN status = 'published' THEN 1 ELSE 0 END, updated_at = ? WHERE id = ?`,
-    ).bind(name, description, category, JSON.stringify(matchTerms), previewImageId, now, pack.id),
+    ).bind(
+      name,
+      description,
+      category,
+      JSON.stringify(matchTerms),
+      previewImageId,
+      characterName,
+      JSON.stringify(aliases),
+      now,
+      pack.id,
+    ),
   ];
-  if (category !== '人物') {
+  if (category === '人物') {
     updates.push(
-      context.env.DB.prepare("UPDATE images SET rating = 'sfw', updated_at = ? WHERE pack_id = ? AND status != 'removed'").bind(
-        now,
-        pack.id,
-      ),
+      context.env.DB.prepare(
+        "UPDATE images SET character_name = ?, aliases_json = ?, keywords_json = '[]', updated_at = ? WHERE pack_id = ? AND status != 'removed'",
+      ).bind(characterName, JSON.stringify(aliases), now, pack.id),
+    );
+  } else {
+    updates.push(
+      context.env.DB.prepare(
+        "UPDATE images SET character_name = '', aliases_json = '[]', keywords_json = '[]', rating = 'sfw', updated_at = ? WHERE pack_id = ? AND status != 'removed'",
+      ).bind(now, pack.id),
     );
   }
   await context.env.DB.batch(updates);
@@ -297,6 +349,8 @@ export async function updatePack(context: AppContext): Promise<Response> {
     name,
     category,
     matchTerms,
+    characterName,
+    aliases,
     previewImageId,
   });
   return context.json({ ok: true });
@@ -304,13 +358,11 @@ export async function updatePack(context: AppContext): Promise<Response> {
 
 export async function publishPack(context: AppContext): Promise<Response> {
   const pack = await ownPack(context, context.req.param('packId')!);
-  const images = await context.env.DB.prepare("SELECT character_name FROM images WHERE pack_id = ? AND status = 'active'")
+  const images = await context.env.DB.prepare("SELECT id FROM images WHERE pack_id = ? AND status = 'active'")
     .bind(pack.id)
-    .all<{ character_name: string }>();
+    .all<{ id: string }>();
   if (!images.results.length) throw new InputError('图包至少需要一张有效图片才能发布');
-  if (pack.category === '人物' && images.results.some(image => !image.character_name.trim())) {
-    throw new InputError('人物图包中的每张图片都必须填写角色名');
-  }
+  if (pack.category === '人物' && !pack.character_name.trim()) throw new InputError('人物图包必须填写角色名');
   if (pack.category !== '人物' && !parseMatchTerms(JSON.parse(pack.match_terms_json || '[]')).length) {
     throw new InputError(pack.category === '风景' ? '风景图包至少需要一个地点抓取词' : '其他图包至少需要一个抓取词');
   }
@@ -392,9 +444,9 @@ export async function uploadImage(context: AppContext): Promise<Response> {
   }
   await ensureUploadCapacity(context.env, bytes.byteLength, pack.id);
   const rating = pack.category === '人物' ? parseRating(form.get('rating')) : 'sfw';
-  const aliases = parseAliases(form.get('aliases'));
-  const characterName = optionalString(form.get('character_name'), '角色名', 60);
-  if (pack.category === '人物' && !characterName) throw new InputError('人物图包必须填写角色名');
+  const aliases = pack.category === '人物' ? parseAliases(JSON.parse(pack.aliases_json || '[]')) : [];
+  const characterName = pack.category === '人物' ? pack.character_name : '';
+  if (pack.category === '人物' && !characterName.trim()) throw new InputError('请先为人物图包设置角色名');
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   const sha256 = [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2, '0')).join('');
   const imageId = newId('image');
@@ -477,15 +529,12 @@ export async function updateImage(context: AppContext): Promise<Response> {
       ? image.rating
       : parseRating(body.rating)
     : 'sfw';
-  const aliases = body.aliases === undefined ? (JSON.parse(image.aliases_json || '[]') as string[]) : parseAliases(body.aliases);
-  const characterName = body.character_name === undefined
-    ? image.character_name
-    : optionalString(body.character_name, '角色名', 60);
-  if (pack.category === '人物' && !characterName) throw new InputError('人物图包必须填写角色名');
+  const aliases = pack.category === '人物' ? parseAliases(JSON.parse(pack.aliases_json || '[]')) : [];
+  const characterName = pack.category === '人物' ? pack.character_name : '';
   await context.env.DB.prepare(
-    'UPDATE images SET character_name = ?, rating = ?, aliases_json = ?, updated_at = ? WHERE id = ?',
+    'UPDATE images SET character_name = ?, rating = ?, aliases_json = ?, keywords_json = ?, updated_at = ? WHERE id = ?',
   )
-    .bind(characterName, rating, JSON.stringify(aliases), nowSeconds(), image.id)
+    .bind(characterName, rating, JSON.stringify(aliases), '[]', nowSeconds(), image.id)
     .run();
   await bumpPublishedPack(context, pack);
   await writeAudit(context.env, context.get('user').id, 'image.update', 'image', image.id, { packId: pack.id });

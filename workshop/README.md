@@ -42,10 +42,10 @@ https://cultivation-illustration-workshop.awenewilly1.workers.dev
 
 ## 图片匹配资料
 
-- 人物图包通过图片的角色名和可选别名匹配正文；旧安装包可在本地设置一次角色名与别名迁移，不会修改作者的云端图包。
-- 风景图包必须填写至少一个地点抓取词，其他图包必须填写至少一个抓取词；每个图包最多 30 个，单个不超过 60 字。
+- 人物图包通过图包级角色名和可选别名匹配正文；一个人物图包只对应一个角色。旧安装包可在本地设置一次角色名与别名迁移，不会修改作者的云端图包。
+- 风景图包必须填写至少一个地点抓取词，其他图包必须填写至少一个抓取词；抓取词跟随图包，最多 30 个，单个不超过 60 字。
 - 非人物图包中的图片统一按 SFW 处理；人物图片继续使用各自的 SFW/NSFW 分级。
-- 图包级抓取词由 D1 的 `packs.match_terms_json` 保存，通过公开清单下发，正文内容仍只在玩家浏览器本地匹配。
+- 图包级人物身份由 D1 的 `packs.character_name`、`packs.aliases_json` 保存；图包级抓取词由 `packs.match_terms_json` 保存。公开清单下发后，正文内容仍只在玩家浏览器本地匹配。
 
 ## 世界书包约束
 
@@ -86,7 +86,7 @@ npx wrangler deploy --dry-run
 
 ## v0.4.0 发布顺序
 
-1. 运行 `npm run db:remote`，应用 `0006_image_aliases.sql` 和 `0007_pack_match_terms.sql` 中尚未执行的迁移。
+1. 运行 `npm run db:remote`，应用 `0006_image_aliases.sql` 至 `0009_pack_keywords_revert_to_pack.sql` 中尚未执行的迁移。
 2. 运行 `npm run deploy` 发布 Worker。
-3. 检查 `/api/health`，并确认 `/api/packs` 返回的图包包含 `match_terms`。
+3. 检查 `/api/health`，并确认 `/api/packs` 返回图包级 `character_name` / `aliases` / `match_terms`（抓取词回归图包级，图片不再返回 `match_terms`）。
 4. 再发布 Tavern Helper 创意工坊 `0.4.0` 和角色卡正式启动器，避免新版前端先于数据库与 API 上线。
