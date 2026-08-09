@@ -84,9 +84,9 @@ npx wrangler deploy --dry-run
 
 本地 D1 迁移、`GET /api/health` 与空的 `GET /api/packs` 已完成实测。
 
-## v0.4.0 发布顺序
+## v0.4.2 后端 / v0.4.3 前端发布顺序
 
 1. 运行 `npm run db:remote`，应用 `0006_image_aliases.sql` 至 `0009_pack_keywords_revert_to_pack.sql` 中尚未执行的迁移。
 2. 运行 `npm run deploy` 发布 Worker。
 3. 检查 `/api/health`，并确认 `/api/packs` 返回图包级 `character_name` / `aliases` / `match_terms`（抓取词回归图包级，图片不再返回 `match_terms`）。
-4. 再发布 Tavern Helper 创意工坊 `0.4.0` 和角色卡正式启动器，避免新版前端先于数据库与 API 上线。
+4. 再发布 Tavern Helper 创意工坊 `0.4.3` 和角色卡正式启动器，避免新版前端先于数据库与 API 上线。
