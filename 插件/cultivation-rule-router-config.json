@@ -9,11 +9,7 @@
     "stripTags": "StatusPlaceHolderImpl,disclaimer,UpdateVariable,options",
     "cacheSize": 5,
     "requestTimeoutSec": 30,
-    "extraApiMode": "skip",
-    "api": {
-      "url": "https://api.deepseek.com/v1",
-      "model": "deepseek-v4-flash"
-    }
+    "extraApiMode": "skip"
   },
   "filters": {
     "本格数值化修仙": {
@@ -113,7 +109,7 @@
       },
       "[mvu_plot][NSFW]基础指导": {
         "enabled": true,
-        "condition": "【本轮玩家输入】要求开展NSFW剧情（色情/双修/性/情欲/亲密身体接触）",
+        "condition": "【本轮玩家输入】涉及（或继续）NSFW剧情（情色/双修/性/情欲/亲密接触）",
         "comment": "[mvu_plot][NSFW]基础指导",
         "linked": [
           "➤NSFW-end",
@@ -124,7 +120,7 @@
       },
       "[mvu_plot][NSFW]多人": {
         "enabled": true,
-        "condition": "【本轮玩家输入】要求开展NSFW剧情（色情/双修/性/情欲/亲密身体接触）；且为多人互动(>2人)",
+        "condition": "【本轮玩家输入】涉及（或继续）NSFW剧情（情色/双修/性/情欲/亲密接触）；且为多人互动(>2人)",
         "comment": "[mvu_plot][NSFW]多人",
         "linked": [
           "➤NSFW-start",
@@ -133,7 +129,7 @@
       },
       "[mvu_plot][NSFW]单人": {
         "enabled": true,
-        "condition": "【本轮玩家输入】要求开展NSFW剧情（色情/双修/性/情欲/亲密身体接触）；且为一对一互动(=2人)",
+        "condition": "【本轮玩家输入】涉及（或继续）NSFW剧情（情色/双修/性/情欲/亲密接触）；且为一对一互动(=2人)",
         "comment": "[mvu_plot][NSFW]单人",
         "linked": [
           "➤NSFW-start",

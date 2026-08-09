@@ -5286,39 +5286,89 @@
       }
 
       function getWorkshopBridge() {
-        try {
-          const parent = window.parent || window;
-          if (parent.CultivationWorkshop && typeof parent.CultivationWorkshop.matchImages === 'function') {
-            return parent.CultivationWorkshop;
+        const hosts = getAccessibleWorkshopWindows();
+        for (let index = hosts.length - 1; index >= 0; index -= 1) {
+          try {
+            const bridge = hosts[index].CultivationWorkshop;
+            if (bridge && typeof bridge.matchImages === 'function') return bridge;
+          } catch (e) {
+            /* ignore */
           }
-          const top = window.top || parent;
-          if (top.CultivationWorkshop && typeof top.CultivationWorkshop.matchImages === 'function') {
-            return top.CultivationWorkshop;
-          }
-        } catch (e) {
-          /* ignore */
         }
         return null;
+      }
+
+      function getAccessibleWorkshopWindows() {
+        const hosts = [];
+        let candidate = window;
+        while (candidate) {
+          hosts.push(candidate);
+          try {
+            const parent = candidate.parent;
+            if (!parent || parent === candidate) break;
+            void parent.document;
+            candidate = parent;
+          } catch (e) {
+            break;
+          }
+        }
+        return hosts;
       }
 
       function getWorkshopMessageContext() {
         let messageId = 'unknown';
         let chatId = 'unknown';
+
+        // 酒馆助手提供的楼层接口不依赖 DOM 层级，是多层 iframe 下的首选。
         try {
-          const frame = window.frameElement;
-          const message = frame && frame.closest ? frame.closest('.mes') : null;
-          messageId =
-            (message && (message.getAttribute('mesid') || message.getAttribute('data-mesid'))) ||
-            (frame && frame.id) ||
-            'unknown';
+          if (typeof getCurrentMessageId === 'function') {
+            const currentMessageId = Number(getCurrentMessageId());
+            if (Number.isInteger(currentMessageId) && currentMessageId >= 0) messageId = String(currentMessageId);
+          }
+        } catch (e) {
+          /* 继续使用下方 DOM 回退 */
+        }
+
+        // 兼容未提供 getCurrentMessageId 的旧版酒馆助手。
+        if (messageId === 'unknown') {
+          try {
+            if (typeof getIframeName === 'function') {
+              const iframeMatch = String(getIframeName()).match(/^TH-message--(\d+)--/);
+              if (iframeMatch) messageId = iframeMatch[1];
+            }
+          } catch (e) {
+            /* 继续使用下方 DOM 回退 */
+          }
+        }
+
+        try {
+          if (messageId === 'unknown') {
+            for (const host of getAccessibleWorkshopWindows()) {
+              const frame = host.frameElement;
+              const message = frame && frame.closest ? frame.closest('.mes') : null;
+              const resolved = message && (message.getAttribute('mesid') || message.getAttribute('data-mesid'));
+              if (resolved !== null && resolved !== '') {
+                messageId = String(resolved);
+                break;
+              }
+            }
+          }
         } catch (e) {
           /* ignore */
         }
-        try {
-          const st = (window.parent || window).SillyTavern;
-          chatId = (st && typeof st.getCurrentChatId === 'function' && st.getCurrentChatId()) || 'unknown';
-        } catch (e) {
-          /* ignore */
+
+        const hosts = getAccessibleWorkshopWindows();
+        for (let index = hosts.length - 1; index >= 0; index -= 1) {
+          try {
+            const st = hosts[index].SillyTavern;
+            const resolved = st && typeof st.getCurrentChatId === 'function' && st.getCurrentChatId();
+            if (resolved) {
+              chatId = String(resolved);
+              break;
+            }
+          } catch (e) {
+            /* ignore */
+          }
         }
         return { messageId: String(messageId), chatId: String(chatId) };
       }
