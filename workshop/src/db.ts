@@ -1,3 +1,4 @@
+import { HTTPException } from 'hono/http-exception';
 import type { AuthUser, Bindings } from './types';
 
 export const nowSeconds = (): number => Math.floor(Date.now() / 1000);
@@ -6,8 +7,25 @@ export function newId(prefix: string): string {
   return `${prefix}_${crypto.randomUUID().replaceAll('-', '')}`;
 }
 
-export function adminIds(env: Bindings): Set<string> {
-  return new Set(env.ADMIN_DISCORD_IDS.split(',').map(value => value.trim()).filter(Boolean));
+/**
+ * 管理员权限组判定：ADMIN_DISCORD_IDS 列表内（逗号分隔）任一值命中即视为管理员。
+ * 支持三种匹配，大小写不敏感：
+ *   1. Discord 数字用户 ID（最可靠，推荐）
+ *   2. 用户名（Discord 全局唯一，如 "awene"）
+ *   3. 全局显示名（不唯一，谨慎使用，如 "Awene"）
+ * 管理员组可豁免上传数量限制等资材类限制。
+ */
+export function isAdminUser(
+  env: Bindings,
+  row: { id: string; username: string; global_name: string | null },
+): boolean {
+  const values = env.ADMIN_DISCORD_IDS.split(',')
+    .map(value => value.trim().toLowerCase())
+    .filter(Boolean);
+  if (values.includes(row.id.toLowerCase())) return true;
+  if (values.includes(row.username.toLowerCase())) return true;
+  const globalName = (row.global_name || '').toLowerCase();
+  return globalName.length > 0 && values.includes(globalName);
 }
 
 export async function getUserBySession(env: Bindings, tokenHash: string): Promise<AuthUser | null> {
@@ -27,7 +45,7 @@ export async function getUserBySession(env: Bindings, tokenHash: string): Promis
     globalName: row.global_name,
     avatar: row.avatar,
     status: row.status,
-    isAdmin: adminIds(env).has(row.id),
+    isAdmin: isAdminUser(env, row),
   };
 }
 
@@ -66,6 +84,8 @@ export async function enforceRateLimit(
   )
     .bind(bucket, subject, windowStart)
     .first<{ count: number }>();
-  if ((row?.count ?? 0) > limit) throw new Response('请求过于频繁，请稍后再试', { status: 429 });
+  // 注意：必须抛 HTTPException（Error 子类）。直接 throw new Response 会被 Hono 的
+  // compose 原样 re-throw（其 catch 只接 Error 实例），变成未捕获异常 → Cloudflare 掐断连接 → 前端 fail to fetch。
+  if ((row?.count ?? 0) > limit) throw new HTTPException(429, { message: '请求过于频繁，请稍后再试' });
 }
 

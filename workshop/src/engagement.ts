@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { nowSeconds } from './db';
 import type { AppVariables, Bindings } from './types';
 
@@ -8,7 +9,7 @@ async function assertPublished(context: AppContext, packId: string): Promise<voi
   const pack = await context.env.DB.prepare("SELECT id FROM packs WHERE id = ? AND status = 'published'")
     .bind(packId)
     .first<{ id: string }>();
-  if (!pack) throw new Response('图包不存在或已下架', { status: 404 });
+  if (!pack) throw new HTTPException(404, { message: '图包不存在或已下架' });
 }
 
 async function packCounts(context: AppContext, packId: string): Promise<{ like_count: number; download_count: number }> {

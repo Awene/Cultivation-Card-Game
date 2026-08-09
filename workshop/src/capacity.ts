@@ -1,3 +1,4 @@
+import { HTTPException } from 'hono/http-exception';
 import { nowSeconds, writeAudit } from './db';
 import type { Bindings } from './types';
 
@@ -92,6 +93,9 @@ export async function ensureUploadCapacity(env: Bindings, incomingBytes: number,
     remaining -= Number(item.pack.storage_bytes);
   }
   if (remaining > softLimit) {
-    throw new Response('云端图片容量已接近上限，且暂无超过保护期的低热度公开图包可清理，请稍后再试', { status: 507 });
+    // 抛 HTTPException（Error 子类），勿直接 throw Response（见 db.ts 说明）
+    throw new HTTPException(507, {
+      message: '云端图片容量已接近上限，且暂无超过保护期的低热度公开图包可清理，请稍后再试',
+    });
   }
 }

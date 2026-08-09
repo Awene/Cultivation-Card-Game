@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { ensureUploadCapacity } from './capacity';
 import { newId, nowSeconds, writeAudit } from './db';
 import { inspectImage } from './image';
@@ -107,8 +108,8 @@ async function ownPack(context: AppContext, packId: string): Promise<PackRow> {
   const pack = await context.env.DB.prepare('SELECT * FROM packs WHERE id = ? AND status != ?')
     .bind(packId, 'removed')
     .first<PackRow>();
-  if (!pack) throw new Response('图包不存在', { status: 404 });
-  if (pack.owner_id !== user.id && !user.isAdmin) throw new Response('无权操作此图包', { status: 403 });
+  if (!pack) throw new HTTPException(404, { message: '图包不存在' });
+  if (pack.owner_id !== user.id && !user.isAdmin) throw new HTTPException(403, { message: '无权操作此图包' });
   return pack;
 }
 
@@ -426,15 +427,19 @@ export async function uploadImage(context: AppContext): Promise<Response> {
   const file = form.get('file');
   if (!(file instanceof File)) throw new InputError('缺少图片文件');
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const ownerUsage = await context.env.DB.prepare(
-    `SELECT COALESCE(SUM(i.byte_size), 0) AS bytes
-     FROM images i JOIN packs p ON p.id = i.pack_id
-     WHERE p.owner_id = ? AND p.status != 'removed' AND i.status != 'removed'`,
-  )
-    .bind(context.get('user').id)
-    .first<{ bytes: number }>();
-  if ((ownerUsage?.bytes ?? 0) + bytes.byteLength > MAX_STORAGE_BYTES_PER_USER) {
-    throw new InputError('每个账号最多占用 1GB 云端图片空间');
+  // 按人存储上限：管理员权限组不受约束，普通用户每人最多 1GB
+  const uploader = context.get('user');
+  if (!uploader.isAdmin) {
+    const ownerUsage = await context.env.DB.prepare(
+      `SELECT COALESCE(SUM(i.byte_size), 0) AS bytes
+       FROM images i JOIN packs p ON p.id = i.pack_id
+       WHERE p.owner_id = ? AND p.status != 'removed' AND i.status != 'removed'`,
+    )
+      .bind(uploader.id)
+      .first<{ bytes: number }>();
+    if ((ownerUsage?.bytes ?? 0) + bytes.byteLength > MAX_STORAGE_BYTES_PER_USER) {
+      throw new InputError('每个账号最多占用 1GB 云端图片空间');
+    }
   }
   let inspection;
   try {

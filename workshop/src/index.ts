@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { exchangeLoginCode, finishDiscordLogin, logout, requireAuth, startDiscordLogin } from './auth';
@@ -75,7 +76,7 @@ app.get('/api/health', context =>
   context.json({
     ok: true,
     service: 'cultivation-illustration-workshop',
-    version: '0.4.0',
+    version: '0.4.2',
   }),
 );
 
@@ -115,7 +116,9 @@ app.post('/api/packs/:packId/like', requireAuth, async context => {
 });
 app.delete('/api/packs/:packId/like', requireAuth, unlikePack);
 app.post('/api/packs/:packId/images', requireAuth, async context => {
-  await enforceRateLimit(context.env, 'image-upload', context.get('user').id, 100, 86400);
+  // 400/天（非管理员）：单图包上限 200 张，100/天连一个图包都传不满；管理员权限组不受上传数量限制
+  const user = context.get('user');
+  if (!user.isAdmin) await enforceRateLimit(context.env, 'image-upload', user.id, 400, 86400);
   return uploadImage(context);
 });
 app.patch('/api/packs/:packId/images/:imageId', requireAuth, updateImage);
@@ -135,11 +138,13 @@ app.post('/api/worldbooks', requireAuth, async context => {
 });
 app.patch('/api/worldbooks/:packId', requireAuth, updateWorldbookPack);
 app.post('/api/worldbooks/:packId/content', requireAuth, async context => {
-  await enforceRateLimit(context.env, 'worldbook-upload', context.get('user').id, 100, 86400);
+  const user = context.get('user');
+  if (!user.isAdmin) await enforceRateLimit(context.env, 'worldbook-upload', user.id, 400, 86400);
   return replaceWorldbookContent(context);
 });
 app.post('/api/worldbooks/:packId/cover', requireAuth, async context => {
-  await enforceRateLimit(context.env, 'worldbook-cover-upload', context.get('user').id, 100, 86400);
+  const user = context.get('user');
+  if (!user.isAdmin) await enforceRateLimit(context.env, 'worldbook-cover-upload', user.id, 400, 86400);
   return uploadWorldbookCover(context);
 });
 app.post('/api/worldbooks/:packId/publish', requireAuth, publishWorldbook);
@@ -149,7 +154,10 @@ app.delete('/api/worldbooks/:packId', requireAuth, removeWorldbookPack);
 app.notFound(context => context.json({ error: '接口不存在' }, 404));
 app.onError((error, context) => {
   if (error instanceof InputError) return context.json({ error: error.message }, 400);
-  if (error instanceof Response) return error;
+  // HTTPException 是本仓库统一抛出的带状态错误（限流 429 / 无权限 403 / 不存在 404 / 容量 507）。
+  // 注意：不能 throw new Response 再指望这里兜住——Hono compose 的 catch 只接 Error 实例，
+  // 直接抛 Response 会成为未捕获异常、被 Cloudflare 掐断连接，前端表现为「fail to fetch」。
+  if (error instanceof HTTPException) return context.json({ error: error.message }, error.status);
   console.error('[workshop]', error);
   return context.json({ error: '服务器内部错误' }, 500);
 });

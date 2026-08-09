@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { ensureUploadCapacity } from './capacity';
 import { newId, nowSeconds, writeAudit } from './db';
 import { inspectImage } from './image';
@@ -61,8 +62,8 @@ function publicWorldbook(row: WorldbookPackRow, baseUrl: string) {
 async function ownWorldbook(context: AppContext, packId: string): Promise<WorldbookPackRow> {
   const user = context.get('user');
   const row = await context.env.DB.prepare("SELECT * FROM worldbook_packs WHERE id = ? AND status != 'removed'").bind(packId).first<WorldbookPackRow>();
-  if (!row) throw new Response('世界书包不存在', { status: 404 });
-  if (row.owner_id !== user.id && !user.isAdmin) throw new Response('无权操作此世界书包', { status: 403 });
+  if (!row) throw new HTTPException(404, { message: '世界书包不存在' });
+  if (row.owner_id !== user.id && !user.isAdmin) throw new HTTPException(403, { message: '无权操作此世界书包' });
   return row;
 }
 
