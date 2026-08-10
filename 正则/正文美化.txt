@@ -248,6 +248,28 @@
         background: linear-gradient(90deg, transparent, var(--rb-accent), transparent);
       }
 
+      /* —— 轮回转生面板宿主（<reincarnation_info> 经 dist/轮回转生 渲染） —— */
+      .rc-app {
+        min-height: 56px;
+        margin: 10px 0;
+        position: relative;
+      }
+      .rc-app::before {
+        content: '☯ 冥府审判 · 展开中…';
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--rb-text-muted, #a89888);
+        font-size: 0.9em;
+        opacity: 0.55;
+        letter-spacing: 1px;
+      }
+      .rc-app.rc-loaded::before {
+        display: none;
+      }
+
       /* ================== 面板美化（毛玻璃 + 动效，合并自 5 个独立美化器） ================== */
 
       /* —— 5 类面板共享的"卡片"样式 —— */
@@ -4618,9 +4640,13 @@
         raw = raw.replace(/<time_info>([\s\S]*?)<\/time_info>/gi, (m, inner) =>
           wrap(safeRenderPanel('time_info', parseTablePanel, renderTimeHtml, inner)),
         );
+        // 轮回转生：交给独立前端模块 dist/轮回转生 渲染，宿主只留占位容器（mountReincarnationApps 负责注入）
+        raw = raw.replace(/<reincarnation_info>([\s\S]*?)<\/reincarnation_info>/gi, (m, inner) =>
+          wrap(`<div class="rc-app" data-rc-raw="${encodeURIComponent(inner.trim())}"></div>`),
+        );
         // 清理任何未配对的孤儿标签(AI 截断、写漏闭合等)
         raw = raw.replace(
-          /<\/?(?:action_info|battle_info|char_info|item_info|time_info)\b[^>]*>?/gi,
+          /<\/?(?:action_info|battle_info|char_info|item_info|time_info|reincarnation_info)\b[^>]*>?/gi,
           '',
         );
         return raw;
@@ -4714,6 +4740,32 @@
           inputArea.selectionStart = inputArea.selectionEnd = inputArea.value.length;
           inputArea.scrollTop = inputArea.scrollHeight;
         } catch (e) { /* ignore */ }
+      }
+
+      /** 轮回转生交互面板：把占位 <div class="rc-app"> 通过 jQuery .load 注入独立前端模块 */
+      const RC_APP_URL =
+        'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.47/dist/轮回转生/index.html';
+      function mountReincarnationApps() {
+        if (typeof $ === 'undefined') return;
+        const container = document.getElementById('readingContent');
+        if (!container) return;
+        const hosts = container.querySelectorAll('.rc-app');
+        if (!hosts.length) return;
+        hosts.forEach(host => {
+          try {
+            window.__reincarnation_payload = decodeURIComponent(
+              host.getAttribute('data-rc-raw') || '',
+            );
+          } catch (e) {
+            window.__reincarnation_payload = '';
+          }
+          $(host).load(RC_APP_URL, function () {
+            // 加载完成后移除占位提示（面板已渲染，会盖住 ::before）
+            try {
+              this.classList && this.classList.add('rc-loaded');
+            } catch (e) { /* ignore */ }
+          });
+        });
       }
 
       /** 主渲染：保留普通正文段落，并抽取结构化面板。 */
@@ -4877,6 +4929,13 @@
           finalHtml = finalHtml.split(token).join(html);
         });
         container.innerHTML = finalHtml;
+
+        // 4.5) 挂载轮回转生交互面板（<reincarnation_info> → dist/轮回转生）
+        try {
+          mountReincarnationApps();
+        } catch (e) {
+          console.warn('[正文美化] 轮回转生挂载失败:', e);
+        }
 
         // 5) 单次绑定折叠点击委托
         ensurePanelClickDelegation();
