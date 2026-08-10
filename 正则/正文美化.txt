@@ -4744,7 +4744,7 @@
 
       /** 轮回转生交互面板：把占位 <div class="rc-app"> 通过 jQuery .load 注入独立前端模块 */
       const RC_APP_URL =
-        'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.47/dist/轮回转生/index.html';
+        'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.48/dist/轮回转生/index.html';
       function mountReincarnationApps() {
         if (typeof $ === 'undefined') return;
         const container = document.getElementById('readingContent');
