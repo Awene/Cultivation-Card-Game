@@ -269,6 +269,13 @@
       .rc-app.rc-loaded::before {
         display: none;
       }
+      .rc-app.rc-load-error {
+        min-height: 0;
+        padding: 10px 12px;
+        border: 1px solid rgba(190, 70, 70, 0.45);
+        border-radius: 8px;
+        color: var(--rb-text-muted, #a89888);
+      }
 
       /* ================== 面板美化（毛玻璃 + 动效，合并自 5 个独立美化器） ================== */
 
@@ -4621,7 +4628,30 @@
         `</div>`;
       }
 
-      // 把 raw 中的 5 类面板抽走、留 placeholder（避免被 paragraph splitter 切碎）
+      function reincarnationHost(inner) {
+        const payload = String(inner || '').trim();
+        if (!payload) return '';
+        return `<div class="rc-app" data-rc-raw="${encodeURIComponent(payload)}"></div>`;
+      }
+
+      // AI 完全漏掉外层标签时，只在四个轮回段落和 Z/W 同时存在时才兜底识别，避免误伤普通正文。
+      function extractLooseReincarnation(raw, wrap) {
+        const soul = /(?:\{|\[|【|(?:^|\n)\s*#{1,6}\s*)(?:亡魂信息|亡魂资料|亡魂档案|死者信息|逝者信息)(?:\}|\]|】)?/i.exec(raw);
+        if (!soul || soul.index == null) return raw;
+        const segment = raw.slice(soul.index, soul.index + 20000);
+        if (!/(?:\{|\[|【|#{1,6}\s*)?(?:善业|善行|善举|功德)(?:\}|\]|】)?/i.test(segment)) return raw;
+        if (!/(?:\{|\[|【|#{1,6}\s*)?(?:恶业|恶行|罪业|罪行)(?:\}|\]|】)?/i.test(segment)) return raw;
+        const adjust = /(?:功过修正|功德修正|善恶修正|业力修正)/i.exec(segment);
+        if (!adjust || adjust.index == null) return raw;
+        const adjustmentTail = segment.slice(adjust.index);
+        const values = /(?:^|[^A-Za-z0-9_])Z\s*(?:[:=]\s*)?(?:[\[（(【]\s*)?[+-]?\d+(?:\.\d+)?\s*[%％]?\s*[\]）)】]?\s*(?:[/,，|;；])?[\s\S]{0,160}?(?:^|[^A-Za-z0-9_])W\s*(?:[:=]\s*)?(?:[\[（(【]\s*)?[+-]?\d+(?:\.\d+)?\s*[\]）)】]?/i.exec(adjustmentTail);
+        if (!values || values.index == null) return raw;
+        const end = soul.index + adjust.index + values.index + values[0].length;
+        const payload = raw.slice(soul.index, end);
+        return raw.slice(0, soul.index) + wrap(reincarnationHost(payload)) + raw.slice(end);
+      }
+
+      // 把 raw 中的 6 类面板抽走、留 placeholder（避免被 paragraph splitter 切碎）
       // 顺序：内层（item/char/realm/battle）先于外层（action）；按 prompt 设计本不应嵌套
       function extractPanels(raw, stash) {
         const wrap = html => (html ? '\n\n' + stash(html) + '\n\n' : '\n\n');
@@ -4640,13 +4670,20 @@
         raw = raw.replace(/<time_info>([\s\S]*?)<\/time_info>/gi, (m, inner) =>
           wrap(safeRenderPanel('time_info', parseTablePanel, renderTimeHtml, inner)),
         );
-        // 轮回转生：交给独立前端模块 dist/轮回转生 渲染，宿主只留占位容器（mountReincarnationApps 负责注入）
-        raw = raw.replace(/<reincarnation_info>([\s\S]*?)<\/reincarnation_info>/gi, (m, inner) =>
-          wrap(`<div class="rc-app" data-rc-raw="${encodeURIComponent(inner.trim())}"></div>`),
+        // 兼容标准标签、连字符/空格标签以及全角尖括号。
+        raw = raw.replace(/＜\s*(\/?\s*reincarnation(?:[\s_-]*info)?)\s*＞/gi, '<$1>');
+        const rcTag = 'reincarnation(?:[\\s_-]*info)?';
+        raw = raw.replace(new RegExp(`<\\s*${rcTag}\\b[^>]*>([\\s\\S]*?)<\\s*\\/\\s*${rcTag}\\s*>`, 'gi'), (m, inner) =>
+          wrap(reincarnationHost(inner)),
         );
+        // AI 漏写闭合标签时，轮回面板按规则位于回复末尾；遇到下一种结构化面板时也会及时截止。
+        raw = raw.replace(new RegExp(`<\\s*${rcTag}\\b[^>]*>([\\s\\S]*?)(?=<\\s*\\/?\\s*(?:action_info|battle_info|char_info|item_info|time_info|now_plot|gametxt)\\b|$)`, 'gi'), (m, inner) =>
+          wrap(reincarnationHost(inner)),
+        );
+        raw = extractLooseReincarnation(raw, wrap);
         // 清理任何未配对的孤儿标签(AI 截断、写漏闭合等)
         raw = raw.replace(
-          /<\/?(?:action_info|battle_info|char_info|item_info|time_info|reincarnation_info)\b[^>]*>?/gi,
+          /<\/?(?:action_info|battle_info|char_info|item_info|time_info|reincarnation(?:[\s_-]*info)?)\b[^>]*>?/gi,
           '',
         );
         return raw;
@@ -4742,30 +4779,35 @@
         } catch (e) { /* ignore */ }
       }
 
-      /** 轮回转生交互面板：把占位 <div class="rc-app"> 通过 jQuery .load 注入独立前端模块 */
+      /** 轮回转生交互面板：串行注入，确保多楼层不会争用同一个兼容载荷。 */
       const RC_APP_URL =
         'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.48/dist/轮回转生/index.html';
-      function mountReincarnationApps() {
+      async function mountReincarnationApps() {
         if (typeof $ === 'undefined') return;
         const container = document.getElementById('readingContent');
         if (!container) return;
-        const hosts = container.querySelectorAll('.rc-app');
-        if (!hosts.length) return;
-        hosts.forEach(host => {
+        const hosts = Array.from(container.querySelectorAll('.rc-app:not([data-rc-loading])'));
+        for (const host of hosts) {
+          host.setAttribute('data-rc-loading', 'true');
           try {
-            window.__reincarnation_payload = decodeURIComponent(
-              host.getAttribute('data-rc-raw') || '',
-            );
+            window.__reincarnation_payload = decodeURIComponent(host.getAttribute('data-rc-raw') || '');
           } catch (e) {
-            window.__reincarnation_payload = '';
+            window.__reincarnation_payload = host.getAttribute('data-rc-raw') || '';
           }
-          $(host).load(RC_APP_URL, function () {
-            // 加载完成后移除占位提示（面板已渲染，会盖住 ::before）
-            try {
-              this.classList && this.classList.add('rc-loaded');
-            } catch (e) { /* ignore */ }
+          await new Promise(resolve => {
+            $(host).load(RC_APP_URL, function (_response, status) {
+              try {
+                if (status === 'error') {
+                  this.classList && this.classList.add('rc-load-error');
+                  this.textContent = '轮回面板加载失败，请检查网络后重新打开本楼层。';
+                } else {
+                  this.classList && this.classList.add('rc-loaded');
+                }
+              } catch (e) { /* ignore */ }
+              resolve();
+            });
           });
-        });
+        }
       }
 
       /** 主渲染：保留普通正文段落，并抽取结构化面板。 */
@@ -4932,7 +4974,7 @@
 
         // 4.5) 挂载轮回转生交互面板（<reincarnation_info> → dist/轮回转生）
         try {
-          mountReincarnationApps();
+          void mountReincarnationApps();
         } catch (e) {
           console.warn('[正文美化] 轮回转生挂载失败:', e);
         }
