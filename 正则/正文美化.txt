@@ -4655,29 +4655,30 @@
       // 顺序：内层（item/char/realm/battle）先于外层（action）；按 prompt 设计本不应嵌套
       function extractPanels(raw, stash) {
         const wrap = html => (html ? '\n\n' + stash(html) + '\n\n' : '\n\n');
-        raw = raw.replace(/<item_info>([\s\S]*?)<\/item_info>/gi, (m, inner) =>
+        // 面板开头标签要求位于行首，避免 AI 思维链/正文里出现的行内字面引用（如 `...`<item_info>`...`）被误当成面板
+        raw = raw.replace(/(?:^|\n)\s*<item_info>([\s\S]*?)<\/item_info>/gi, (m, inner) =>
           wrap(safeRenderPanel('item_info', parseTablePanel, renderItemHtml, inner)),
         );
-        raw = raw.replace(/<char_info>([\s\S]*?)<\/char_info>/gi, (m, inner) =>
+        raw = raw.replace(/(?:^|\n)\s*<char_info>([\s\S]*?)<\/char_info>/gi, (m, inner) =>
           wrap(safeRenderPanel('char_info', parseCharIndentedPanel, renderCharHtml, inner)),
         );
-        raw = raw.replace(/<battle_info>([\s\S]*?)<\/battle_info>/gi, (m, inner) =>
+        raw = raw.replace(/(?:^|\n)\s*<battle_info>([\s\S]*?)<\/battle_info>/gi, (m, inner) =>
           wrap(safeRenderPanel('battle_info', parseTablePanel, renderBattleHtml, inner)),
         );
-        raw = raw.replace(/<action_info>([\s\S]*?)<\/action_info>/gi, (m, inner) =>
+        raw = raw.replace(/(?:^|\n)\s*<action_info>([\s\S]*?)<\/action_info>/gi, (m, inner) =>
           wrap(safeRenderPanel('action_info', parseTablePanel, renderActionHtml, inner)),
         );
-        raw = raw.replace(/<time_info>([\s\S]*?)<\/time_info>/gi, (m, inner) =>
+        raw = raw.replace(/(?:^|\n)\s*<time_info>([\s\S]*?)<\/time_info>/gi, (m, inner) =>
           wrap(safeRenderPanel('time_info', parseTablePanel, renderTimeHtml, inner)),
         );
         // 兼容标准标签、连字符/空格标签以及全角尖括号。
         raw = raw.replace(/＜\s*(\/?\s*reincarnation(?:[\s_-]*info)?)\s*＞/gi, '<$1>');
         const rcTag = 'reincarnation(?:[\\s_-]*info)?';
-        raw = raw.replace(new RegExp(`<\\s*${rcTag}\\b[^>]*>([\\s\\S]*?)<\\s*\\/\\s*${rcTag}\\s*>`, 'gi'), (m, inner) =>
+        raw = raw.replace(new RegExp(`(?:^|\\n)\\s*<\\s*${rcTag}\\b[^>]*>([\\s\\S]*?)<\\s*\\/\\s*${rcTag}\\s*>`, 'gi'), (m, inner) =>
           wrap(reincarnationHost(inner)),
         );
         // AI 漏写闭合标签时，轮回面板按规则位于回复末尾；遇到下一种结构化面板时也会及时截止。
-        raw = raw.replace(new RegExp(`<\\s*${rcTag}\\b[^>]*>([\\s\\S]*?)(?=<\\s*\\/?\\s*(?:action_info|battle_info|char_info|item_info|time_info|now_plot|gametxt)\\b|$)`, 'gi'), (m, inner) =>
+        raw = raw.replace(new RegExp(`(?:^|\\n)\\s*<\\s*${rcTag}\\b[^>]*>([\\s\\S]*?)(?=<\\s*\\/?\\s*(?:action_info|battle_info|char_info|item_info|time_info|now_plot|gametxt)\\b|$)`, 'gi'), (m, inner) =>
           wrap(reincarnationHost(inner)),
         );
         raw = extractLooseReincarnation(raw, wrap);
@@ -4844,7 +4845,7 @@
         };
         // 2.1) 抽取 <tp> 时空栏(在面板抽取前,因为它一般在正文开头)
         try {
-          raw = raw.replace(/<tp>([\s\S]*?)<\/tp>/gi, (m, inner) =>
+          raw = raw.replace(/(?:^|\n)\s*<tp>([\s\S]*?)<\/tp>/gi, (m, inner) =>
             '\n\n' + stashPanel(renderTimeSpaceHeader(inner.trim())) + '\n\n'
           );
           // 清理孤儿 <tp>/<\/tp> 标签(AI 截断或写漏)
@@ -4857,14 +4858,14 @@
         //   - 旧格式 <details><summary>title</summary>body</details>
         //   - 新格式 <summary>body</summary> (独立标签,无 <details> 包裹)
         try {
-          raw = raw.replace(/<details\b[^>]*>([\s\S]*?)<\/details>/gi, (m, inner) => {
+          raw = raw.replace(/(?:^|\n)\s*<details\b[^>]*>([\s\S]*?)<\/details>/gi, (m, inner) => {
             const sm = inner.match(/<summary[^>]*>([\s\S]*?)<\/summary>([\s\S]*)/i);
             const title = sm ? sm[1].trim() : '小总结';
             const body = sm ? sm[2].trim() : inner.trim();
             return '\n\n' + stashPanel(renderSummaryCard(title, body)) + '\n\n';
           });
           // 独立 <summary>...</summary>(<details> 已被上一行剥离，剩下的就是新格式)
-          raw = raw.replace(/<summary\b[^>]*>([\s\S]*?)<\/summary>/gi, (m, inner) =>
+          raw = raw.replace(/(?:^|\n)\s*<summary\b[^>]*>([\s\S]*?)<\/summary>/gi, (m, inner) =>
             '\n\n' + stashPanel(renderSummaryCard('小总结', inner.trim())) + '\n\n'
           );
           // 清理孤儿 <details>/<summary> 标签
@@ -4875,7 +4876,7 @@
 
         // 2.3) 抽取 <options>/<action_options> 行动选项 (两种命名兼容)
         try {
-          raw = raw.replace(/<(?:action_)?options\b[^>]*>([\s\S]*?)<\/(?:action_)?options>/gi, (m, inner) =>
+          raw = raw.replace(/(?:^|\n)\s*<(?:action_)?options\b[^>]*>([\s\S]*?)<\/(?:action_)?options>/gi, (m, inner) =>
             '\n\n' + stashPanel(renderActionOptions(inner.trim())) + '\n\n'
           );
           raw = raw.replace(/<\/?(?:action_)?options\b[^>]*>?/gi, '');
