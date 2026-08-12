@@ -3,6 +3,51 @@ import { registerMvuSchema } from "https://testingcf.jsdelivr.net/gh/StageDog/ta
 // ===== 公用枚举 =====
 const FiveElementValues = ["金", "木", "水", "火", "土", "阴", "阳", "混沌"];
 
+function normalizeStringArray(input) {
+  if (input === undefined || input === null || input === "") return [];
+  let value = input;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) value = parsed;
+    } catch (_) {}
+  }
+  const source = Array.isArray(value) ? value.flat(Infinity) : String(value).split(/[,，、;；|]/);
+  return source.map((item) => String(item).trim()).filter(Boolean);
+}
+
+function normalizeBoolean(input) {
+  if (typeof input === "boolean" || input === null || input === undefined) return input;
+  if (typeof input === "number") return input !== 0;
+  const text = String(input).trim().toLowerCase();
+  if (["true", "1", "是", "有", "开启", "启用", "在场", "已使用"].includes(text)) return true;
+  if (["false", "0", "否", "无", "关闭", "禁用", "不在场", "未使用"].includes(text)) return false;
+  return undefined;
+}
+
+function normalizeStringRecord(input) {
+  if (input === undefined || input === null || input === "") return undefined;
+  if (typeof input === "string") return { 说明: input };
+  if (Array.isArray(input)) {
+    return Object.fromEntries(
+      input.map((value, index) => [`效果${index + 1}`, typeof value === "string" ? value : JSON.stringify(value)]),
+    );
+  }
+  if (typeof input !== "object") return { 说明: String(input) };
+  return Object.fromEntries(
+    Object.entries(input).map(([key, value]) => [
+      key,
+      typeof value === "string" ? value : value === null || value === undefined ? "" : JSON.stringify(value),
+    ]),
+  );
+}
+
+const StringArraySchema = z.preprocess(normalizeStringArray, z.array(z.string()).prefault([]));
+const StringRecordSchema = z.preprocess(
+  normalizeStringRecord,
+  z.record(z.string(), z.string()).optional(),
+);
+
 // AI 有时会把单值五行写成数组、复合字符串或变异属性名；统一取输入中最先出现的可识别属性。
 // 变异属性映射遵循世界书《世界设定-灵根与体质》，并补充常见的同义描述。
 const FIVE_ELEMENT_ALIAS_MAP = {
@@ -76,21 +121,53 @@ function normalizeFiveElement(input) {
 }
 
 const FiveElementsEnum = z.preprocess(normalizeFiveElement, z.enum(FiveElementValues).optional());
-const FiveElementsExtEnum = z.enum(["金", "木", "水", "火", "土", "阴", "阳", "混沌", "未知", "无"]);
-const QualityEnum = z.enum(["凡", "黄", "玄", "地", "天"]);
-const SpiritualRootRankEnum = z.enum([
-  "无灵根",
-  "未检测",
-  "单灵根",
-  "双灵根",
-  "三灵根",
-  "四灵根",
-  "五灵根",
-]);
+const FiveElementsExtEnum = z.preprocess(
+  (input) => {
+    if (input === "未知" || input === "无") return input;
+    return normalizeFiveElement(input) ?? "未知";
+  },
+  z.enum(["金", "木", "水", "火", "土", "阴", "阳", "混沌", "未知", "无"]),
+);
+const QualityValues = ["凡", "黄", "玄", "地", "天"];
+const QUALITY_ALIAS_MAP = {
+  普通: "凡", 常见: "凡", 粗劣: "凡", 基础: "凡",
+  精良: "黄", 精品: "黄", 优良: "黄", 优秀: "黄",
+  稀有: "玄", 珍稀: "玄", 罕见: "玄",
+  史诗: "地", 极品: "地", 绝品: "地",
+  传说: "天", 神话: "天", 仙品: "天", 神品: "天",
+};
+
+function normalizeQuality(input) {
+  if (input === undefined || input === null || input === "") return "凡";
+  const text = String(input).trim();
+  if (QualityValues.includes(text)) return text;
+  for (const quality of [...QualityValues].reverse()) {
+    if (text.includes(quality)) return quality;
+  }
+  for (const [alias, quality] of Object.entries(QUALITY_ALIAS_MAP)) {
+    if (text.includes(alias)) return quality;
+  }
+  // 品质是展示/平衡用枚举；无法识别时降级为最低品质，比整条物品更新失败更安全。
+  return "凡";
+}
+
+const QualityEnum = z.preprocess(normalizeQuality, z.enum(QualityValues).prefault("凡"));
+const SpiritualRootRankValues = ["无灵根", "未检测", "单灵根", "双灵根", "三灵根", "四灵根", "五灵根"];
+const SpiritualRootRankEnum = z.preprocess(
+  (input) => {
+    const text = String(input ?? "未检测").trim();
+    return SpiritualRootRankValues.find((value) => text.includes(value)) ?? "未检测";
+  },
+  z.enum(SpiritualRootRankValues),
+);
 
 // ===== 寿元 Schema =====
 const LifespanSchema = z
   .object({
+    // 生日仅记录年份，由「MVU核验」脚本维护；不向 AI 输出。
+    生日: z.coerce.number().int().optional(),
+    // 冥族停龄是本地转换标记：离开冥族时用于重置生日，不向 AI 输出。
+    冥族停龄: z.preprocess(normalizeBoolean, z.boolean().optional()),
     年龄: z.coerce
       .number()
       .transform((n) => _.clamp(n, 0, Infinity))
@@ -110,7 +187,7 @@ const LifespanSchema = z
 const SpiritualRootSchema = z
   .object({
     名称: z.string().prefault("未检测"),
-    五行: z.array(FiveElementsExtEnum).prefault(["未知"]),
+    五行: z.preprocess(normalizeStringArray, z.array(FiveElementsExtEnum)).prefault(["未知"]),
     品阶: SpiritualRootRankEnum.prefault("未检测"),
   })
   .prefault({ 名称: "未检测", 五行: ["未知"], 品阶: "未检测" });
@@ -119,7 +196,7 @@ const SpiritualRootSchema = z
 const PhysiqueSchema = z
   .object({
     名称: z.string().prefault("凡体"),
-    效果: z.record(z.string(), z.string()).optional(),
+    效果: StringRecordSchema,
     悟性: z.coerce
       .number()
       .transform((n) => _.clamp(n, 0, Infinity))
@@ -134,8 +211,8 @@ const PhysiqueSchema = z
       .prefault(0),
     // 元阴/元阳: 性征三态(true 处子 / false 已破 / null 不存在)。null≡该性征不适用,
     //   据 (元阴,元阳) 值组合判定性别(单边成立=女/男, 其余=其他)。缺失时 prefault 补 null。
-    元阴: z.boolean().nullable().prefault(null),
-    元阳: z.boolean().nullable().prefault(null),
+    元阴: z.preprocess(normalizeBoolean, z.boolean().nullable().prefault(null)),
+    元阳: z.preprocess(normalizeBoolean, z.boolean().nullable().prefault(null)),
   })
   .prefault({ 名称: "凡体", 悟性: 0, 根骨: 0, 气感: 0, 元阴: null, 元阳: null });
 
@@ -266,7 +343,7 @@ const ResourcePoolSchema = z
 // ===== 状态效果 Schema =====
 const StatusEffectSchema = z.object({
   类型: z.enum(["增益", "减益", "特殊"]).prefault("特殊"),
-  效果: z.record(z.string(), z.string()).optional(),
+  效果: StringRecordSchema,
   层数: z.coerce
     .number()
     .transform((n) => _.clamp(n, 0, Infinity))
@@ -277,7 +354,7 @@ const StatusEffectSchema = z.object({
 
 // ===== 功法 Schema =====
 const CultivationArtSchema = z.object({
-  使用中: z.boolean().prefault(false),
+  使用中: z.preprocess(normalizeBoolean, z.boolean().prefault(false)),
   品质: QualityEnum.prefault("凡"),
   境界: z.string().prefault("练气期"),
   五行: FiveElementsEnum.optional(),
@@ -285,8 +362,8 @@ const CultivationArtSchema = z.object({
     .enum(["心法", "攻击", "幻术", "神识", "咒法", "身法", "护体", "阵法"])
     .prefault("心法"),
   消耗: z.string().optional(),
-  标签: z.array(z.string()).prefault([]),
-  效果: z.record(z.string(), z.string()).optional(),
+  标签: StringArraySchema,
+  效果: StringRecordSchema,
   描述: z.string().prefault(""),
 });
 
@@ -299,12 +376,12 @@ const ItemSchema = z.object({
     .prefault("素材"),
   消耗: z.string().optional(),
   五行: FiveElementsEnum.optional(),
-  标签: z.array(z.string()).prefault([]),
+  标签: StringArraySchema,
   数量: z.coerce
     .number()
     .transform((n) => _.clamp(n, 0, Infinity))
     .prefault(0),
-  效果: z.record(z.string(), z.string()).optional(),
+  效果: StringRecordSchema,
   描述: z.string().prefault(""),
 });
 
@@ -315,8 +392,8 @@ const EquipmentSchema = z.object({
   类型: z.enum(["法宝", "护甲", "饰品"]).prefault("法宝"),
   消耗: z.string().optional(),
   五行: FiveElementsEnum.optional(),
-  标签: z.array(z.string()).prefault([]), // 法宝→[攻击力:N]、护甲→[防御力:N]
-  效果: z.record(z.string(), z.string()).optional(),
+  标签: StringArraySchema, // 法宝→[攻击力:N]、护甲→[防御力:N]
+  效果: StringRecordSchema,
   描述: z.string().prefault(""),
   位置: z.string().prefault("储物袋"),
 });
@@ -328,16 +405,16 @@ const CombatSkillSchema = z.object({
     .transform((n) => _.clamp(n, 0, Infinity))
     .prefault(0),
   消耗: z.string().optional(),
-  效果: z.record(z.string(), z.string()).optional(),
+  效果: StringRecordSchema,
 });
 
 // ===== 傀儡/灵兽 Schema =====
 const CombatUnitSchema = z.object({
-  使用中: z.boolean().prefault(false),
+  使用中: z.preprocess(normalizeBoolean, z.boolean().prefault(false)),
   品质: QualityEnum.prefault("凡"),
   境界: z.string().prefault("凡人"),
   五行: FiveElementsEnum.optional(),
-  标签: z.array(z.string()).prefault([]),
+  标签: StringArraySchema,
   描述: z.string().prefault(""),
   资源池: ResourcePoolSchema,
   防御力: z.coerce
@@ -363,9 +440,9 @@ const StorageFields = {
 // ===== NPC Schema (类型='人物') =====
 const NPCSchema = z.object({
   类型: z.literal("人物").prefault("人物"),
-  在场: z.boolean().prefault(false),
+  在场: z.preprocess(normalizeBoolean, z.boolean().prefault(false)),
   种族: z.string().prefault("人族"),
-  身份: z.array(z.string()).prefault([]),
+  身份: StringArraySchema,
   修炼进度: CultivationProgressSchema,
   寿元: LifespanSchema,
   灵根: SpiritualRootSchema,
@@ -378,13 +455,13 @@ const NPCSchema = z.object({
   性格: z.string().prefault(""),
   外貌: z.string().prefault(""),
   着装: z.string().prefault(""),
-  道侣: z.boolean().prefault(false),
+  道侣: z.preprocess(normalizeBoolean, z.boolean().prefault(false)),
   好感度: z.coerce
     .number()
     .transform((n) => _.clamp(n, -100, 100))
     .prefault(0),
   // 细节可见(前端偏好, 默认true; false时变量输出EJS隐去该NPC的物品/功法/装备/傀儡/灵兽)
-  细节可见: z.boolean().prefault(true),
+  细节可见: z.preprocess(normalizeBoolean, z.boolean().prefault(true)),
   // 性器(外部脚本按五行随机填充, AI只读不更新; key=口腔/屄穴/肛门/乳房, value=描述)
   性器: z.record(z.string(), z.string()).prefault({}),
 });
@@ -393,11 +470,11 @@ const NPCSchema = z.object({
 // 用于 关系列表 中表达 "野生妖兽 / 遗弃傀儡 / 临时随从" 等无主形态
 const WildPuppetSchema = z.object({
   类型: z.literal("傀儡"),
-  在场: z.boolean().prefault(true),
+  在场: z.preprocess(normalizeBoolean, z.boolean().prefault(true)),
   品质: QualityEnum.prefault("凡"),
   境界: z.string().prefault("凡人"),
   五行: FiveElementsEnum.optional(),
-  标签: z.array(z.string()).prefault([]),
+  标签: StringArraySchema,
   描述: z.string().prefault(""),
   资源池: ResourcePoolSchema,
   防御力: z.coerce
@@ -464,6 +541,19 @@ const TimeSchema = z
   })
   .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" });
 
+// ===== 剧情事件 Schema =====
+// 事件字段早已存在于初始变量与更新规则中；此前漏注册到主 Schema，导致合法事件命令
+// 会被路径白名单或 Zod 校验误判为未知字段。
+const EventSchema = z
+  .object({
+    开启: z.preprocess(normalizeBoolean, z.boolean().prefault(false)),
+    标题: z.string().prefault(""),
+    阶段: z.string().prefault(""),
+    已完成事件: StringArraySchema,
+    进度: z.record(z.string(), z.unknown()).optional(),
+  })
+  .prefault({ 开启: false, 标题: "", 阶段: "", 已完成事件: [] });
+
 // ===== 传闻 Schema =====
 // 内容由前端引擎 (src/修仙状态栏/timeline-engine.ts) 生成并写回此字段,
 // AI 仅读、不写。详见 [mvu_update]变量更新规则.yaml。
@@ -492,7 +582,7 @@ export const Schema = z.object({
   姓名: z.string().prefault("User"),
   寿元: LifespanSchema,
   种族: z.string().prefault("人族"),
-  身份: z.array(z.string()).prefault([]), // 散修 / 宗门+地位,可多个(与 NPC 身份 一致)
+  身份: StringArraySchema, // 散修 / 宗门+地位,可多个(与 NPC 身份 一致)
   灵根: SpiritualRootSchema,
   体质: PhysiqueSchema,
   // 性器(外部脚本按五行随机填充, AI只读不更新; key=口腔/屄穴/肛门/乳房, value=描述)
@@ -503,6 +593,7 @@ export const Schema = z.object({
   地点: LocationSchema,
   时间: TimeSchema,
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
+  事件: EventSchema,
 
   // —— 原 修炼功法.功法 ——
   功法: z.record(z.string(), CultivationArtSchema).prefault({}),
@@ -524,6 +615,8 @@ export const Schema = z.object({
 //     1. 丢弃 schema 之外的多余字段(如 NPC.背景故事 / 体质.描述)
 //     2. 好感度 中文映射(高:10/中:5/低:0/仇视:-10/友善:5, 其他:0)
 //     3. 缺 类型 字段的 关系列表 条目默认补 '人物'
+//     4. 按命令路径补齐旧存档中缺失的合法父容器
+//     5. 丢弃目标本就不存在的 remove，避免一条坏命令拖累同批正确更新
 //   依赖 eventOn 的"先注册先执行"特性: 本模块在 registerMvuSchema 之前注册.
 // ============================================================
 
@@ -538,7 +631,7 @@ const NPC_FIELDS = new Set([
 ]);
 const PHYSIQUE_FIELDS = new Set(["名称", "效果", "悟性", "根骨", "气感", "元阴", "元阳"]);
 const SPIRITUAL_ROOT_FIELDS = new Set(["名称", "五行", "品阶"]);
-const LIFESPAN_FIELDS = new Set(["年龄", "寿命", "外观年龄"]);
+const LIFESPAN_FIELDS = new Set(["生日", "冥族停龄", "年龄", "寿命", "外观年龄"]);
 const CULTIVATION_PROGRESS_FIELDS = new Set(["境界", "当前进度", "进度上限", "天谴", "丹毒"]);
 const STATUS_EFFECT_FIELDS = new Set(["类型", "效果", "层数", "剩余时间", "来源"]);
 const CULTIVATION_ART_FIELDS = new Set([
@@ -735,26 +828,142 @@ function tryParseValue(t) {
 // 全部合法顶级键 (与 Schema z.object 内字段名一致); 任一段命中即认为是真正的根入口
 const ALL_TOP_LEVEL_KEYS = new Set([
   "姓名", "寿元", "种族", "身份", "灵根", "体质", "修炼进度",
-  "技艺", "资源池", "地点", "时间", "状态效果", "功法",
+  "性器", "技艺", "资源池", "地点", "时间", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
-  "关系列表", "传闻",
+  "关系列表", "事件", "传闻",
 ]);
 
 // 这 4 个键在 schema 中只在顶级出现, NPC 子结构、record 内都不含;
 // 出现在路径中段必然是错误嵌套 (例 /状态效果/时间/年).
-const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "地点", "时间", "传闻"]);
+const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "地点", "时间", "事件", "传闻"]);
+
+// 这些字段在合法存档中必为容器。旧存档、初始化被截断或其他脚本误删字段时，
+// MVU 会因为父级不存在而拒绝本来可以理解的 insert。这里只恢复 Schema 明确定义的
+// 固定容器，不会创建 AI 杜撰的顶级字段。
+const TOP_LEVEL_CONTAINER_DEFAULTS = {
+  寿元: { 年龄: 0, 寿命: 100, 外观年龄: 18 },
+  身份: [],
+  灵根: { 名称: "未检测", 五行: ["未知"], 品阶: "未检测" },
+  体质: { 名称: "凡体", 悟性: 0, 根骨: 0, 气感: 0, 元阴: null, 元阳: null },
+  性器: {},
+  修炼进度: { 境界: "凡人", 当前进度: 0, 进度上限: 100, 天谴: 0, 丹毒: 0 },
+  技艺: {
+    生产类: { 炼器: 0, 驯兽: 0, 培育: 0, 医术: 0, 炼丹: 0, 制符: 0 },
+    战斗类: { 御物: 0, 咒法: 0, 幻术: 0, 阵法: 0, 神识: 0, 炼体: 0 },
+  },
+  资源池: {
+    气血: { 现值: 100, 上限: 100 },
+    灵气: { 现值: 100, 上限: 100 },
+    遁速: 10,
+  },
+  地点: { 世界: "凡界", 地域: "中原", 具体地点: "荒野" },
+  时间: { 年: 1, 月: 1, 日: 1, 时辰: "午时" },
+  状态效果: {},
+  事件: { 开启: false, 标题: "", 阶段: "", 已完成事件: [] },
+  功法: {},
+  物品: {},
+  装备: {},
+  傀儡: {},
+  灵兽: {},
+  关系列表: {},
+  传闻: [],
+};
+
+const TOP_LEVEL_SCALAR_DEFAULTS = {
+  姓名: "User",
+  种族: "人族",
+  灵石: 0,
+};
+
+function isPlainRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function cloneDefault(value) {
+  return _.cloneDeep(value);
+}
+
+// 只补缺失键，不覆盖玩家存档里已有的合法值。safeParse 成功时，它给出的 data
+// 同时包含 NPC、物品、装备等深层 prefault，能修复比顶层更深的残缺旧存档。
+function fillMissingDefaults(target, defaults) {
+  if (!isPlainRecord(target) || !isPlainRecord(defaults)) return;
+  for (const [key, defaultValue] of Object.entries(defaults)) {
+    if (target[key] === undefined || target[key] === null) {
+      target[key] = cloneDefault(defaultValue);
+    } else if (isPlainRecord(target[key]) && isPlainRecord(defaultValue)) {
+      fillMissingDefaults(target[key], defaultValue);
+    }
+  }
+}
+
+function repairMissingSchemaContainers(variables) {
+  const statData = variables?.stat_data;
+  if (!isPlainRecord(statData)) return;
+
+  for (const [key, defaultValue] of Object.entries(TOP_LEVEL_SCALAR_DEFAULTS)) {
+    if (statData[key] === undefined || statData[key] === null || statData[key] === "") {
+      statData[key] = defaultValue;
+      console.warn(`[JSONPatch preprocessor] 恢复缺失的变量字段: ${key}`);
+    }
+  }
+
+  // 无论整份存档是否能通过校验，都先保证固定顶级容器存在且类型正确。
+  for (const [key, defaultValue] of Object.entries(TOP_LEVEL_CONTAINER_DEFAULTS)) {
+    const current = statData[key];
+    const expectedArray = Array.isArray(defaultValue);
+    const hasRightShape = expectedArray ? Array.isArray(current) : isPlainRecord(current);
+    if (current === undefined || current === null || current === "" || current === "无" || current === "暂无") {
+      statData[key] = cloneDefault(defaultValue);
+      console.warn(`[JSONPatch preprocessor] 恢复缺失或损坏的变量容器: ${key}`);
+    } else if (!hasRightShape) {
+      // 不擅自覆盖非空的异型旧数据；它可能仍对其他脚本有意义。
+      console.warn(`[JSONPatch preprocessor] 变量容器类型异常，已保留原值: ${key}`);
+    } else if (!expectedArray) {
+      fillMissingDefaults(current, defaultValue);
+    }
+  }
+
+  // 若其余现有值也都可被 Schema 解读，则进一步补齐每个已有记录的深层默认字段。
+  // 使用“只补缺失”的合并方式，避免 Zod strip 行为删除任何旧版或外部脚本字段。
+  try {
+    const parsed = Schema.safeParse(statData);
+    if (parsed.success) fillMissingDefaults(statData, parsed.data);
+  } catch (error) {
+    console.warn("[JSONPatch preprocessor] 深层默认值恢复失败，已保留顶级容错", error);
+  }
+}
+
+function decodeJsonPointerSegment(segment) {
+  return segment.replace(/~1/g, "/").replace(/~0/g, "~");
+}
+
+function splitPath(rawPath) {
+  if (typeof rawPath !== "string" || !rawPath) return [];
+  const stripped = rawPath.replace(/^[\\"'` ]+|[\\"'` ]+$/g, "");
+  if (stripped.startsWith("/")) {
+    return stripped.split("/").filter(Boolean).map(decodeJsonPointerSegment);
+  }
+  return _.toPath(stripped).filter(Boolean).map(decodeJsonPointerSegment);
+}
+
+function joinPath(segments) {
+  return segments
+    .map((segment, index) => {
+      const text = String(segment);
+      // 含点、斜杠或引号的动态名称必须保留为一个 key，不能被 lodash 再拆开。
+      if (!/[.\\/\[\]'\"]/.test(text)) return index === 0 ? text : `.${text}`;
+      return `[${JSON.stringify(text)}]`;
+    })
+    .join("");
+}
 
 function fixPath(rawPath) {
   if (typeof rawPath !== "string" || !rawPath) return rawPath;
-  // 去除外围引号/空白
-  const stripped = rawPath.replace(/^[\\"'` ]+|[\\"'` ]+$/g, "");
-  // 支持 JSON Patch 斜杠路径 / 与 lodash 点路径 .  (filter(Boolean) 去掉前导斜杠产生的空段)
-  const segments = stripped.includes("/")
-    ? stripped.split("/").filter(Boolean)
-    : stripped.split(".").filter(Boolean);
+  // 支持 JSON Pointer、lodash 点路径和方括号路径。
+  const segments = splitPath(rawPath);
   if (segments.length === 0) return rawPath;
 
-  let mutated = false;
+  const original = joinPath(segments);
 
   // A. 扫描首个合法顶级键, 截断之前的所有 segment (无论前缀长什么样)
   //    若 segments[0] 已是顶级键, firstTopIdx === 0, 不会截断
@@ -762,41 +971,93 @@ function fixPath(rawPath) {
   const firstTopIdx = segments.findIndex((s) => ALL_TOP_LEVEL_KEYS.has(s));
   if (firstTopIdx > 0) {
     segments.splice(0, firstTopIdx);
-    mutated = true;
   }
 
   // B. 扫描中段是否有 top-level-only 键 (错误嵌套), 有则从该段截断
   for (let i = 1; i < segments.length; i++) {
     if (TOP_LEVEL_ONLY_KEYS.has(segments[i])) {
       segments.splice(0, i);
-      mutated = true;
       break;
     }
   }
 
-  if (!mutated) return rawPath;
-  const fixed = segments.join(".");
-  console.warn(`[JSONPatch preprocessor] 修正路径: "${rawPath}" → "${fixed}"`);
+  const fixed = joinPath(segments);
+  if (fixed !== original || fixed !== rawPath) {
+    console.warn(`[JSONPatch preprocessor] 规范路径: "${rawPath}" → "${fixed}"`);
+  }
   return fixed;
 }
 
 // 取(修正后)路径的根段, 用于判断是否指向合法顶级词条
 function pathRootKey(rawPath) {
-  if (typeof rawPath !== "string" || !rawPath) return "";
-  const stripped = rawPath.replace(/^[\\"'` ]+|[\\"'` ]+$/g, "");
-  const segments = stripped.includes("/")
-    ? stripped.split("/").filter(Boolean)
-    : stripped.split(".").filter(Boolean);
+  const segments = splitPath(rawPath);
   return segments[0] || "";
+}
+
+// MagVarUpdate 在触发命令钩子前会把 JSON Pointer 粗略转成点路径，导致动态 key
+// 中原本合法的点、斜杠或方括号失去边界。利用 full_match 中的原始 JSON 还原它。
+function restoreOriginalJsonPatchPath(command) {
+  if (command?.reason !== "json_patch" || typeof command.full_match !== "string") return;
+  let patch;
+  try {
+    patch = JSON.parse(command.full_match);
+  } catch (_) {
+    return;
+  }
+
+  const targetSegments = splitPath(patch.path ?? patch.to);
+  if (targetSegments.length === 0) return;
+  if (command.type === "insert") {
+    command.args[0] = joinPath(targetSegments.slice(0, -1));
+    command.args[1] = JSON.stringify(targetSegments.at(-1));
+  } else if (command.type === "move") {
+    command.args[0] = joinPath(splitPath(patch.from));
+    command.args[1] = joinPath(targetSegments);
+  } else {
+    command.args[0] = joinPath(targetSegments);
+  }
+}
+
+function commandCreatesPath(command, targetPath) {
+  if (!command || !Array.isArray(command.args)) return false;
+  if (command.type === "set") {
+    const setPath = fixPath(command.args[0]);
+    return setPath === targetPath || targetPath.startsWith(`${setPath}.`);
+  }
+  if (command.type === "insert" && command.args.length >= 3) {
+    const parent = fixPath(command.args[0]);
+    const key = tryParseValue(command.args[1]);
+    const insertedPath = joinPath([...splitPath(parent), String(key)]);
+    return insertedPath === targetPath || targetPath.startsWith(`${insertedPath}.`);
+  }
+  return false;
+}
+
+function dropHarmlessMissingDeletes(variables, commands) {
+  const statData = variables?.stat_data;
+  if (!isPlainRecord(statData)) return;
+  for (let index = commands.length - 1; index >= 0; index--) {
+    const command = commands[index];
+    if (command?.type !== "delete" || !Array.isArray(command.args)) continue;
+    const targetPath = fixPath(command.args.map((arg) => tryParseValue(arg)).join("."));
+    if (_.has(statData, targetPath)) continue;
+    const isCreatedEarlier = commands.slice(0, index).some((earlier) => commandCreatesPath(earlier, targetPath));
+    if (!isCreatedEarlier) {
+      console.warn(`[JSONPatch preprocessor] 忽略目标已不存在的删除: ${targetPath}`);
+      commands.splice(index, 1);
+    }
+  }
 }
 
 // mag_command_parsed_for_zod 钩子: 在 mvu_zod 处理器之前清洗每个 command 的 args
 function jsonPatchPreprocessor(_variables, commands) {
   if (!Array.isArray(commands)) return;
+  repairMissingSchemaContainers(_variables);
   // 倒序遍历: 便于在原数组上 splice 掉无效命令而不打乱后续索引
   for (let ci = commands.length - 1; ci >= 0; ci--) {
     const cmd = commands[ci];
     if (!cmd || !Array.isArray(cmd.args)) continue;
+    restoreOriginalJsonPatchPath(cmd);
     // 1. 先修正路径(args[0] 是 path, 对 move 命令 args[1] 也是 path)
     if (cmd.args.length > 0) cmd.args[0] = fixPath(cmd.args[0]);
     if (cmd.type === "move" && cmd.args.length > 1) cmd.args[1] = fixPath(cmd.args[1]);
@@ -822,6 +1083,7 @@ function jsonPatchPreprocessor(_variables, commands) {
       }
     }
   }
+  dropHarmlessMissingDeletes(_variables, commands);
 }
 
 $(() => {

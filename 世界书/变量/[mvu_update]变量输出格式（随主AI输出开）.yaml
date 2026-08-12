@@ -3,6 +3,8 @@
   rule:
     - you must output the update analysis and the actual update commands in the end of the next reply
     - 'the update commands must strictly follow the **JSON Patch (RFC 6902)** standard, but can only use the following operations: `replace` (replace the value of existing paths), `delta` (adjust an existing NUMBER path by a delta; "value" MUST be an unquoted number, e.g. -30), `insert` (insert new items into an object or array; use `-` as the array index to append to the end), `remove`, `move` (move a value from one path to another, using "from" and "to"); that is, the output must be a valid JSON array containing operation objects'
+    - 'For a new object entry, insert the complete entry at its direct path (for example `/物品/白玉壶`). Do not invent wrapper/root paths, do not split one new entry into child-field operations, and do not replace or remove a path that does not exist in the current variables.'
+    - 'JSON Patch paths use JSON Pointer escaping: inside a key, write `~` as `~0` and `/` as `~1`.'
     - don't update field names starts with `_` as they are readonly, such as `_变量`
   format: |-
     <UpdateVariable>
