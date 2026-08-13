@@ -13,7 +13,7 @@ function normalizeStringArray(input) {
     } catch (_) {}
   }
   const source = Array.isArray(value) ? value.flat(Infinity) : String(value).split(/[,，、;；|]/);
-  return source.map((item) => String(item).trim()).filter(Boolean);
+  return [...new Set(source.map((item) => String(item).trim()).filter(Boolean))];
 }
 
 function normalizeBoolean(input) {
@@ -516,6 +516,34 @@ const LocationSchema = z
   .prefault({ 世界: "凡界", 地域: "中原", 具体地点: "荒野" });
 
 // ===== 时间 Schema =====
+const TIME_PERIODS = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+const TIME_PERIOD_ALIASES = {
+  夜半: "子",
+  子夜: "子",
+  午夜: "子",
+  鸡鸣: "丑",
+  平旦: "寅",
+  日出: "卯",
+  食时: "辰",
+  隅中: "巳",
+  日中: "午",
+  日昳: "未",
+  晡时: "申",
+  日入: "酉",
+  黄昏: "戌",
+  人定: "亥",
+};
+
+function normalizeTimePeriod(input) {
+  const text = String(input ?? "").trim();
+  const period = TIME_PERIODS.find((item) =>
+    text === item || ["时", "初", "正", "刻", "中", "末", "半"].some((suffix) => text.includes(`${item}${suffix}`)),
+  );
+  if (period) return `${period}时`;
+  const alias = Object.entries(TIME_PERIOD_ALIASES).find(([name]) => text.includes(name));
+  return alias ? `${alias[1]}时` : "午时";
+}
+
 const TimeSchema = z
   .object({
     年: z.coerce.number().prefault(1),
@@ -527,41 +555,144 @@ const TimeSchema = z
       .number()
       .transform((n) => _.clamp(n, 1, 30))
       .prefault(1),
-    时辰: z
-      .enum([
-        "子时",
-        "丑时",
-        "寅时",
-        "卯时",
-        "辰时",
-        "巳时",
-        "午时",
-        "未时",
-        "申时",
-        "酉时",
-        "戌时",
-        "亥时",
-      ])
-      .prefault("午时"),
+    // “子时中 / 子时三刻 / 子初 / 子正”等可理解写法统一收敛到所属时辰。
+    时辰: z.preprocess(normalizeTimePeriod, z.enum(TIME_PERIODS.map((item) => `${item}时`))).prefault("午时"),
   })
   .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" });
 
 // ===== 固定资产 Schema (仅主角根级持有) =====
 // 所属人物仅保存姓名数组；人物详细资料仍统一维护在关系列表，避免双处存储发生冲突。
 // 所在地复用 LocationSchema；上次收取日期复用 TimeSchema，null 表示从未收取。
-const AssetFacilitySchema = z.object({
-  效果: StringRecordSchema,
-  每月产出: z.string().prefault("无"),
-  上次收取日期: TimeSchema.nullable().prefault(null),
-});
-const FixedAssetSchema = z.object({
-  类型: z.enum(["宗门", "店铺", "洞府"]),
-  人员规模: z.coerce.number().int().transform((n) => _.clamp(n, 0, Infinity)).prefault(0),
-  所在地: LocationSchema,
-  现状: z.string().prefault("正常"),
-  设施: z.record(z.string(), AssetFacilitySchema).prefault({}),
-  所属人物: StringArraySchema,
-});
+function normalizeLooseString(input, fallback) {
+  if (input === undefined || input === null) return fallback;
+  return typeof input === "string" ? input : String(input);
+}
+
+function normalizeNonNegativeInteger(input) {
+  if (typeof input === "number" && Number.isFinite(input)) return Math.max(0, Math.trunc(input));
+  const matched = String(input ?? "").match(/-?\d+(?:\.\d+)?/);
+  return Math.max(0, Math.trunc(matched ? Number(matched[0]) : 0));
+}
+
+function normalizeAssetType(input) {
+  const text = String(input ?? "").trim().toLowerCase();
+  if (/宗门|宗派|门派|宗族|sect/.test(text)) return "宗门";
+  if (/店铺|商铺|铺面|坊市|商行|商会|store|shop/.test(text)) return "店铺";
+  return "洞府";
+}
+
+function normalizeAssetLocation(input) {
+  if (typeof input === "string") {
+    const parts = input.split(/\s*(?:[·•>＞/／|]|\s+-\s+)\s*/).filter(Boolean);
+    const hasWorld = !!parts[0] && /[凡灵仙]界/.test(parts[0]);
+    return {
+      世界: hasWorld ? parts[0] : "凡界",
+      地域: hasWorld ? parts[1] || "中原" : parts.length >= 2 ? parts[0] : "中原",
+      具体地点: hasWorld
+        ? parts.length >= 3 ? parts.slice(2).join("·") : "荒野"
+        : parts.length >= 2 ? parts.slice(1).join("·") : parts[0] || "荒野",
+    };
+  }
+  if (!input || typeof input !== "object" || Array.isArray(input)) return {};
+  return {
+    世界: input.世界 ?? input.界域 ?? input.位面 ?? "凡界",
+    地域: input.地域 ?? input.区域 ?? input.州域 ?? "中原",
+    具体地点: input.具体地点 ?? input.地点 ?? input.地址 ?? input.位置 ?? "荒野",
+  };
+}
+
+function normalizeAssetWorld(input) {
+  const text = String(input ?? "");
+  return /仙/.test(text) ? "仙界" : /灵/.test(text) ? "灵界" : "凡界";
+}
+
+function normalizeAssetTime(input) {
+  if (input === undefined || input === null || ["", "无", "暂无", "从未", "未收取", "null"].includes(String(input).trim())) {
+    return null;
+  }
+  if (typeof input === "string") {
+    const numbers = (input.match(/\d+/g) || []).map(Number);
+    if (numbers.length === 0) return null;
+    return { 年: numbers[0], 月: numbers[1] ?? 1, 日: numbers[2] ?? 1, 时辰: normalizeTimePeriod(input) };
+  }
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  return {
+    年: normalizeNonNegativeInteger(input.年 ?? input.year ?? 1) || 1,
+    月: _.clamp(normalizeNonNegativeInteger(input.月 ?? input.month ?? 1) || 1, 1, 12),
+    日: _.clamp(normalizeNonNegativeInteger(input.日 ?? input.day ?? 1) || 1, 1, 30),
+    时辰: normalizeTimePeriod(input.时辰 ?? input.时间 ?? "午时"),
+  };
+}
+
+function normalizeNamedRecord(input, fallbackName) {
+  if (input === undefined || input === null || input === "") return {};
+  if (!Array.isArray(input)) return typeof input === "object" ? input : {};
+  return Object.fromEntries(input.map((entry, index) => {
+    const value = entry && typeof entry === "object" ? { ...entry } : { 效果: entry };
+    const name = String(value.名称 ?? value.设施名 ?? value.资产名 ?? `${fallbackName}${index + 1}`).trim();
+    delete value.名称;
+    delete value.设施名;
+    delete value.资产名;
+    return [name || `${fallbackName}${index + 1}`, value];
+  }));
+}
+
+function normalizeAssetFacility(input) {
+  if (typeof input === "string") return { 效果: input };
+  if (!input || typeof input !== "object" || Array.isArray(input)) return {};
+  return {
+    效果: input.效果 ?? input.效用 ?? input.功能,
+    每月产出: input.每月产出 ?? input.月产出 ?? input.产出,
+    上次收取日期: input.上次收取日期 ?? input.上次收取 ?? input.收取日期,
+  };
+}
+
+function normalizeFixedAsset(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return {};
+  return {
+    类型: input.类型 ?? input.分类 ?? input.资产类型,
+    人员规模: input.人员规模 ?? input.人数 ?? input.规模,
+    所在地: input.所在地 ?? input.地址 ?? input.位置,
+    现状: input.现状 ?? input.状态 ?? input.当前状态,
+    设施: normalizeNamedRecord(input.设施 ?? input.建筑 ?? input.功能区, "新设施"),
+    所属人物: input.所属人物 ?? input.人员 ?? input.归属人物 ?? input.成员,
+  };
+}
+
+const AssetLocationSchema = z.preprocess(
+  normalizeAssetLocation,
+  z.object({
+    世界: z.preprocess(normalizeAssetWorld, z.enum(["凡界", "灵界", "仙界"])),
+    地域: z.preprocess((input) => normalizeLooseString(input, "中原"), z.string()),
+    具体地点: z.preprocess((input) => normalizeLooseString(input, "荒野"), z.string()),
+  }),
+).prefault({ 世界: "凡界", 地域: "中原", 具体地点: "荒野" });
+
+const AssetTimeSchema = z.preprocess(normalizeAssetTime, TimeSchema.nullable()).prefault(null);
+
+const AssetFacilitySchema = z.preprocess(
+  normalizeAssetFacility,
+  z.object({
+    效果: StringRecordSchema.prefault({}),
+    每月产出: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
+    上次收取日期: AssetTimeSchema,
+  }),
+);
+const FixedAssetSchema = z.preprocess(
+  normalizeFixedAsset,
+  z.object({
+    类型: z.preprocess(normalizeAssetType, z.enum(["宗门", "店铺", "洞府"])).prefault("洞府"),
+    人员规模: z.preprocess(normalizeNonNegativeInteger, z.number().int().min(0)).prefault(0),
+    所在地: AssetLocationSchema,
+    现状: z.preprocess((input) => normalizeLooseString(input, "正常"), z.string()).prefault("正常"),
+    设施: z.preprocess((input) => normalizeNamedRecord(input, "新设施"), z.record(z.string(), AssetFacilitySchema)).prefault({}),
+    所属人物: StringArraySchema,
+  }),
+);
+const FixedAssetsSchema = z.preprocess(
+  (input) => normalizeNamedRecord(input, "新资产"),
+  z.record(z.string(), FixedAssetSchema),
+).prefault({});
 
 // ===== 剧情事件 Schema =====
 // 事件字段早已存在于初始变量与更新规则中；此前漏注册到主 Schema，导致合法事件命令
@@ -612,7 +743,7 @@ export const Schema = z.object({
   修炼进度: CultivationProgressSchema,
   技艺: SkillSchema,
   资源池: ResourcePoolSchema,
-  固定资产: z.record(z.string(), FixedAssetSchema).prefault({}),
+  固定资产: FixedAssetsSchema,
   地点: LocationSchema,
   时间: TimeSchema,
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
@@ -711,8 +842,12 @@ function sanitizeChildRecord(map, fieldset) {
 
 function sanitizeFixedAsset(asset) {
   if (!asset || typeof asset !== "object" || Array.isArray(asset)) return asset;
-  const cleaned = pickFields(asset, FIXED_ASSET_FIELDS);
-  sanitizeChildRecord(cleaned.设施, ASSET_FACILITY_FIELDS);
+  const cleaned = pickFields(normalizeFixedAsset(asset), FIXED_ASSET_FIELDS);
+  if (cleaned.设施 && typeof cleaned.设施 === "object") {
+    for (const key of Object.keys(cleaned.设施)) {
+      cleaned.设施[key] = pickFields(normalizeAssetFacility(cleaned.设施[key]), ASSET_FACILITY_FIELDS);
+    }
+  }
   if ("所属人物" in cleaned) cleaned.所属人物 = normalizeStringArray(cleaned.所属人物);
   return cleaned;
 }
@@ -869,6 +1004,25 @@ const ALL_TOP_LEVEL_KEYS = new Set([
 // 这些键在 schema 中只在顶级出现, NPC 子结构、record 内都不含;
 // 出现在路径中段必然是错误嵌套 (例 /状态效果/时间/年).
 const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "固定资产", "地点", "时间", "事件", "传闻"]);
+const TOP_LEVEL_KEY_ALIASES = { 资产: "固定资产", 不动产: "固定资产", 产业: "固定资产" };
+const FIXED_ASSET_KEY_ALIASES = {
+  分类: "类型", 资产类型: "类型",
+  人数: "人员规模", 规模: "人员规模",
+  地址: "所在地", 位置: "所在地",
+  状态: "现状", 当前状态: "现状",
+  建筑: "设施", 功能区: "设施",
+  人员: "所属人物", 归属人物: "所属人物", 成员: "所属人物",
+};
+const ASSET_FACILITY_KEY_ALIASES = {
+  效用: "效果", 功能: "效果",
+  月产出: "每月产出", 产出: "每月产出",
+  上次收取: "上次收取日期", 收取日期: "上次收取日期",
+};
+const ASSET_LOCATION_KEY_ALIASES = {
+  界域: "世界", 位面: "世界",
+  区域: "地域", 州域: "地域",
+  地点: "具体地点", 地址: "具体地点", 位置: "具体地点",
+};
 
 // 这些字段在合法存档中必为容器。旧存档、初始化被截断或其他脚本误删字段时，
 // MVU 会因为父级不存在而拒绝本来可以理解的 insert。这里只恢复 Schema 明确定义的
@@ -997,6 +1151,23 @@ function fixPath(rawPath) {
   const segments = splitPath(rawPath);
   if (segments.length === 0) return rawPath;
 
+  // 先把 AI 常用的资产字段别名改为正式 schema 路径，再进行顶级键识别与截断。
+  const likelyRootIndex = segments.findIndex((segment) => ALL_TOP_LEVEL_KEYS.has(segment) || TOP_LEVEL_KEY_ALIASES[segment]);
+  if (likelyRootIndex >= 0) {
+    segments[likelyRootIndex] = TOP_LEVEL_KEY_ALIASES[segments[likelyRootIndex]] ?? segments[likelyRootIndex];
+  }
+  const assetRootIndex = segments.indexOf("固定资产");
+  if (assetRootIndex >= 0 && segments.length > assetRootIndex + 2) {
+    const fieldIndex = assetRootIndex + 2;
+    segments[fieldIndex] = FIXED_ASSET_KEY_ALIASES[segments[fieldIndex]] ?? segments[fieldIndex];
+    if (segments[fieldIndex] === "所在地" && segments.length > fieldIndex + 1) {
+      segments[fieldIndex + 1] = ASSET_LOCATION_KEY_ALIASES[segments[fieldIndex + 1]] ?? segments[fieldIndex + 1];
+    }
+    if (segments[fieldIndex] === "设施" && segments.length > fieldIndex + 2) {
+      segments[fieldIndex + 2] = ASSET_FACILITY_KEY_ALIASES[segments[fieldIndex + 2]] ?? segments[fieldIndex + 2];
+    }
+  }
+
   const original = joinPath(segments);
 
   // A. 扫描首个合法顶级键, 截断之前的所有 segment (无论前缀长什么样)
@@ -1116,11 +1287,29 @@ function jsonPatchPreprocessor(_variables, commands) {
         cmd.args[i] = cleaned;
       }
     }
-    // 固定资产以“完整资产对象”新增；单独按路径处理，避免与 NPC 的递归识别混淆。
     const segments = splitPath(cmd.args[0]);
-    if (segments[0] === "固定资产" && cmd.type === "insert" && cmd.args.length >= 3) {
-      const value = tryParseValue(cmd.args.at(-1));
-      if (value && typeof value === "object") cmd.args[cmd.args.length - 1] = sanitizeFixedAsset(value);
+    // insert 的第二个参数是动态 key，不是 value；资产/设施由数组误写为 record 时，
+    // 允许对象中的 名称/资产名/设施名 作为 key，缺失时再使用稳定占位名。
+    if (cmd.type === "insert" && segments[0] === "固定资产" && cmd.args.length >= 3) {
+      const rawKey = tryParseValue(cmd.args[1]);
+      const rawValue = tryParseValue(cmd.args.at(-1));
+      if ((rawKey === undefined || rawKey === null || typeof rawKey === "object" || String(rawKey).trim() === "")
+        && rawValue && typeof rawValue === "object") {
+        const fallback = segments[2] === "设施" ? "新设施" : "新资产";
+        cmd.args[1] = String(rawValue.名称 ?? rawValue.设施名 ?? rawValue.资产名 ?? fallback).trim() || fallback;
+      }
+    }
+    // 固定资产以“完整资产对象”新增；单独按路径处理，避免与 NPC 的递归识别混淆。
+    if (segments[0] === "固定资产" && cmd.args.length >= 2) {
+      const valueIndex = cmd.args.length - 1;
+      const value = tryParseValue(cmd.args[valueIndex]);
+      const pointsToAsset = segments.length === 2 || (cmd.type === "insert" && segments.length === 1);
+      const pointsToFacility = segments[2] === "设施"
+        && ((cmd.type === "insert" && segments.length === 3) || (cmd.type !== "insert" && segments.length === 4));
+      if (value && typeof value === "object") {
+        if (pointsToAsset) cmd.args[valueIndex] = sanitizeFixedAsset(value);
+        else if (pointsToFacility) cmd.args[valueIndex] = pickFields(normalizeAssetFacility(value), ASSET_FACILITY_FIELDS);
+      }
     }
   }
   dropHarmlessMissingDeletes(_variables, commands);
