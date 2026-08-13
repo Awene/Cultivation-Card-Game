@@ -7,6 +7,19 @@ types:
   label: &label "标签: string[]; #参考*RULE_标签加值指导"
   utility: &utility "效果?: { [效果名: string]: string }; #参考*RULE_效果加值指导"
   cost: &cost "消耗?: string; #'灵气|气血|精血: num',如 '灵气: 5';无消耗则省略此字段"
+  location: &location |-
+    {
+      世界: '凡界'|'灵界'|'仙界'; #realm
+      地域: string; #region
+      具体地点: string; #格式:${生态}-${?宗门|秘境|城市}-${具体位置}
+    }
+  time: &time |-
+    {
+      年: number; #修仙历xxxx年
+      月: number;
+      日: number;
+      时辰: string; #如:子时
+    }
 
 变量更新规则:
 
@@ -98,23 +111,32 @@ types:
       type: number
     遁速:
       type: number
-  地点:
+  固定资产:
     type: |-
       {
-        世界: '凡界'|'灵界'|'仙界'; #realm
-        地域: string; #region
-        具体地点: string; #格式:${生态}-${?宗门|秘境|城市}-${具体位置}
+        [资产名: string]: {
+          类型: '宗门'|'店铺'|'洞府'; #其他类别不视为资产
+          人员规模: number;
+          所在地: *location;
+          现状: string;
+          设施: {
+            [设施名: string]: {
+              *utility
+              每月产出: string; # 无产出写"无"
+              上次收取日期: *time | null; #收取后更新为当前时间，从未收取为 null
+            }
+          };
+          所属人物: string[]; # 仅姓名；仅关系列表中出现的重要NPC
+        }
       }
+    check:
+      - 记录<user>名下的资产，变化时更新；宗门类资产仅<user>成为宗主时添加
+  地点:
+    type: *location
     check:
       - 空间变换时更新
   时间:
-    type: |-
-      {
-        年: number; #修仙历xxxx年
-        月: number;
-        日: number;
-        时辰: string; # 如:子时
-      }
+    type: *time
   状态效果: &buff
     type: |-
       {
@@ -145,20 +167,6 @@ types:
       }
     check:
       - 仅在更换功法时更新
-  事件:
-    type: |-
-      {
-        开启: boolean; # 是否有剧情事件进行中
-        标题: string;  # 进行中事件名,无则空串
-        阶段: string;  # 当前阶段;仅由事件脚本内的显式指令推进
-        已完成事件: string[]; # 已通关事件名,用于一次性门禁
-        进度?: object; # 当前事件的进度清单(如已集道具/线索的布尔或计数),由事件脚本按需 insert/replace/delta;通关时 remove
-      }
-    check:
-      - 仅当当前回复中的事件脚本(<event>块)显式要求更新时才更新,逐条照做
-      - 无事件脚本指令时不得主动改动本字段
-      - 进度: 事件开场时 insert 一个对象,过程中 replace/delta 其中字段,通关时整体 remove
-      - 通关某事件时: 用 insert 把其标题追加进 已完成事件 数组末尾(path 结尾用 /-), 并把 开启=false、标题=""、阶段=""
   灵石: &cash
     type: number
     check:
@@ -182,8 +190,8 @@ types:
     check:
       - 交易、拾取、消耗时更新
       - 数量为0时移除该key
-      - 严禁把武器/防具/饰品放入物品;它们应放入 *装备*
-      - 类型必须是上述枚举之一,禁止写"武器""装备""杂物"等枚举外的值
+      - 严禁把武器/防具/饰品写入物品，它们应写入 *装备*
+      - 类型必须是上述枚举之一；无法归类的杂物不写入变量
   装备: &equipment
     type: |-
       {
@@ -254,8 +262,8 @@ types:
               ${傀儡|灵兽}: { [名称: string]: *combat_unit };
               性格: string;
               外貌: string; # 实质变化时更新
-              着装: string; # 更换或实质变化时更新
-              道侣: boolean; # 确立→true,破裂→false
+              着装: string; # 更衣时更新
+              道侣: boolean; # 是否为<user>的道侣
               好感度: number; # -100~100,变化区间±5,重大事件±10,初始值-30~30
             }
           # === 类型='傀儡'|'灵兽' (无主战斗单位) ===

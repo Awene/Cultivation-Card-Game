@@ -9,9 +9,12 @@
 <%_ {
   const data = getMessageVar('stat_data', { defaults: {} });
   const cleanData = _.omit(_.cloneDeep(data), ['事件', '传闻', '性器', '__custom_start__']);
-  // 生日只供本地 MVU 核验年龄，不进入任何 AI 提示词。
+  // 生日与上次突破时间点只供本地 MVU 核验，不进入任何 AI 提示词。
   if (cleanData.寿元 && typeof cleanData.寿元 === 'object') {
     delete cleanData.寿元.生日; delete cleanData.寿元.冥族停龄;
+  }
+  if (cleanData.修炼进度 && typeof cleanData.修炼进度 === 'object') {
+    delete cleanData.修炼进度.上次突破时间点;
   }
   const _rel = cleanData.关系列表;
   if (_rel && typeof _rel === 'object') {
@@ -19,6 +22,9 @@
       const _npc = _rel[_n];
       if (_npc && typeof _npc === 'object') {
         delete _npc.细节可见; delete _npc.性器;
+        if (_npc.修炼进度 && typeof _npc.修炼进度 === 'object') {
+          delete _npc.修炼进度.上次突破时间点;
+        }
         if (_npc.寿元 && typeof _npc.寿元 === 'object') {
           delete _npc.寿元.生日; delete _npc.寿元.冥族停龄;
         }

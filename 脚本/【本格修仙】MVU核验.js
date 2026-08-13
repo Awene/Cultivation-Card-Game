@@ -3,6 +3,7 @@
  * 每轮 MVU 更新结束后核验：
  * - 主角与所有「人物」NPC 的气血/灵气上限，并按原百分比折算现值；
  * - 主角与所有「人物」NPC 的出生年份及年龄（年龄 = 当前年份 - 生日）；
+ * - 主角与所有「人物」NPC 的上次突破时间点：仅当既有角色的境界字段实际变化时，记录当回合年份；
  * - 保留原「性器随机」功能，仍只为主角和在场女性 NPC 首次补齐。
  * 角色"首次出场/生成"时,对女性(体质.元阴非null 且 体质.元阳==null)按其灵根五行随机
  * 抽取四类名器(口腔/屄穴/肛门/乳房),把名器"描述"写入 stat_data.性器(不写名器名)。
@@ -88,6 +89,50 @@
     return newMax;
   }
 
+  // 本地隐藏字段：仅以修仙历年份记录最近一次境界变动。
+  // 新建 NPC / 旧档补齐仅设 null，不能把“首次出场”误记为突破。
+  function breakthroughYearOf(time) {
+    const year = finiteNumber(time && time.年);
+    return year == null ? null : Math.trunc(year);
+  }
+
+  function realmName(character) {
+    return String(character && character.修炼进度 && character.修炼进度.境界 || "").trim();
+  }
+
+  // 此事件同时给出更新前后的 MVU 数据；在此刻比较，才不会因核验脚本延后执行而丢失旧境界。
+  function recordBreakthroughTimepoint(nextCharacter, previousCharacter, year) {
+    if (!nextCharacter || typeof nextCharacter !== "object") return;
+    if (!nextCharacter.修炼进度 || typeof nextCharacter.修炼进度 !== "object") nextCharacter.修炼进度 = {};
+    const previousRealm = realmName(previousCharacter);
+    const nextRealm = realmName(nextCharacter);
+    if (previousRealm && nextRealm && previousRealm !== nextRealm && year != null) {
+      nextCharacter.修炼进度.上次突破时间点 = year;
+      return;
+    }
+    const previousYear = finiteNumber(previousCharacter && previousCharacter.修炼进度 && previousCharacter.修炼进度.上次突破时间点);
+    // AI 看不到此字段；若其完整覆盖角色对象，恢复本地历史。新角色一律以 null 建立基线。
+    nextCharacter.修炼进度.上次突破时间点 = previousYear == null ? null : Math.trunc(previousYear);
+  }
+
+  function recordBreakthroughTimepoints(newVariables, oldVariables) {
+    const nextData = _.get(newVariables, "stat_data");
+    const previousData = _.get(oldVariables, "stat_data");
+    const nextRelations = nextData && nextData.关系列表;
+    const previousRelations = previousData && previousData.关系列表;
+    if (!nextData || typeof nextData !== "object") return;
+    const year = breakthroughYearOf(nextData.时间);
+    recordBreakthroughTimepoint(nextData, previousData, year);
+    if (!nextRelations || typeof nextRelations !== "object") return;
+
+    for (const name of Object.keys(nextRelations)) {
+      const nextNpc = nextRelations[name];
+      if (!nextNpc || nextNpc.类型 !== "人物") continue;
+      const previousNpc = previousRelations && previousRelations[name];
+      recordBreakthroughTimepoint(nextNpc, previousNpc && previousNpc.类型 === "人物" ? previousNpc : null, year);
+    }
+  }
+
   function setIfChanged(target, key, value) {
     if (Object.is(target[key], value)) return false;
     target[key] = value;
@@ -162,6 +207,11 @@
     const rawYear = finiteNumber(sd.时间 && sd.时间.年);
     const currentYear = rawYear == null ? null : Math.trunc(rawYear);
     let changed = verifyCharacter(sd, currentYear);
+    if (!sd.修炼进度 || typeof sd.修炼进度 !== "object") sd.修炼进度 = {};
+    if (!("上次突破时间点" in sd.修炼进度)) {
+      sd.修炼进度.上次突破时间点 = null;
+      changed = true;
+    }
 
     // 保留原功能：主角首次补齐性器。
     if (isFemale(sd.体质) && _.isEmpty(sd.性器)) {
@@ -173,6 +223,11 @@
     for (const name of Object.keys(relations)) {
       const npc = relations[name];
       if (!npc || npc.类型 !== "人物") continue;
+      if (!npc.修炼进度 || typeof npc.修炼进度 !== "object") npc.修炼进度 = {};
+      if (!("上次突破时间点" in npc.修炼进度)) {
+        npc.修炼进度.上次突破时间点 = null;
+        changed = true;
+      }
       changed = verifyCharacter(npc, currentYear) || changed;
       // 原性器逻辑仍只作用于在场女性 NPC。
       if (npc.在场 && isFemale(npc.体质) && _.isEmpty(npc.性器)) {
@@ -221,7 +276,10 @@
     timer = setTimeout(verifyMvu, 160);
   }
   if (typeof eventOn === "function") {
-    eventOn("mag_variable_update_ended", schedule);
+    eventOn("mag_variable_update_ended", (newVariables, oldVariables) => {
+      recordBreakthroughTimepoints(newVariables, oldVariables);
+      schedule();
+    });
     if (typeof tavern_events === "object" && tavern_events) {
       if (tavern_events.MESSAGE_RECEIVED) eventOn(tavern_events.MESSAGE_RECEIVED, schedule);
       if (tavern_events.CHAT_CHANGED) eventOn(tavern_events.CHAT_CHANGED, schedule);

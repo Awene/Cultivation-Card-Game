@@ -217,9 +217,11 @@ const PhysiqueSchema = z
   .prefault({ 名称: "凡体", 悟性: 0, 根骨: 0, 气感: 0, 元阴: null, 元阳: null });
 
 // ===== 修炼进度 Schema =====
-const CultivationProgressSchema = z
+const CultivationProgressFieldsSchema = z
   .object({
     境界: z.string().prefault("凡人"),
+    // 本地隐藏字段：主角与 NPC 均由 MVU 核验脚本在境界变动时写入，单位为修仙历年份。
+    上次突破时间点: z.coerce.number().int().nullable().prefault(null),
     当前进度: z.coerce
       .number()
       .transform((n) => _.clamp(n, 0, Infinity))
@@ -236,8 +238,11 @@ const CultivationProgressSchema = z
       .number()
       .transform((n) => _.clamp(n, 0, Infinity))
       .prefault(0),
-  })
-  .prefault({ 境界: "凡人", 当前进度: 0, 进度上限: 100, 天谴: 0, 丹毒: 0 });
+  });
+
+const CultivationProgressSchema = CultivationProgressFieldsSchema.prefault({
+  境界: "凡人", 上次突破时间点: null, 当前进度: 0, 进度上限: 100, 天谴: 0, 丹毒: 0,
+});
 
 // ===== 技艺 Schema =====
 const SkillSchema = z
@@ -541,6 +546,23 @@ const TimeSchema = z
   })
   .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" });
 
+// ===== 固定资产 Schema (仅主角根级持有) =====
+// 所属人物仅保存姓名数组；人物详细资料仍统一维护在关系列表，避免双处存储发生冲突。
+// 所在地复用 LocationSchema；上次收取日期复用 TimeSchema，null 表示从未收取。
+const AssetFacilitySchema = z.object({
+  效果: StringRecordSchema,
+  每月产出: z.string().prefault("无"),
+  上次收取日期: TimeSchema.nullable().prefault(null),
+});
+const FixedAssetSchema = z.object({
+  类型: z.enum(["宗门", "店铺", "洞府"]),
+  人员规模: z.coerce.number().int().transform((n) => _.clamp(n, 0, Infinity)).prefault(0),
+  所在地: LocationSchema,
+  现状: z.string().prefault("正常"),
+  设施: z.record(z.string(), AssetFacilitySchema).prefault({}),
+  所属人物: StringArraySchema,
+});
+
 // ===== 剧情事件 Schema =====
 // 事件字段早已存在于初始变量与更新规则中；此前漏注册到主 Schema，导致合法事件命令
 // 会被路径白名单或 Zod 校验误判为未知字段。
@@ -590,6 +612,7 @@ export const Schema = z.object({
   修炼进度: CultivationProgressSchema,
   技艺: SkillSchema,
   资源池: ResourcePoolSchema,
+  固定资产: z.record(z.string(), FixedAssetSchema).prefault({}),
   地点: LocationSchema,
   时间: TimeSchema,
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
@@ -632,7 +655,7 @@ const NPC_FIELDS = new Set([
 const PHYSIQUE_FIELDS = new Set(["名称", "效果", "悟性", "根骨", "气感", "元阴", "元阳"]);
 const SPIRITUAL_ROOT_FIELDS = new Set(["名称", "五行", "品阶"]);
 const LIFESPAN_FIELDS = new Set(["生日", "冥族停龄", "年龄", "寿命", "外观年龄"]);
-const CULTIVATION_PROGRESS_FIELDS = new Set(["境界", "当前进度", "进度上限", "天谴", "丹毒"]);
+const CULTIVATION_PROGRESS_FIELDS = new Set(["境界", "上次突破时间点", "当前进度", "进度上限", "天谴", "丹毒"]);
 const STATUS_EFFECT_FIELDS = new Set(["类型", "效果", "层数", "剩余时间", "来源"]);
 const CULTIVATION_ART_FIELDS = new Set([
   "使用中", "品质", "境界", "五行", "类型", "消耗", "标签", "效果", "描述",
@@ -643,6 +666,8 @@ const ITEM_FIELDS = new Set([
 const EQUIPMENT_FIELDS = new Set([
   "品质", "境界", "类型", "消耗", "五行", "标签", "效果", "描述", "位置",
 ]);
+const FIXED_ASSET_FIELDS = new Set(["类型", "人员规模", "所在地", "现状", "设施", "所属人物"]);
+const ASSET_FACILITY_FIELDS = new Set(["效果", "每月产出", "上次收取日期"]);
 const COMBAT_UNIT_FIELDS = new Set([
   "使用中", "品质", "境界", "五行", "标签", "描述", "资源池", "防御力", "技能",
 ]);
@@ -682,6 +707,14 @@ function sanitizeChildRecord(map, fieldset) {
     }
   }
   return map;
+}
+
+function sanitizeFixedAsset(asset) {
+  if (!asset || typeof asset !== "object" || Array.isArray(asset)) return asset;
+  const cleaned = pickFields(asset, FIXED_ASSET_FIELDS);
+  sanitizeChildRecord(cleaned.设施, ASSET_FACILITY_FIELDS);
+  if ("所属人物" in cleaned) cleaned.所属人物 = normalizeStringArray(cleaned.所属人物);
+  return cleaned;
 }
 
 // 清洗 "关系列表/人物" 条目(原地修改并返回);
@@ -828,14 +861,14 @@ function tryParseValue(t) {
 // 全部合法顶级键 (与 Schema z.object 内字段名一致); 任一段命中即认为是真正的根入口
 const ALL_TOP_LEVEL_KEYS = new Set([
   "姓名", "寿元", "种族", "身份", "灵根", "体质", "修炼进度",
-  "性器", "技艺", "资源池", "地点", "时间", "状态效果", "功法",
+  "性器", "技艺", "资源池", "固定资产", "地点", "时间", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
   "关系列表", "事件", "传闻",
 ]);
 
-// 这 4 个键在 schema 中只在顶级出现, NPC 子结构、record 内都不含;
+// 这些键在 schema 中只在顶级出现, NPC 子结构、record 内都不含;
 // 出现在路径中段必然是错误嵌套 (例 /状态效果/时间/年).
-const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "地点", "时间", "事件", "传闻"]);
+const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "固定资产", "地点", "时间", "事件", "传闻"]);
 
 // 这些字段在合法存档中必为容器。旧存档、初始化被截断或其他脚本误删字段时，
 // MVU 会因为父级不存在而拒绝本来可以理解的 insert。这里只恢复 Schema 明确定义的
@@ -856,6 +889,7 @@ const TOP_LEVEL_CONTAINER_DEFAULTS = {
     灵气: { 现值: 100, 上限: 100 },
     遁速: 10,
   },
+  固定资产: {},
   地点: { 世界: "凡界", 地域: "中原", 具体地点: "荒野" },
   时间: { 年: 1, 月: 1, 日: 1, 时辰: "午时" },
   状态效果: {},
@@ -1081,6 +1115,12 @@ function jsonPatchPreprocessor(_variables, commands) {
         normalizeTagsDeep(cleaned);
         cmd.args[i] = cleaned;
       }
+    }
+    // 固定资产以“完整资产对象”新增；单独按路径处理，避免与 NPC 的递归识别混淆。
+    const segments = splitPath(cmd.args[0]);
+    if (segments[0] === "固定资产" && cmd.type === "insert" && cmd.args.length >= 3) {
+      const value = tryParseValue(cmd.args.at(-1));
+      if (value && typeof value === "object") cmd.args[cmd.args.length - 1] = sanitizeFixedAsset(value);
     }
   }
   dropHarmlessMissingDeletes(_variables, commands);

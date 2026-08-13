@@ -98,6 +98,7 @@ await timers.shift()();
 
 const stat = variables.stat_data;
 assert.deepEqual({ 生日: stat.寿元.生日, 年龄: stat.寿元.年龄 }, { 生日: 7004, 年龄: 16 });
+assert.equal(stat.修炼进度.上次突破时间点, null, '主角首次补齐仅建立突破时间基线');
 assert.deepEqual(plain(stat.资源池.气血), { 现值: 158, 上限: 316 });
 assert.deepEqual(plain(stat.资源池.灵气), { 现值: 238, 上限: 475 });
 assert.deepEqual({ 生日: stat.关系列表.甲.寿元.生日, 年龄: stat.关系列表.甲.寿元.年龄 }, { 生日: 6990, 年龄: 30 });
@@ -115,9 +116,42 @@ assert.deepEqual(
 assert.deepEqual(plain(stat.关系列表.冥族甲.资源池.气血), { 现值: 20, 上限: 20 }, '冥族仍应核验资源');
 assert.equal(writes, 1);
 
+// 新增 NPC 仅补隐藏字段的空基线，不能把首次出场判作突破。
+const beforeNewNpc = structuredClone(variables);
+variables.stat_data.关系列表.新人物 = {
+  类型: '人物',
+  在场: true,
+  寿元: { 年龄: 19 },
+  修炼进度: { 境界: '炼气初期' },
+  体质: { 根骨: 1, 气感: 1 },
+  资源池: { 气血: { 现值: 10, 上限: 10 }, 灵气: { 现值: 10, 上限: 10 } },
+};
+events.get('mag_variable_update_ended')(variables, beforeNewNpc);
+await timers.shift()();
+assert.equal(variables.stat_data.关系列表.新人物.修炼进度.上次突破时间点, null);
+
+// 既有 NPC 的境界变化只记录同回合的年份。
+const beforeBreakthrough = structuredClone(variables);
+variables.stat_data.时间 = { 年: 7022, 月: 4, 日: 9, 时辰: '酉时' };
+variables.stat_data.关系列表.甲.修炼进度.境界 = '筑基初期';
+events.get('mag_variable_update_ended')(variables, beforeBreakthrough);
+await timers.shift()();
+assert.deepEqual(
+  plain(variables.stat_data.关系列表.甲.修炼进度.上次突破时间点),
+  7022,
+);
+
+// 主角同样记录境界变化年份。
+const beforeUserBreakthrough = structuredClone(variables);
+variables.stat_data.时间.年 = 7023;
+variables.stat_data.修炼进度.境界 = '筑基后期';
+events.get('mag_variable_update_ended')(variables, beforeUserBreakthrough);
+await timers.shift()();
+assert.equal(variables.stat_data.修炼进度.上次突破时间点, 7023);
+
 events.get('mag_variable_update_ended')();
 await timers.shift()();
-assert.equal(writes, 1, '数据已正确时不得重复写入');
+assert.equal(writes, 4, '数据已正确时不得重复写入');
 
 variables.stat_data.时间.年 = 7030;
 variables.stat_data.关系列表.冥族甲.种族 = '人族';
