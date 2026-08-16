@@ -6,7 +6,7 @@
     "enabled": true,
     "cotSeparator": "</think>",
     "historyCount": 4,
-    "stripTags": "StatusPlaceHolderImpl,disclaimer,UpdateVariable,options",
+    "stripTags": "think,thinking,StatusPlaceHolderImpl,disclaimer,UpdateVariable,options",
     "cacheSize": 5,
     "requestTimeoutSec": 30,
     "extraApiMode": "skip"

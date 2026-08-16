@@ -1,7 +1,7 @@
 ---
 预输出格式标签顺序:
 ...
-</think>
+<%- getvar('cot尾') %>
 <now_plot>
 <gametxt>
 <tp>

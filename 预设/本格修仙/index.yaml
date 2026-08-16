@@ -579,14 +579,16 @@
     角色: 系统
     内容: |-
       {{//
-      【模型使用说明 · 下方三个开关三选一，开一个、关另外两个】
+      【模型使用说明 · 下方四个模型开关四选一，只开一个】
 
-      Gemini：开 ⚓️Gemini开，默认配置即可。
+      Gemini 3.1 Pro：开 ⚓️Gemini3.1p开，使用原有 assistant 预填与 <think> 构思。
+
+      Gemini 3.7 Flash：开 ⚓️Gemini3.7F开，关闭 ⚓️Gemini3.1p开；使用 user 角色桥接与 <thinking> 构思。建议在 API 设置中将原生推理强度设为最低，并保持“请求思维链”关闭。
 
       Claude：开 ⚓️Claude开，默认即可；若遇截断/不稳定，可打开“🛟防截断”类条目。
 
       Deepseek：开 ⚓️DS开。
-      ⚠️ 本预设重度脚本化(11步 <think> + 状态栏面板)，须关闭 DS 原生思维链，否则会顶掉格式：
+      ⚠️ 本预设重度脚本化(12步思考 + 状态栏面板)，须关闭 DS 原生思维链，否则会顶掉格式：
       酒馆插件 API 设置选“自定义”，填 URL https://api.deepseek.com 与密钥；
       “附加参数(包括主体参数)”中填入 {"thinking":{"type":"disabled"}}；
       关闭后 DS 走本预设脚本化 <think>，行为与 Gemini 一致。
@@ -594,26 +596,33 @@
       缓存：默认静态前缀(命中缓存、省 token)；需硬重置/破甲时，把“缓存”变量设为“重置”的那一楼。
       }}
 
-  - 名称: ⚓️Gemini开
+  - 名称: ⚓️Gemini3.1p开
     启用: true
     插入位置:
       类型: 相对
     角色: AI
-    文件: 条目\⚓️Gemini开
+    文件: 条目\⚓️Gemini3.1p开
+
+  - 名称: ⚓️Gemini3.7F开
+    启用: false
+    插入位置:
+      类型: 相对
+    角色: 用户
+    文件: 条目\⚓️Gemini3.7F开
 
   - 名称: ⚓️Claude开
     启用: false
     插入位置:
       类型: 相对
     角色: AI
-    内容: "{{setvar::ai模型::Claude}}"
+    内容: "{{setvar::ai模型::Claude}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}"
 
   - 名称: ⚓️DS开
     启用: false
     插入位置:
       类型: 相对
     角色: AI
-    内容: "{{setvar::ai模型::Deepseek}}"
+    内容: "{{setvar::ai模型::Deepseek}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}"
 
   - 名称: ⚓️拷打模式(Gemini)
     启用: false
@@ -768,11 +777,11 @@
       alse,\"enable_stop_string\":false},\"RegexBinding\":{\"regexes\":[{\"id\":\
       \"27cb54ca-593d-48f2-ac5c-035c7b3e88f0\",\"scriptName\":\"k3.3思维链转义标签1\",\
       \"disabled\":false,\"runOnEdit\":false,\"findRegex\":\"/<([\\\\s\\\\S]*?)\
-      >(?=[\\\\s\\\\S]*?<\\\\/think>)/g\",\"trimStrings\":[],\"replaceString\":\
+      >(?=[\\\\s\\\\S]*?<\\\\/think(?:ing)?>)/g\",\"trimStrings\":[],\"replaceString\":\
       \"$1\",\"placement\":[2],\"substituteRegex\":0,\"minDepth\":null,\"maxDep\
       th\":null,\"markdownOnly\":true,\"promptOnly\":false},{\"id\":\"53ead7d0-\
       8d20-4979-b4dd-e84703d054ed\",\"scriptName\":\"思维链美化\",\"disabled\":false,\
-      \"runOnEdit\":false,\"findRegex\":\"/([\\\\s\\\\S]*?)<\\\\/think>/gi\",\"\
+      \"runOnEdit\":false,\"findRegex\":\"/([\\\\s\\\\S]*?)<\\\\/think(?:ing)?>/gi\",\"\
       trimStrings\":[],\"replaceString\":\"```\\n<body>\\n<style>\\n  /* —— 思维链
       折叠卡片:与正文美化的 .action-panel/.char-panel 等保持同一视觉语言 —— */\\n  .cot-collapse
       {\\n    --cot-accent: #b794f4;\\n    position: relative;\\n    margin:
@@ -968,11 +977,11 @@
       alse,\"enable_stop_string\":false},\"RegexBinding\":{\"regexes\":[{\"id\":\
       \"27cb54ca-593d-48f2-ac5c-035c7b3e88f0\",\"scriptName\":\"k3.3思维链转义标签1\",\
       \"disabled\":false,\"runOnEdit\":false,\"findRegex\":\"/<([\\\\s\\\\S]*?)\
-      >(?=[\\\\s\\\\S]*?<\\\\/think>)/g\",\"trimStrings\":[],\"replaceString\":\
+      >(?=[\\\\s\\\\S]*?<\\\\/think(?:ing)?>)/g\",\"trimStrings\":[],\"replaceString\":\
       \"$1\",\"placement\":[2],\"substituteRegex\":0,\"minDepth\":null,\"maxDep\
       th\":null,\"markdownOnly\":true,\"promptOnly\":false},{\"id\":\"53ead7d0-\
       8d20-4979-b4dd-e84703d054ed\",\"scriptName\":\"思维链美化\",\"disabled\":false,\
-      \"runOnEdit\":false,\"findRegex\":\"/([\\\\s\\\\S]*?)<\\\\/think>/gi\",\"\
+      \"runOnEdit\":false,\"findRegex\":\"/([\\\\s\\\\S]*?)<\\\\/think(?:ing)?>/gi\",\"\
       trimStrings\":[],\"replaceString\":\"```\\n<body>\\n<style>\\n  /* —— 思维链
       折叠卡片:与正文美化的 .action-panel/.char-panel 等保持同一视觉语言 —— */\\n  .cot-collapse
       {\\n    --cot-accent: #b794f4;\\n    position: relative;\\n    margin:
@@ -1158,7 +1167,7 @@
     - 正则名称: k3.3思维链转义标签1
       id: 27cb54ca-593d-48f2-ac5c-035c7b3e88f0
       启用: true
-      查找表达式: /<([\s\S]*?)>(?=[\s\S]*?<\/think>)/g
+      查找表达式: /<([\s\S]*?)>(?=[\s\S]*?<\/think(?:ing)?>)/g
       内容: $1
       来源:
         用户输入: false
@@ -1170,7 +1179,7 @@
     - 正则名称: 思维链美化
       id: 53ead7d0-8d20-4979-b4dd-e84703d054ed
       启用: true
-      查找表达式: /([\s\S]*?)<\/think>/gi
+      查找表达式: /([\s\S]*?)<\/think(?:ing)?>/gi
       文件: 正则\思维链美化
       来源:
         用户输入: false
@@ -1541,7 +1550,7 @@
           scriptName: k3.3思维链转义标签1
           禁用: false
           runOnEdit: false
-          findRegex: /<([\s\S]*?)>(?=[\s\S]*?<\/think>)/g
+          findRegex: /<([\s\S]*?)>(?=[\s\S]*?<\/think(?:ing)?>)/g
           trimStrings: []
           replaceString: $1
           placement:
@@ -1555,7 +1564,7 @@
           scriptName: 思维链美化
           禁用: false
           runOnEdit: false
-          findRegex: /([\s\S]*?)<\/think>/gi
+          findRegex: /([\s\S]*?)<\/think(?:ing)?>/gi
           trimStrings: []
           replaceString: |
             ```

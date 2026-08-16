@@ -6,7 +6,7 @@
       const payloadHost = document.getElementById('rbPayload');
       const payload = payloadHost ? payloadHost.innerHTML : '';
       window.__rb_content_payload = payload;
-      window.__rb_asset_base = 'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.53/dist';
+      window.__rb_asset_base = 'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.54/dist';
 
       const showRawFallback = message => {
         document.body.innerHTML = '';
@@ -25,7 +25,7 @@
         return;
       }
 
-      $('body').load('https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.53/dist/正文美化/index.html', function (_response, status) {
+      $('body').load('https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.54/dist/正文美化/index.html', function (_response, status) {
         if (status === 'error') showRawFallback('正文美化加载失败，已回退显示原始正文。');
       });
     })();

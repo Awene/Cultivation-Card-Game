@@ -1,12 +1,12 @@
 <%_{if (getvar('ai模型') != 'Gemini' && getvar('ai模型') != 'Deepseek'){_%>
 <think_format>
 Before formally generating the main content, you must conduct the following thinking process.
-Thinking content must be enclosed in <think> </think> tags.
+Thinking content must be enclosed in <%- getvar('cot头') %> <%- getvar('cot尾') %> tags.
 Chain of Thought Language: **中文**
-Thinking Budget: {{getvar::思维预算c}}
-Prohibited: <think> must NOT contain the <!-- ... --> thinking content from <rules>, and must NOT insert panels; the correct insertion position is within <gametxt>.
+Thinking Budget: <%- getvar('思维预算c') %>
+Prohibited: <%- getvar('cot头') %> must NOT contain the <!-- ... --> thinking content from <rules>, and must NOT insert panels; the correct insertion position is within <gametxt>.
 Requirements: Strictly follow the prescribed step sequence; Recorder must not alter, add, omit, or skip any step, must not reduce the budget word count, and must not think about prohibited topics.
-<think>{{getvar::身份c}}
+<%- getvar('cot头') %>{{getvar::身份c}}
 Step 0: Thinking Requirements Review
 - Budget
 - Prohibited topics
@@ -83,17 +83,17 @@ Step 11: Style Design
 - Review <base_writing_guidance> and <Writing_style>: how to design the writing style?{{getvar::文学c}}{{getvar::书籍参考c}}
 - Trigger:{{getvar::sex_c}}
 
-</think>
+<%- getvar('cot尾') %>
 </think_format>
 <%_}else{_%>
 <think_format>
 在正式创作正文前，你需要进行以下思考
-思考内容需要使用<think> </think>包裹
+思考内容需要使用<%- getvar('cot头') %> <%- getvar('cot尾') %>包裹
 思维链语言: 中文
-思维链预算: {{getvar::思维预算g}}
-禁止: <think>中禁止包含<rules>规则的<!-- ... -->思考内容,禁止插入面板；正确的插入位置是<gametxt>中
+思维链预算: <%- getvar('思维预算g') %>
+禁止: <%- getvar('cot头') %>中禁止包含<rules>规则的<!-- ... -->思考内容,禁止插入面板；正确的插入位置是<gametxt>中
 要求: 必须按照规定思考步数推进，Recorder不得改变、增添、减少或回避思考步数，不得减少思维预算字数，不得思考禁止思考内容
-<think>{{getvar::身份g}}
+<%- getvar('cot头') %>{{getvar::身份g}}
 Step 0: 思维要求回顾
 - 预算
 - 禁止思考内容
@@ -169,6 +169,6 @@ Step 11:文风设计
 - 回顾<base_writing_guidance>与<Writing_style>如何进行文风设计？{{getvar::文学g}}{{getvar::书籍参考g}}
 - 触发:{{getvar::sex_g}}
 
-</think>
+<%- getvar('cot尾') %>
 </think_format>
 <%_}}_%>

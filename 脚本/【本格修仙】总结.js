@@ -116,6 +116,15 @@ const BUILTIN_PROMPTS = [
   'dialogue_examples',
 ];
 
+const LEGACY_SUMMARY_INSTRUCTION =
+  '我会根据以上聊天内容，按照<summary_rules>进行总结。只总结新的聊天消息内容，不包含任何html内容，生成本次的总结:';
+const SUMMARY_INSTRUCTION =
+  '请根据以上聊天内容，按照<summary_rules>进行总结。只总结新的聊天消息内容，不包含任何html内容；直接生成本次总结。';
+const LEGACY_MEGA_SUMMARY_INSTRUCTION =
+  '我会根据以上内容，按照<mega_summary_rules>进行整合。将所有记录合并为一份连贯精炼的记录，不包含任何html内容，生成整合后的记录:';
+const MEGA_SUMMARY_INSTRUCTION =
+  '请根据以上内容，按照<mega_summary_rules>进行整合。将所有记录合并为一份连贯精炼的记录，不包含任何html内容；直接生成整合后的记录。';
+
 const generateBlockId = () =>
   `custom_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -228,9 +237,8 @@ const DEFAULT_PROMPT_BLOCKS = [
     id: 'summary_instruction',
     type: BLOCK_TYPES.PROMPT,
     name: '总结指令',
-    role: 'assistant',
-    content:
-      '我会根据以上聊天内容，按照<summary_rules>进行总结。只总结新的聊天消息内容，不包含任何html内容，生成本次的总结:',
+    role: 'user',
+    content: SUMMARY_INSTRUCTION,
     enabled: true,
   },
 ];
@@ -335,9 +343,8 @@ const DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS = [
     id: 'mega_summary_instruction',
     type: BLOCK_TYPES.PROMPT,
     name: '大总结指令',
-    role: 'assistant',
-    content:
-      '我会根据以上内容，按照<mega_summary_rules>进行整合。将所有记录合并为一份连贯精炼的记录，不包含任何html内容，生成整合后的记录:',
+    role: 'user',
+    content: MEGA_SUMMARY_INSTRUCTION,
     enabled: true,
   },
 ];
@@ -351,7 +358,7 @@ const DEFAULT_SETTINGS = {
   temperature: 1,
   maxTokens: 32000,
   includeTags: ['tp', 'gametxt'],
-  excludeTags: ['think'],
+  excludeTags: ['think', 'thinking'],
   excludeHtmlComments: true,
   triggerFloorCount: 30,
   keepFloorCount: 10,
@@ -520,6 +527,46 @@ const settingsWithoutCustomApiKey = (settings) => {
   return safeSettings;
 };
 
+const migrateAssistantPrefillBlocks = (blocks) => {
+  if (!Array.isArray(blocks)) return blocks;
+  const migrateRole = (role) =>
+    role === 'assistant' || role === 'model' || role === 'AI' ? 'user' : role;
+  return blocks.map((block) => {
+    if (!block || typeof block !== 'object') return block;
+    if (block.id === 'summary_instruction') {
+      return {
+        ...block,
+        role: migrateRole(block.role),
+        content:
+          block.content === LEGACY_SUMMARY_INSTRUCTION
+            ? SUMMARY_INSTRUCTION
+            : block.content,
+      };
+    }
+    if (block.id === 'mega_summary_instruction') {
+      return {
+        ...block,
+        role: migrateRole(block.role),
+        content:
+          block.content === LEGACY_MEGA_SUMMARY_INSTRUCTION
+            ? MEGA_SUMMARY_INSTRUCTION
+            : block.content,
+      };
+    }
+    return block;
+  });
+};
+
+const migrateThoughtTagFilters = (tags) => {
+  if (!Array.isArray(tags)) return tags;
+  const normalized = new Set(tags.map((tag) => String(tag).trim().toLowerCase()));
+  if (!normalized.has('think') && !normalized.has('thinking')) return tags;
+  const migrated = [...tags];
+  if (!normalized.has('think')) migrated.push('think');
+  if (!normalized.has('thinking')) migrated.push('thinking');
+  return migrated;
+};
+
 const migrateOldSettings = (raw) => {
   // 迁移 temperature 和 maxTokens 的默认值（v2.6+）
   if (raw.temperature === 'same_as_preset') {
@@ -528,7 +575,11 @@ const migrateOldSettings = (raw) => {
   if (raw.maxTokens === 'same_as_preset') {
     raw.maxTokens = 32000;
   }
-  
+
+  raw.promptBlocks = migrateAssistantPrefillBlocks(raw.promptBlocks);
+  raw.megaPromptBlocks = migrateAssistantPrefillBlocks(raw.megaPromptBlocks);
+  raw.excludeTags = migrateThoughtTagFilters(raw.excludeTags);
+
   if (Array.isArray(raw.promptBlocks) && raw.promptBlocks.length > 0) return raw;
   const blocks = DEFAULT_PROMPT_BLOCKS.map((b) => ({ ...b }));
   for (const block of blocks) {
@@ -551,7 +602,7 @@ const migrateOldSettings = (raw) => {
       if (raw.summaryInstructionRole) block.role = raw.summaryInstructionRole;
     }
   }
-  raw.promptBlocks = blocks;
+  raw.promptBlocks = migrateAssistantPrefillBlocks(blocks);
   delete raw.jailbreakPrompt;
   delete raw.jailbreakRole;
   delete raw.summaryRulesPrompt;
@@ -594,7 +645,10 @@ const loadSettings = errorCatched(async () => {
       // 兼容旧卡：首次加载时把脚本变量里的明文 Key 搬到本机，并立刻清除可导出副本。
       const legacyApiKey = typeof raw.customApiKey === 'string' ? raw.customApiKey.trim() : '';
       if (legacyApiKey) writeLocalCustomApiKey(legacyApiKey);
-      const migrated = migrateOldSettings({ ...raw, customApiKey: '' });
+      const rawForMigration = { ...raw, customApiKey: '' };
+      const beforeMigration = JSON.stringify(rawForMigration);
+      const migrated = migrateOldSettings(rawForMigration);
+      const settingsMigrated = JSON.stringify(migrated) !== beforeMigration;
       _cachedSettings = {
         ...DEFAULT_SETTINGS,
         ...migrated,
@@ -606,7 +660,7 @@ const loadSettings = errorCatched(async () => {
         _cachedSettings.excludeTags = [...DEFAULT_SETTINGS.excludeTags];
       _cachedSettings.promptBlocks = validateBlocks(_cachedSettings.promptBlocks, DEFAULT_PROMPT_BLOCKS);
       _cachedSettings.megaPromptBlocks = validateBlocks(_cachedSettings.megaPromptBlocks, DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS);
-      if (legacyApiKey) {
+      if (legacyApiKey || settingsMigrated) {
         await insertOrAssignVariables(
           { [CONFIG.SETTINGS_VAR_KEY]: settingsWithoutCustomApiKey(_cachedSettings) },
           { type: 'script' }
@@ -3100,7 +3154,7 @@ const buildPanelHtml = (settings) => `
            <div class="sa-settings-pane" data-sub-pane="tags">
             <div class="sa-row"><span class="sa-label">提取标签</span><input class="sa-input" id="sa-include-tags" type="text" placeholder="tp, gametxt" value="${escapeHtml(tagsToString(settings.includeTags))}"></div>
             <div class="sa-hint">只提取这些标签内的内容发给AI。多个标签用逗号分隔。留空则发送完整消息。</div>
-            <div class="sa-row" style="margin-top:12px"><span class="sa-label">排除标签</span><input class="sa-input" id="sa-exclude-tags" type="text" placeholder="think, hidden" value="${escapeHtml(tagsToString(settings.excludeTags))}"></div>
+            <div class="sa-row" style="margin-top:12px"><span class="sa-label">排除标签</span><input class="sa-input" id="sa-exclude-tags" type="text" placeholder="think, thinking, hidden" value="${escapeHtml(tagsToString(settings.excludeTags))}"></div>
             <div class="sa-hint">排除这些标签内的内容。在提取之前执行。</div>
             <div class="sa-row" style="margin-top:12px">
               <label><input type="checkbox" id="sa-exclude-html-comments" ${settings.excludeHtmlComments !== false ? 'checked' : ''}> 隐藏HTML注释 (&lt;!-- ... --&gt;)</label>

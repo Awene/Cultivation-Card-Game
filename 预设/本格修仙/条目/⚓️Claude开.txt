@@ -1,1 +1,1 @@
-{{setvar::ai模型::Claude}}
+{{setvar::ai模型::Claude}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}

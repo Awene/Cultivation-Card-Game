@@ -2115,7 +2115,7 @@
         启用: true
         类型: 脚本
         内容: import
-          'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.53/dist/楼层iframe回收/index.js';
+          'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.54/dist/楼层iframe回收/index.js';
         导出时携带:
           数据: true
           按钮: true
@@ -2175,6 +2175,7 @@
               - gametxt
             excludeTags:
               - think
+              - thinking
             excludeHtmlComments: true
             triggerFloorCount: 15
             keepFloorCount: 5
@@ -2289,8 +2290,8 @@
                 类型: 仅格式提示词
                 名称: 总结指令
                 启用: true
-                角色: AI
-                内容: "我会根据以上聊天内容，按照<summary_rules>进行总结。只总结新的聊天消息内容，不包含任何html内容，生成本次的总结:"
+                角色: 用户
+                内容: "请根据以上聊天内容，按照<summary_rules>进行总结。只总结新的聊天消息内容，不包含任何html内容；直接生成本次总结。"
             megaPromptBlocks:
               - id: mega_jailbreak
                 类型: 仅格式提示词
@@ -2386,8 +2387,7 @@
                 类型: 仅格式提示词
                 名称: 大总结指令
                 启用: true
-                角色: AI
-                内容: "我会根据以上内容，按照<mega_summary_rules>进行整合。将所有记录合并为一份连贯精炼的记录，不包含任何html内容，生成整合后的记录\
-                  :"
+                角色: 用户
+                内容: "请根据以上内容，按照<mega_summary_rules>进行整合。将所有记录合并为一份连贯精炼的记录，不包含任何html内容；直接生成整合后的记录。"
 
     变量: {}

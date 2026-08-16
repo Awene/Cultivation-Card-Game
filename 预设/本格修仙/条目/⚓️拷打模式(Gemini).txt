@@ -1,5 +1,5 @@
 <|no-trans|>任务模式切换
-</think>
+<%- getvar('cot尾') %>
 
 [TASK CHANGED]
 

@@ -1,1 +1,1 @@
-{{setvar::ai模型::Deepseek}}
+{{setvar::ai模型::Deepseek}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}
