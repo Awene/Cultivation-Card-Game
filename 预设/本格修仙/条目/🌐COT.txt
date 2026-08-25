@@ -42,6 +42,7 @@ const _txt = [
   ['[领悟规则]', '领悟: <user> 研读秘籍/参悟阵图/观摩石碑/接受传功'],
   ['[角色生成规则]', '角色生成: hostile/friendly NPC first appearance / ownerless 灵兽 first appearance → <!-- ... --><char_info> (人物) or <!-- ... --><item_info> (灵兽/傀儡)'],
   ['[物品功法生成规则]', '物品展示: purchase/auction/loot inventory/production completion/material discovery/comprehension-generated 功法... → multiple <!-- ... --><item_info>'],
+  ['[任务发布规则]', '任务发布: explicit commission / <user> views a task board / existing task status materially changes → <!-- ... --><task_info>'],
   ['[时间推进规则]', '时间推进: narrative span ≥ 1 year'],
 ].filter(r => _show(r[0])).map((r, i) => `  ${i + 1}. ${r[1]}`).join('\n');
 _%>
@@ -129,6 +130,7 @@ const _txt = [
   ['[领悟规则]', '领悟: <user>研读秘籍/参悟阵图/观摩石碑/接受传功'],
   ['[角色生成规则]', '角色生成: 敌友NPC首次登场 / 无主灵兽首次出现 → <!-- ... --><char_info>(人物) 或 <!-- ... --><item_info>(灵兽/傀儡)'],
   ['[物品功法生成规则]', '物品展示: 购买/拍卖/清点战利品/生产完成/发现素材/领悟生成功法... → 多个 <!-- ... --><item_info>'],
+  ['[任务发布规则]', '任务发布: 委托方提出具体委托 / <user>查看任务榜 / 既有任务状态实质变化 → <!-- ... --><task_info>'],
   ['[时间推进规则]', '时间推进: 叙事跨度≥1年'],
 ].filter(r => _show(r[0])).map((r, i) => `  ${i + 1}.${r[1]}`).join('\n');
 _%>

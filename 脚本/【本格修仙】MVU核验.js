@@ -4,6 +4,7 @@
  * - 主角与所有「人物」NPC 的气血/灵气上限，并按原百分比折算现值；
  * - 主角与所有「人物」NPC 的出生年份及年龄（年龄 = 当前年份 - 生日）；
  * - 主角与所有「人物」NPC 的上次突破时间点：仅当既有角色的境界字段实际变化时，记录当回合年份；
+ * - 为旧存档补齐任务根节点，保证后续 JSON Patch 可以直接写入任务；
  * - 保留原「性器随机」功能，仍只为主角和在场女性 NPC 首次补齐。
  * 角色"首次出场/生成"时,对女性(体质.元阴非null 且 体质.元阳==null)按其灵根五行随机
  * 抽取四类名器(口腔/屄穴/肛门/乳房),把名器"描述"写入 stat_data.性器(不写名器名)。
@@ -207,6 +208,10 @@
     const rawYear = finiteNumber(sd.时间 && sd.时间.年);
     const currentYear = rawYear == null ? null : Math.trunc(rawYear);
     let changed = verifyCharacter(sd, currentYear);
+    if (!sd.任务 || typeof sd.任务 !== "object" || Array.isArray(sd.任务)) {
+      sd.任务 = {};
+      changed = true;
+    }
     if (!sd.修炼进度 || typeof sd.修炼进度 !== "object") sd.修炼进度 = {};
     if (!("上次突破时间点" in sd.修炼进度)) {
       sd.修炼进度.上次突破时间点 = null;
@@ -226,6 +231,10 @@
       if (!npc.修炼进度 || typeof npc.修炼进度 !== "object") npc.修炼进度 = {};
       if (!("上次突破时间点" in npc.修炼进度)) {
         npc.修炼进度.上次突破时间点 = null;
+        changed = true;
+      }
+      if (typeof npc.关系 !== "string") {
+        npc.关系 = typeof npc.关系类型 === "string" ? npc.关系类型 : "";
         changed = true;
       }
       changed = verifyCharacter(npc, currentYear) || changed;

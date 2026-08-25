@@ -465,6 +465,7 @@ const NPCSchema = z.object({
     .number()
     .transform((n) => _.clamp(n, -100, 100))
     .prefault(0),
+  关系: z.string().prefault(""), // NPC 与 <user> 的当前双方关系，一句话描述
   // 细节可见(前端偏好, 默认true; false时变量输出EJS隐去该NPC的物品/功法/装备/傀儡/灵兽)
   细节可见: z.preprocess(normalizeBoolean, z.boolean().prefault(true)),
   // 性器(外部脚本按五行随机填充, AI只读不更新; key=口腔/屄穴/肛门/乳房, value=描述)
@@ -502,7 +503,15 @@ const WildBeastSchema = WildPuppetSchema.extend({
 // preprocess 仅做最低限度的"类型字段补全"以兼容老存档;
 // AI 新写入数据的全套清洗放在文末的 JSONPatch 预处理器里完成
 const RelationEntrySchema = z.preprocess(
-  (val) => (val && typeof val === "object" && !val.类型 ? { ...val, 类型: "人物" } : val),
+  (val) => {
+    if (!val || typeof val !== "object" || Array.isArray(val)) return val;
+    let normalized = val;
+    if (!normalized.类型) normalized = { ...normalized, 类型: "人物" };
+    if (normalized.类型 === "人物" && !("关系" in normalized) && typeof normalized.关系类型 === "string") {
+      normalized = { ...normalized, 关系: normalized.关系类型 };
+    }
+    return normalized;
+  },
   z.discriminatedUnion("类型", [NPCSchema, WildPuppetSchema, WildBeastSchema]),
 );
 
@@ -694,6 +703,20 @@ const FixedAssetsSchema = z.preprocess(
   z.record(z.string(), FixedAssetSchema),
 ).prefault({});
 
+// ===== 任务 Schema =====
+// 任务只保存尚未结束的条目；完成、失败或放弃后直接移除，不保留履历。
+const TaskSchema = z.object({
+  状态: z.enum(["进行中", "待结算"]).prefault("进行中"),
+  委托方: z.preprocess((input) => normalizeLooseString(input, "未知"), z.string()).prefault("未知"),
+  难度: z.preprocess((input) => normalizeLooseString(input, "未定"), z.string()).prefault("未定"),
+  目标: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  进展: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  奖励: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
+  交付: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
+  截止时间: AssetTimeSchema,
+});
+const TasksSchema = z.record(z.string(), TaskSchema).prefault({});
+
 // ===== 剧情事件 Schema =====
 // 事件字段早已存在于初始变量与更新规则中；此前漏注册到主 Schema，导致合法事件命令
 // 会被路径白名单或 Zod 校验误判为未知字段。
@@ -744,6 +767,7 @@ export const Schema = z.object({
   技艺: SkillSchema,
   资源池: ResourcePoolSchema,
   固定资产: FixedAssetsSchema,
+  任务: TasksSchema,
   地点: LocationSchema,
   时间: TimeSchema,
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
@@ -780,7 +804,7 @@ const NPC_FIELDS = new Set([
   "修炼进度", "寿元", "灵根", "体质",
   "技艺", "资源池", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
-  "性格", "外貌", "着装", "道侣", "好感度",
+  "性格", "外貌", "着装", "道侣", "好感度", "关系",
   "细节可见", "性器",
 ]);
 const PHYSIQUE_FIELDS = new Set(["名称", "效果", "悟性", "根骨", "气感", "元阴", "元阳"]);
@@ -859,6 +883,9 @@ function sanitizeNpcEntry(input) {
   // 1. 缺类型 → 默认 人物
   if (!input.类型) input.类型 = "人物";
   if (input.类型 !== "人物") return sanitizeWildEntry(input);
+
+  // 兼容旧脚本曾使用的“关系类型”；标准字段统一为“关系”。
+  if (!("关系" in input) && "关系类型" in input) input.关系 = input.关系类型;
 
   // 2. 顶层字段白名单过滤
   let npc = pickFields(input, NPC_FIELDS);
@@ -996,14 +1023,14 @@ function tryParseValue(t) {
 // 全部合法顶级键 (与 Schema z.object 内字段名一致); 任一段命中即认为是真正的根入口
 const ALL_TOP_LEVEL_KEYS = new Set([
   "姓名", "寿元", "种族", "身份", "灵根", "体质", "修炼进度",
-  "性器", "技艺", "资源池", "固定资产", "地点", "时间", "状态效果", "功法",
+  "性器", "技艺", "资源池", "固定资产", "任务", "地点", "时间", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
   "关系列表", "事件", "传闻",
 ]);
 
 // 这些键在 schema 中只在顶级出现, NPC 子结构、record 内都不含;
 // 出现在路径中段必然是错误嵌套 (例 /状态效果/时间/年).
-const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "固定资产", "地点", "时间", "事件", "传闻"]);
+const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "固定资产", "任务", "地点", "时间", "事件", "传闻"]);
 const TOP_LEVEL_KEY_ALIASES = { 资产: "固定资产", 不动产: "固定资产", 产业: "固定资产" };
 const FIXED_ASSET_KEY_ALIASES = {
   分类: "类型", 资产类型: "类型",
@@ -1044,6 +1071,7 @@ const TOP_LEVEL_CONTAINER_DEFAULTS = {
     遁速: 10,
   },
   固定资产: {},
+  任务: {},
   地点: { 世界: "凡界", 地域: "中原", 具体地点: "荒野" },
   时间: { 年: 1, 月: 1, 日: 1, 时辰: "午时" },
   状态效果: {},
