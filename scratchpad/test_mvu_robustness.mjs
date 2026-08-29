@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
-import lodash from "file:///D:/application/Tavern/mod/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/lodash/lodash.js";
-import YAML from "file:///D:/application/Tavern/mod/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/yaml/dist/index.js";
-import { z } from "file:///D:/application/Tavern/mod/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/zod/index.js";
+import lodash from "file:///D:/application/Tavern/settings/git/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/lodash/lodash.js";
+import YAML from "file:///D:/application/Tavern/settings/git/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/yaml/dist/index.js";
+import { z } from "file:///D:/application/Tavern/settings/git/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/zod/index.js";
 
 const sourcePath = new URL("../脚本/变量结构.js", import.meta.url);
 const handlers = new Map();
@@ -121,7 +121,7 @@ assert.equal(parsed.data.物品.白玉壶.品质, "黄", "品质俗称应映射�
 assert.deepEqual(parsed.data.物品.白玉壶.标签, ["借用:阮卿颜", "辅助修行"]);
 assert.deepEqual(parsed.data.物品.白玉壶.效果, { 说明: "孕育灵液" });
 assert.equal(parsed.data.物品["丹药.A/B"].数量, 2);
-assert.deepEqual(parsed.data.固定资产.百草阁.所属人物, ["苏绾", "林清雪"]);
+assert.deepEqual(parsed.data.固定资产.百草阁.分配人物, ["苏绾", "林清雪"], "旧版所属人物应迁移为分配人物");
 assert.equal(parsed.data.固定资产.百草阁.人员规模, 3);
 assert.deepEqual(parsed.data.固定资产.百草阁.所在地, {
   世界: "凡界",

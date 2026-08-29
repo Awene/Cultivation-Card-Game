@@ -570,7 +570,7 @@ const TimeSchema = z
   .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" });
 
 // ===== 固定资产 Schema (仅主角根级持有) =====
-// 所属人物仅保存姓名数组；人物详细资料仍统一维护在关系列表，避免双处存储发生冲突。
+// 分配人物仅保存实际在该资产工作的 NPC 姓名数组；人物详细资料仍统一维护在关系列表，避免双处存储发生冲突。
 // 所在地复用 LocationSchema；上次收取日期复用 TimeSchema，null 表示从未收取。
 function normalizeLooseString(input, fallback) {
   if (input === undefined || input === null) return fallback;
@@ -664,7 +664,8 @@ function normalizeFixedAsset(input) {
     所在地: input.所在地 ?? input.地址 ?? input.位置,
     现状: input.现状 ?? input.状态 ?? input.当前状态,
     设施: normalizeNamedRecord(input.设施 ?? input.建筑 ?? input.功能区, "新设施"),
-    所属人物: input.所属人物 ?? input.人员 ?? input.归属人物 ?? input.成员,
+    // “所属人物”为旧版正式字段：只在读入时兼容，解析后统一迁移为“分配人物”。
+    分配人物: input.分配人物 ?? input.所属人物 ?? input.工作人员 ?? input.工作者 ?? input.人员 ?? input.归属人物 ?? input.成员,
   };
 }
 
@@ -695,7 +696,7 @@ const FixedAssetSchema = z.preprocess(
     所在地: AssetLocationSchema,
     现状: z.preprocess((input) => normalizeLooseString(input, "正常"), z.string()).prefault("正常"),
     设施: z.preprocess((input) => normalizeNamedRecord(input, "新设施"), z.record(z.string(), AssetFacilitySchema)).prefault({}),
-    所属人物: StringArraySchema,
+    分配人物: StringArraySchema,
   }),
 );
 const FixedAssetsSchema = z.preprocess(
@@ -821,7 +822,7 @@ const ITEM_FIELDS = new Set([
 const EQUIPMENT_FIELDS = new Set([
   "品质", "境界", "类型", "消耗", "五行", "标签", "效果", "描述", "位置",
 ]);
-const FIXED_ASSET_FIELDS = new Set(["类型", "人员规模", "所在地", "现状", "设施", "所属人物"]);
+const FIXED_ASSET_FIELDS = new Set(["类型", "人员规模", "所在地", "现状", "设施", "分配人物"]);
 const ASSET_FACILITY_FIELDS = new Set(["效果", "每月产出", "上次收取日期"]);
 const COMBAT_UNIT_FIELDS = new Set([
   "使用中", "品质", "境界", "五行", "标签", "描述", "资源池", "防御力", "技能",
@@ -872,7 +873,7 @@ function sanitizeFixedAsset(asset) {
       cleaned.设施[key] = pickFields(normalizeAssetFacility(cleaned.设施[key]), ASSET_FACILITY_FIELDS);
     }
   }
-  if ("所属人物" in cleaned) cleaned.所属人物 = normalizeStringArray(cleaned.所属人物);
+  if ("分配人物" in cleaned) cleaned.分配人物 = normalizeStringArray(cleaned.分配人物);
   return cleaned;
 }
 
@@ -1038,7 +1039,8 @@ const FIXED_ASSET_KEY_ALIASES = {
   地址: "所在地", 位置: "所在地",
   状态: "现状", 当前状态: "现状",
   建筑: "设施", 功能区: "设施",
-  人员: "所属人物", 归属人物: "所属人物", 成员: "所属人物",
+  所属人物: "分配人物", 工作人员: "分配人物", 工作者: "分配人物",
+  人员: "分配人物", 归属人物: "分配人物", 成员: "分配人物",
 };
 const ASSET_FACILITY_KEY_ALIASES = {
   效用: "效果", 功能: "效果",
