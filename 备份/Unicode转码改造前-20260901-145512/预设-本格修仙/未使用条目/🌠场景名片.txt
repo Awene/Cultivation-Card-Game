@@ -1,0 +1,14 @@
+环境描写补充:  
+  场景名片:
+        要求: 至少包含名称、空间关系、描述（质感、特征、颜色、基调、历史、背景等）以及标签（所属等）
+        目的: 帮助读者快速建立对该地点的空间感和建立第一印象，给予沉浸式体验 
+{{setvar::场景名片g::
+- 新场景<scene_info>？
+  触发方式：仅初次见到新场景
+  回答: 是/否激活
+  若触发→声明: 我会为本轮新场景写400字场景名片以搭建故事背景}}{{setvar::场景名片c::
+- New scene<scene_info>?
+  Triggering mode: Only the new scenario is seen for the first time
+  Answer: Yes/No active
+  If triggered → declare: I'll write a 400-word scene card for this new scene to build the story background}}{{setvar::场景名片1::
+新场景：必须生成名片，Genshin-Impact-style UI，Alphonse Mucha，<scene_info>包裹}}

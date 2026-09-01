@@ -19,4 +19,3 @@ Recorder: 所有要求已理解，我会注意所有标签的闭合，我已经�
 
 VOID: 开始创作。在模型前缀后，严格执行<think_format>中当前模型档位规定的步骤与预算；不得遗漏规定步骤，也不得扩写未要求内容。以<%- getvar('cot头') %>作为起点并以<%- getvar('cot尾') %>闭合，然后继续输出正文及其他规定内容。
 <%_}}_%>
-<bgx_unicode enabled="{{getvar::Unicode转码}}" input="latest" output="nsfw" sparse="true" scheme="unicode_compact_block" />

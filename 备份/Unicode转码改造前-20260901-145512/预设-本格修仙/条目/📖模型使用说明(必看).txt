@@ -1,0 +1,12 @@
+{{//
+【模型使用说明 · 下方四个模型开关四选一，只开一个】
+
+Gemini 3.1 Pro： ⚓️Gemini3.1p开
+
+Gemini 3.7 Flash： ⚓️Gemini3.7F开。
+
+Claude：⚓️Claude开
+
+Deepseek： ⚓️DS开。建议在 API 设置中关闭 DS 原生思维链：插头->“附加参数(包括主体参数)”中填入 {"thinking":{"type":"disabled"}}；
+
+}}

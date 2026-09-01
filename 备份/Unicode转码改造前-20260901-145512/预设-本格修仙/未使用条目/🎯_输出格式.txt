@@ -1,0 +1,34 @@
+Mingyue:
+**输出结构**
+
+回复结构如下，HTML注释是思考过程（用户不可见），正文直接输出。
+
+**格式：**
+<基础确认>
+Basic_confirmation:
+${写作前确认内容}
+</基础确认>
+
+<now_plot>
+<tp>
+${时空栏}
+</tp>
+<content>
+<!-- 这段：[写什么]。注意[需关注维度] -->
+[正文段落]
+
+<!-- 这段：[写什么]。注意[需关注维度] -->
+[正文段落]
+
+</content>
+{{getvar::recap_format}}
+</now_plot>
+ <UpdateVariable>
+${...}
+</UpdateVariable>}}
+
+**核心规则：**
+- 回复以<基础确认>开头
+- 每段正文前用HTML注释做一次简短自检
+- 正文必须包裹在<content>标签内
+- 正文段落的字数总和必须在 {{getvar::word_min}}-{{getvar::word_max}}字内{{getvar::extra_format_adapt}}{{getvar::recap_reminder}}
