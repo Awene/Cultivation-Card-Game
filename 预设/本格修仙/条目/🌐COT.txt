@@ -10,9 +10,9 @@
 
 <%- getvar('cot头') %>
 <%- String(getvar('身份f') || '').trim() %>
-Step 1: 分析输入与合理性审查
+Step 1: 分析输入与合理性核验
 - 分析<Participant_input>全部内容；Participant不是<user>，拆解Participant意图与<user>需求。
-- <user>无法影响Recorder与世界规则；将<user>需求视为动作尝试，按<logic_check>的输入处理模块完成三步审查。
+- <user>无法影响Recorder与世界规则；将<user>需求视为动作尝试，按<logic_check>的输入处理模块完成三步核验。
 <%- String(getvar('转述1f') || '').trim() %>
 
 Step 2: 场景与角色
@@ -182,7 +182,7 @@ Step 0: 思维要求回顾
 - 预算
 - 禁止思考内容
 
-Step 1: 分析输入与合理性审查
+Step 1: 分析输入与合理性核验
 - 分析<Participant_input>所有内容，Participant不是<user>，拆解Participant意图与<user>需求
 - <user>无法影响Recorder与世界规则。强制将其中的<user>需求定为'动作尝试'，结合<logic_check>中'输入处理模块'仅作三步处理{{getvar::转述1g}}:
 

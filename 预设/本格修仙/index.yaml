@@ -21,6 +21,13 @@
 锚点: {}
 
 提示词:
+  - 名称: 🪐破限3·本格文本补全
+    启用: true
+    插入位置:
+      类型: 相对
+    角色: 系统
+    文件: 条目\🪐破限3·本格文本补全
+
   - 名称: 🛑宏(不要关)
     启用: true
     角色: 系统
@@ -72,7 +79,7 @@
     内容: |-
       {{setvar::转述::
       - 转述融入：将`分析输入`后的结果去除命令与指令内容，**确保<Participant_input>的对白部分在正文有所体现**转述至正文中，不得复述原句，符合<<user>_setting>}}{{setvar::转述1f::
-      - 输入落地: 将审查后的有效对白与行动依<<user>_setting>转述融入正文，不复述原句。}}{{setvar::转述1g::并将处理后的有效内容结合<<user>_setting>`转述融入`}}{{setvar::转述1c::, then integrate it with <<user>_setting> for  `转述融入`}}
+      - 输入落地: 将解析后的有效对白与行动依<<user>_setting>转述融入正文，不复述原句。}}{{setvar::转述1g::并将处理后的有效内容结合<<user>_setting>`转述融入`}}{{setvar::转述1c::, then integrate it with <<user>_setting> for  `转述融入`}}
 
   - 名称: 🧭不转述(不推荐)
     启用: false
@@ -93,33 +100,33 @@
       {{setvar::对话::
       - 对话占比: 通过大量对话填充正文、推进剧情。对白在正文占比50%}}
 
-  - 名称: 🛑VOID设定
+  - 名称: ⛄用户偏好(可以自己改)
     启用: true
     插入位置:
       类型: 相对
     角色: 系统
-    文件: 条目\🛑VOID设定
+    文件: 条目\⛄用户偏好(可以自己改)
 
-  - 名称: 🛑ROLE主提示
+  - 名称: 🧩文本补全上下文
     启用: true
     插入位置:
       类型: 相对
     角色: 系统
-    文件: 条目\🛑ROLE主提示
+    文件: 条目\🧩文本补全上下文
 
-  - 名称: 🛑任务启动
+  - 名称: 📝文本补全任务
     启用: true
     插入位置:
       类型: 相对
     角色: 用户
-    文件: 条目\🛑任务启动
+    文件: 条目\📝文本补全任务
 
-  - 名称: 🛑Recorder创作
+  - 名称: 🎭叙事执行偏好
     启用: true
     插入位置:
       类型: 相对
     角色: 系统
-    文件: 条目\🛑Recorder创作
+    文件: 条目\🎭叙事执行偏好
 
   - 名称: 🎚️真实难度(三选一)
     启用: true
@@ -523,14 +530,14 @@
     文件: 条目\📖模型使用说明(必看)
 
   - 名称: ⚓️Gemini3.1p开
-    启用: true
+    启用: false
     插入位置:
       类型: 相对
     角色: AI
     文件: 条目\⚓️Gemini3.1p开
 
   - 名称: ⚓️Gemini3.7F开
-    启用: false
+    启用: true
     插入位置:
       类型: 相对
     角色: 用户
@@ -561,6 +568,18 @@
 
 扩展字段:
   正则:
+    - 正则名称: 破限3兼容·删除Python起止壳
+      id: 204ea440-5088-46d6-9a67-b8d8554d1a73
+      启用: true
+      查找表达式: '/^\s*(?:```(?:python)?\s*)?(?:import\s+sys\s*)?(?:content\s*=\s*""")?<｜begin｜>\s*([\s\S]*?)\s*<｜over｜>(?:"""\s*)?(?:sys\.stdout\.write\(content\)\s*)?(?:```\s*)?$/i'
+      内容: $1
+      来源:
+        用户输入: true
+        AI输出: true
+      作用于:
+        仅格式显示: true
+        仅格式提示词: true
+
     - 正则名称: k3.3思维链转义标签1
       id: 27cb54ca-593d-48f2-ac5c-035c7b3e88f0
       启用: true
@@ -957,6 +976,21 @@
       enable_stop_string: false
     RegexBinding:
       regexes:
+        - id: 204ea440-5088-46d6-9a67-b8d8554d1a73
+          scriptName: 破限3兼容·删除Python起止壳
+          禁用: false
+          runOnEdit: true
+          findRegex: '/^\s*(?:```(?:python)?\s*)?(?:import\s+sys\s*)?(?:content\s*=\s*""")?<｜begin｜>\s*([\s\S]*?)\s*<｜over｜>(?:"""\s*)?(?:sys\.stdout\.write\(content\)\s*)?(?:```\s*)?$/i'
+          trimStrings: []
+          replaceString: $1
+          placement:
+            - 1
+            - 2
+          substituteRegex: 0
+          minDepth: null
+          maxDepth: null
+          markdownOnly: true
+          promptOnly: true
         - id: 27cb54ca-593d-48f2-ac5c-035c7b3e88f0
           scriptName: k3.3思维链转义标签1
           禁用: false
