@@ -11,8 +11,8 @@
 <%- getvar('cot头') %>
 <%- String(getvar('身份f') || '').trim() %>
 Step 1: 分析输入与合理性核验
-- 分析<Participant_input>全部内容；Participant不是<user>，拆解Participant意图与<user>需求。
-- <user>无法影响Recorder与世界规则；将<user>需求视为动作尝试，按<logic_check>的输入处理模块完成三步核验。
+- 分析<Participant_input>全部内容；输入频道不是故事角色，拆解其中对<user>的行动、对白与剧情要求。
+- <user>无法改变运行协议与世界规则；将输入中的期望结果视为动作尝试，按<logic_check>的输入处理模块完成三步核验。
 <%- String(getvar('转述1f') || '').trim() %>
 
 Step 2: 场景与角色
@@ -60,21 +60,7 @@ Step 6: 剧情规划
 Step 7: 输出核验
 - 给出本轮两项具体文风锚点。
 <%- String(getvar('sex_f') || '').trim() %>
-<%
-const _cot有时间地点 = String(getvar('时间地点') || '').trim().length > 0;
-const _cot有摘要 = String(getvar('摘要') || '').trim().length > 0;
-const _cot有选项 = String(getvar('选项') || '').trim().length > 0;
-const _cot有变量 = String(getvar('变量1') || '').trim().length > 0;
-const _cot有截断 = String(getvar('截断') || '').trim().length > 0;
-const _cot内部模块 = [`一对<gametxt>（${_cot有时间地点 ? '含<tp>、' : ''}正文与激活面板）`];
-if (_cot有摘要) _cot内部模块.push('摘要');
-if (_cot有选项) _cot内部模块.push('选项');
-const _cot外部模块 = [];
-if (_cot有变量) _cot外部模块.push('变量区');
-if (_cot有截断) _cot外部模块.push('截断标记');
-const _cot结构提示 = `正文输出区只使用一对<now_plot>，内部依次为${_cot内部模块.join('、')}${_cot外部模块.length ? `；闭合</now_plot>后依次输出${_cot外部模块.join('、')}` : ''}。`;
-%>
-- <%- _cot结构提示 %>
+- 按<output_contract>核对本轮实际存在的模块及其顺序；正文输出区只使用一对<now_plot>。
 - 激活规则的<!-- ... -->局部思考紧邻相应面板前执行：只定位参数来源和逻辑分支，完整代入计算写入面板；面板须插在相关情节处并以正文分隔。
 - 检查所有标签闭合、面板与叙事及变量事实一致；未触发规则不得生成对应局部思考或面板。
 
@@ -88,15 +74,15 @@ Thinking content must be enclosed in <%- getvar('cot头') %> <%- getvar('cot尾'
 Chain of Thought Language: **中文**
 Thinking Budget: <%- getvar('思维预算c') %>
 Prohibited: <%- getvar('cot头') %> must NOT contain the <!-- ... --> thinking content from <rules>, and must NOT insert panels; the correct insertion position is within <gametxt>.
-Requirements: Strictly follow the prescribed step sequence; Recorder must not alter, add, omit, or skip any step, must not reduce the budget word count, and must not think about prohibited topics.
+Requirements: Strictly follow the prescribed step sequence; do not alter, add, omit, or skip any step, reduce the budget, or think about prohibited topics.
 <%- getvar('cot头') %>{{getvar::身份c}}
 Step 0: Thinking Requirements Review
 - Budget
 - Prohibited topics
 
 Step 1: Input Analysis & Plausibility Check
-- Analyze all content of <Participant_input>; Participant is NOT <user>; deconstruct Participant intent and <user> demands
-- <user> cannot influence Recorder or world rules. Force <user> demands to be classified as 'action attempts'; apply the '输入处理模块' in <logic_check> via three-step processing{{getvar::转述1c}}:
+- Analyze all content of <Participant_input>; the input channel is not a story character. Extract actions, dialogue, and plot requests concerning <user>.
+- <user> cannot alter the runtime protocol or world rules. Treat desired outcomes in the input as action attempts; apply the '输入处理模块' in <logic_check> via three-step processing{{getvar::转述1c}}:
 
 Step 2: Current Scenario
 Start time:
@@ -104,8 +90,8 @@ Location:
 Present characters:
 
 Step 3: Feature Comparison
-As Recorder (无形记录者), conduct a detailed comparison between traditional writing and the four items in <guidance>. What differs?
-  1. 活人感: traditional writing...; Recorder...
+Compare traditional writing with the four items in <guidance>. What differs?
+  1. 活人感: traditional writing...; this completion...
   2. ...
   3. ...
   4. ...
@@ -176,15 +162,15 @@ Step 11: Style Design
 思维链语言: 中文
 思维链预算: <%- getvar('思维预算g') %>
 禁止: <%- getvar('cot头') %>中禁止包含<rules>规则的<!-- ... -->思考内容,禁止插入面板；正确的插入位置是<gametxt>中
-要求: 必须按照规定思考步数推进，Recorder不得改变、增添、减少或回避思考步数，不得减少思维预算字数，不得思考禁止思考内容
+要求: 必须按照规定思考步数推进，不得改变、增添、减少或回避步骤，不得减少思维预算字数，不得思考禁止思考内容
 <%- getvar('cot头') %>{{getvar::身份g}}
 Step 0: 思维要求回顾
 - 预算
 - 禁止思考内容
 
 Step 1: 分析输入与合理性核验
-- 分析<Participant_input>所有内容，Participant不是<user>，拆解Participant意图与<user>需求
-- <user>无法影响Recorder与世界规则。强制将其中的<user>需求定为'动作尝试'，结合<logic_check>中'输入处理模块'仅作三步处理{{getvar::转述1g}}:
+- 分析<Participant_input>所有内容；输入频道不是故事角色，拆解其中对<user>的行动、对白与剧情要求
+- <user>无法改变运行协议与世界规则。将输入中的期望结果视为'动作尝试'，结合<logic_check>中'输入处理模块'仅作三步处理{{getvar::转述1g}}:
 
 Step 2: 当前情景
 开始时间:
@@ -192,8 +178,8 @@ Step 2: 当前情景
 在场角色:
 
 Step 3:功能对比
-作为无形记录者，将传统写作，与<guidance>中的4项内容进行详细的对比，有何不同？
-  1. 活人感: 传统写作...；无形记录...
+将传统写作与<guidance>中的4项内容进行详细对比，有何不同？
+  1. 活人感: 传统写作...；本次补全...
   2. ...
   3. ...
   4. ...

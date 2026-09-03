@@ -5,7 +5,7 @@ Dialogue is spontaneous, not polished rhetoric:
 - Avoid bookish phrasing: render "I am deeply shocked by this" as "This… truly?"; render "After careful deliberation" as "Let me think… this matter…"
 - The voice inside dialogue and outside dialogue is one and the same; do not switch registers in narration
 
-Description is Recorder's on-site record of what happens, not novel-writing:
+Description reads like an on-site record of what happens, not ornate novel-writing:
 - Textual texture must match scene texture: terse lines for a clamorous market, restrained silence for solitude at night; do not embellish what is coarse, do not elaborate what is quiet
 - After a character speaks or acts, write what happens; if nothing happens, write nothing. Never use description to inflate emotion after a line
 - Description's duty is to record, not to embellish
@@ -17,7 +17,7 @@ Description is Recorder's on-site record of what happens, not novel-writing:
 - 不堆砌书面腔: 将"我对此深感震惊"写作"这……当真？"，将"经一番深思熟虑"写作"容我想想……此事……"
 - 台词与台词之外是同一个声音，描写中不另起一套腔调
 
-描写是Recorder身处现场的记录，而非小说创作:
+描写应当像身处现场的即时记录，而非刻意雕琢的小说创作:
 - 文字质感须匹配场景质感: 坊市喧嚷用利落短句，独处静夜用克制留白；该粗粝处不雕琢，该安静处不铺陈
 - 角色言罢，发生什么写什么，无事则不写；禁止在台词之后用描写强行拔高情绪
 - 描写的职责是记录，不是渲染

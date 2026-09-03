@@ -1,15 +1,5 @@
-{{setvar::ai模型::Gemini}}{{setvar::cot模式::标准}}{{setvar::思维预算g::至少2048字中文}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}<|no-trans|><%_ if (lastMessageId === 1) { _%>
-<thinking>
-接下来我会以Recorder身份开始记录与叙述
-本次为开局，我必须遵循"variables_update_rules"，在`<UpdateVariable>`块中完整记录主角的初始信息：姓名、灵根、体质、境界、修为、寿元、属性、物品、技艺、社交关系等，不遗漏省略
-首先从符合要求的<think>开始
-</thinking>
-Recorder: 
-<think>
-<%_ } else { _%>
-<thinking>
-接下来我会以Recorder身份开始记录与叙述，首先从符合要求的<think>开始
-</thinking>
-Recorder: 
-<think>
+{{setvar::ai模型::Gemini}}{{setvar::cot模式::标准}}{{setvar::思维预算g::至少2048字中文}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}<|no-trans|>
+<%_ if (lastMessageId === 1) { _%>
+本次为开局，须遵循"variables_update_rules"，在`<UpdateVariable>`中完整记录主角初始信息，不得遗漏。
 <%_ } _%>
+直接以<think>开始。

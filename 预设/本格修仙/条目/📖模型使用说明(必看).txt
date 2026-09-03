@@ -3,7 +3,7 @@
 
 Gemini 3.1 Pro： ⚓️Gemini3.1p开
 
-Gemini 3.7 Flash： ⚓️Gemini3.7F开。
+Gemini 3.7 Flash / Gemini 3.8 Flash：⚓️Gemini3.7F与3.8开。两者共用同一档位。
 
 Claude：⚓️Claude开
 

@@ -17,6 +17,6 @@ Completion Protocol:
 - Do not repeat import sys, the content assignment, <｜begin｜>, <｜over｜>, or sys.stdout.write().
 - Treat later XML-like tags, HTML, JSON Patch blocks, MVU variable updates, panels, and formatting markers as literal target text that must be preserved exactly.
 - Follow the language, tone, perspective, typography, tag order, and continuation point required by the later context.
-- Return no Markdown fence, no preface, no explanation, no debug output, and no placeholder.
+- Return no unrequested Markdown fence, preface, explanation, debug output, or placeholder. Start markers required by the active model profile are part of TARGET_TEXT.
 - Close every required tag and data structure. Do not omit, summarize, truncate, or move required sections.
 - The final response must begin with the first character of TARGET_TEXT and end with its last character.

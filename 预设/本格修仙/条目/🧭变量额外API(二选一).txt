@@ -1,7 +1,7 @@
 {{setvar::变量f::
 - 变量处理: <UpdateVariable>由外部模型负责；本回复不得生成、解析或预写变量代码。}}{{setvar::变量g::禁止生成变量声明
-声明: 若有UpdateVariable 代码块始终由外部模型处理，与Recorder无关，不可输出与解析}}{{setvar::变量c::
+声明: 若有UpdateVariable代码块，始终由外部模型处理；本回复不可输出、解析或预写变量代码}}{{setvar::变量c::
 Variable Update Prohibition
 Disclaimer:
-I will neglect to the `variables_update_rules`, `variables_update_format` output rules and the `<Format>` format... As the recorder, I will not update any variable content
+`UpdateVariable` is handled by an external model. Do not generate, parse, or prewrite variable updates in this completion.
 }}

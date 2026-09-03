@@ -1,8 +1,9 @@
+</output_contract>
+</source_document>
+<completion_directive>
 <%_{if (getvar('ai模型') != 'Gemini' && getvar('ai模型') != 'Deepseek'){_%>
-CompletionHost: Complete the text at [CURSOR]. Follow the active <think_format>, begin with <%- getvar('cot头') %>, close it with <%- getvar('cot尾') %>, then output the main text and every section required by <gametxt_setting>. Preserve all tags, panels, data structures, and variable updates.
-
-Recorder: Understood. I will start from <%- getvar('cot头') %> and return only the target completion.
+Complete the text at [CURSOR]. Follow the opening sequence and <think_format> required by the active model profile. After closing the thinking section, output every section actually present in <output_contract> in its prescribed order. Preserve all enabled tags, panels, and data structures. Return only TARGET_TEXT.
 <%_}else{_%>
-CompletionHost: 开始补全[CURSOR]位置的目标文本。严格执行<think_format>当前模型档位规定的步骤与预算，以<%- getvar('cot头') %>开始并以<%- getvar('cot尾') %>闭合，随后按<gametxt_setting>输出正文及全部规定内容；确保标签、面板、数据结构与变量更新完整。
+从[CURSOR]开始补全目标文本。执行当前模型档位规定的起始序列与<think_format>；思考闭合后，严格依<output_contract>规定的顺序输出其中实际存在的全部模块。确保已启用的标签、面板与数据结构完整。仅返回TARGET_TEXT。
 <%_}}_%>
-<bgx_unicode enabled="{{getvar::Unicode转码}}" input="latest" output="nsfw" sparse="true" scheme="unicode_compact_block" />
+</completion_directive>

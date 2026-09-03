@@ -1,9 +1,9 @@
 {{setvar::ai模型::Gemini}}{{setvar::cot模式::3.7F短}}{{setvar::cot头::<thinking>}}{{setvar::cot尾::</thinking>}}{{setvar::思维预算f::不超过2048字}}<|no-trans|>
 <think_rules>
-- 若回复出现<think>，其中仅输出Complete.并闭合；随后输出`<!-- Start the ECoT -->`与<thinking>。
+- 起始序列：若模型先产生<think>，其中仅输出Complete.并闭合，再输出`<!-- Start the ECoT -->`与<thinking>；否则直接以`<!-- Start the ECoT -->`与<thinking>开始。
 - 按<think_format>完成Step 1至Step 7；闭合</thinking>后按“预输出格式标签顺序”输出。思考区不生成正文、局部思考、面板或变量更新。
 </think_rules>
 <% if (lastMessageId === 1) { %>
 本次为开局，须按"variables_update_rules"在`<UpdateVariable>`中完整记录主角初始信息。
 <% } %>
-直接以`<!-- Start the ECoT -->`和`<thinking>`开始。
+现在按上述起始序列开始补全。
