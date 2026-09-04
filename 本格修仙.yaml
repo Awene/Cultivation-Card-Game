@@ -2030,7 +2030,7 @@
 
     - 正则名称: 状态栏
       id: f74224dd-c546-48d9-9f31-65c490e81b80
-      启用: false
+      启用: true
       查找表达式: <StatusPlaceHolderImpl/>
       文件: 正则\状态栏
       来源:
@@ -2043,7 +2043,7 @@
 
     - 正则名称: 状态栏（测试）
       id: bfb4ea8a-d0b4-4473-8823-142bd6042c68
-      启用: true
+      启用: false
       查找表达式: <StatusPlaceHolderImpl/>
       文件: 正则\状态栏（测试）
       来源:

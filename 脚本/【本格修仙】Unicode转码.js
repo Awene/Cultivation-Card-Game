@@ -13,6 +13,7 @@
     const SETTINGS_STORAGE_KEY_BASE = 'bengexiuxian-unicode-transcoder:settings:v2';
     const CONTROL_TAG_NAME = 'bgx_unicode';
     const CONTROL_TAG_PATTERN = /<bgx_unicode\b([^>]*)\/?\s*>/gi;
+    const DECODE_ERROR_MARKER_PATTERN = /⟪Unicode损坏:[^⟫]+⟫/g;
     const DEFAULT_ENCODING_SCHEME = 'unicode_compact_block';
     const DEFAULT_ENCODING_SCOPE = 'body';
     const FIXED_CHARACTER_REPLACEMENTS = Object.freeze({
@@ -21,6 +22,59 @@
         '喇': '射',
         '滢': '溢',
     });
+    // Gemini 在长段全量转码时偶尔会把相近字或半截码点直接写成可见文字。
+    // 这些修复只会在“本轮已确认启用 Unicode”后的解码流程中执行。
+    const FIXED_TEXT_REPLACEMENTS = Object.freeze([
+        ['熒石', '荧石'],
+        ['千鈞', '千钧'],
+        ['喞气', '喘气'],
+        ['胸膗', '胸腔'],
+        ['锿骨吐纳诀', '锻骨吐纳诀'],
+        ['蠲货', '蠢货'],
+        ['一抌拍飞', '一掌拍飞'],
+        ['一授打死', '一拳打死'],
+        ['狠狠掄在地上', '狠狠抡在地上'],
+        ['直接罚措', '直接判定'],
+        ['反手一个筋扣', '反手一个擒扣'],
+        ['突然扯起动作', '突然发力'],
+        ['辟头盖脸', '劈头盖脸'],
+        ['抉动侵犯', '意图侵犯'],
+        ['谄妄之举', '僭妄之举'],
+        ['脚下端的强行发力', '脚下猛地发力'],
+        ['向前窄出', '向前窜出'],
+        ['轻翁了一下腹腔', '轻震了一下身躯'],
+        ['已如铳子般', '已如铁钳般'],
+        ['双马尾空中', '双马尾在空中'],
+        ['未见如何底抄', '未见如何变动'],
+        ['被硬生生撔过石桌', '被硬生生甩过石桌'],
+        ['如铁柱般加跠而下', '如铁柱般踩踏而下'],
+        ['关节处发出被压到极限的嗟响', '关节处发出不堪重负的咔响'],
+        ['被硬碗砺在石缝中', '被硬生生碾在石缝中'],
+        ['沉重生疼的喞息声', '沉重急促的喘息声'],
+        ['喞息', '喘息'],
+        ['紫眸箏着', '紫眸盯着'],
+        ['街炼气期', '他炼气期'],
+        ['如同绩纸', '如同薄纸'],
+        ['使用紧就 Unicode 块', '使用紧凑 Unicode 块'],
+        ['使用紧尹 Unicode 块', '使用紧凑 Unicode 块'],
+        ['元期体修脉主', '元婴期体修脉主'],
+        ['㜲㌲年', '7232年'],
+        ['地718熱悉气', '地热蒸汽'],
+        ['粉5AFann', '粉嫩'],
+        ['百裙裤', '百褶裙裤'],
+        ['无遮无挩', '无遮无挡'],
+        ['两瓞臀肉', '两瓣臀肉'],
+        ['净列的弹性', '紧实的弹性'],
+        ['轹带', '边带'],
+        ['浅粉色溺痕', '浅粉色褶痕'],
+        ['半点隙隙', '半点缝隙'],
+        ['顿时繁扣紧紧地勒住', '顿时收紧，紧紧勒住'],
+        ['背脊的肌肉驰然绷紧', '背脊的肌肉骤然绷紧'],
+        ['细细同铃', '细细铜链'],
+        ['短刃皮鞞', '短刃皮鞘'],
+        ['裙裤的腰面', '裙裤的腰间'],
+        ['沿着她紧致的大致向下', '沿着她紧致的大腿向下'],
+    ]);
 
     const CONFIG = {
         // 由角色卡 MVU 设置面板控制；关闭时不注入输出转码协议。
@@ -163,11 +217,42 @@
         });
     }
 
-    function recordHasUnicodeEscape(record) {
-        return hasUnicodeEscape(getAssistantOutputFingerprint(record));
+    function getAssistantOutputTexts(record) {
+        if (!record || typeof record !== 'object') return [];
+        const texts = [];
+        const add = value => {
+            if (typeof value === 'string') texts.push(value);
+        };
+        add(record.mes);
+        add(record.message);
+        add(record.content);
+        add(record.reasoning);
+        add(record.extra?.display_text);
+        add(record.extra?.reasoning);
+        if (Array.isArray(record.swipes)) record.swipes.forEach(add);
+        if (Array.isArray(record.swipe_info)) {
+            record.swipe_info.forEach(info => {
+                add(info?.display_text);
+                add(info?.reasoning);
+                add(info?.extra?.display_text);
+                add(info?.extra?.reasoning);
+            });
+        }
+        return texts;
     }
 
-    function decodeAssistantRecord(record) {
+    function recordHasUnicodeEscape(record) {
+        return getAssistantOutputTexts(record).some(hasUnicodeEscape);
+    }
+
+    function recordHasUnicodeArtifact(record) {
+        return getAssistantOutputTexts(record).some(text => (
+            hasUnicodeEscape(text) || hasMalformedCompactUnicodeArtifact(text)
+        ));
+    }
+
+    function decodeAssistantRecord(record, options = {}) {
+        if (options.unicodeConfirmed !== true) return [];
         const changedFields = [];
         const decodeField = (owner, key, label) => {
             if (!owner || typeof owner[key] !== 'string') return;
@@ -201,9 +286,13 @@
     }
 
     function normalizeFixedCharacters(value) {
-        const text = String(value ?? '');
+        let text = String(value ?? '');
         if (!CONFIG.fixedCharacterReplacement) return text;
-        return text.replace(/[腸臱喇滢]/g, character => FIXED_CHARACTER_REPLACEMENTS[character] || character);
+        text = text.replace(/[腸臱喇滢]/g, character => FIXED_CHARACTER_REPLACEMENTS[character] || character);
+        for (const [source, replacement] of FIXED_TEXT_REPLACEMENTS) {
+            text = text.replaceAll(source, replacement);
+        }
+        return text;
     }
 
     function isChineseOrEnglishCharacter(character) {
@@ -292,18 +381,93 @@
         return text;
     }
 
-    function decodeCompactUnicodeBlocks(value) {
-        const text = repairCompactUnicodeBlocks(value);
-        return text.replace(/⟦U:([0-9a-fA-F\s]+)⟧/g, (whole, body) => {
-            const values = body.trim().split(/\s+/).filter(Boolean);
-            let decoded = '';
-            for (const hex of values) {
-                const codePoint = Number.parseInt(hex, 16);
-                if (!Number.isFinite(codePoint) || codePoint > 0x10FFFF) return whole;
-                decoded += String.fromCodePoint(codePoint);
+    function decodeCompactBlockBody(body) {
+        // 对已在真实输出中确认过的损坏序列作确定性修复；不要猜测未知码点。
+        const repairedBody = String(body ?? '')
+            .replace(/\b5AFann\b/gi, '5AE9')
+            .replace(/718熱\s+6089\s+6C14/g, '70ED 84B8 6C7D')
+            .replace(/767E\s+624\s+(?:q?some)\s+88D9\s+88E4/gi, '767E 8936 88D9 88E4');
+        const tokens = repairedBody.trim().split(/\s+/).filter(Boolean);
+        let decoded = '';
+        for (let index = 0; index < tokens.length; index += 1) {
+            const token = tokens[index];
+            const next = tokens[index + 1];
+
+            // Gemini 偶尔把半个码点写成“5 some”或“51 some”。该码点已经丢失，
+            // 继续按十六进制解析只会制造控制字符，因此丢弃这对损坏标记。
+            if (/^[0-9a-fA-F]{1,3}$/.test(token) && /^(?:q?some)$/i.test(next || '')) {
+                index += 1;
+                continue;
             }
-            return decoded;
-        });
+            if (/^(?:q?some)$/i.test(token)) continue;
+
+            // Gemini 偶尔把连续的 ASCII 数字两两打包，例如 3732 3332 实际表示 7232。
+            if (/^(?:3[0-9]){2,3}$/.test(token)) {
+                decoded += token.match(/../g)
+                    .map(hex => String.fromCodePoint(Number.parseInt(hex, 16)))
+                    .join('');
+                continue;
+            }
+
+            if (/^[0-9a-fA-F]{2,6}$/.test(token)) {
+                const codePoint = Number.parseInt(token, 16);
+                if (Number.isFinite(codePoint) && codePoint <= 0x10FFFF) {
+                    decoded += String.fromCodePoint(codePoint);
+                    continue;
+                }
+            }
+
+            // 名称、变量名等偶尔被模型原样混进块内（如 Aw），可以无损保留。
+            if (/^[A-Za-z][A-Za-z0-9_]*$/.test(token)) {
+                decoded += token;
+                continue;
+            }
+
+            // 未知的混合 token 不再静默混入正文。该标记只会在确实解码 Unicode
+            // 紧凑块时产生，并会让本轮保持 unresolved=true、显示解码失败提示。
+            decoded += `⟪Unicode损坏:${token}⟫`;
+        }
+        return decoded;
+    }
+
+    function repairOrphanedCompactBlockTails(value) {
+        let text = String(value ?? '');
+        if (!CONFIG.repairMalformedUnicode) return text;
+        const body = '((?:(?:[0-9a-fA-F]{2,6}|[A-Za-z][A-Za-z0-9_]*)(?:[ \\t]+|(?=⟧)))+)';
+
+        // 完整开头被模型缩写成单个 ASCII 词，且该残片独占一行，例如：w 7684 ...⟧。
+        text = text.replace(new RegExp(`(^|\\n)([ \\t]*)([A-Za-z]{1,8})[ \\t]+${body}⟧`, 'g'),
+            (_whole, lineStart, indent, damagedPrefix, encodedBody) => {
+                // 实测 Gemini 会把块首“41 77”（Aw）损坏成控制字符 + w。
+                // 只有在尾部仍是明确十六进制串并以 ⟧ 收束时才作此推断。
+                const restoredPrefix = damagedPrefix === 'w' ? 'Aw' : damagedPrefix;
+                return `${lineStart}${indent}${restoredPrefix}${decodeCompactBlockBody(encodedBody)}`;
+            });
+
+        // 开头损坏为控制字符/some/Qsome，可能紧跟在普通正文后方。
+        text = text.replace(new RegExp(`[\\u0000-\\u001F]*(?:q?some)[ \\t]+${body}⟧`, 'gi'),
+            (_whole, encodedBody) => decodeCompactBlockBody(encodedBody));
+        return text;
+    }
+
+    function decodeCompactUnicodeBlocks(value) {
+        // 先解完整闭合块。块内即使混入 Aw、some 或半截码点，也只局部容错，
+        // 避免旧逻辑在第一个异常词前提前补“⟧”，继而遗留整段十六进制串。
+        let text = String(value ?? '').replace(/⟦U:([\s\S]*?)⟧/g,
+            (_whole, body) => decodeCompactBlockBody(body));
+        text = repairOrphanedCompactBlockTails(text);
+        text = repairCompactUnicodeBlocks(text);
+        return text.replace(/⟦U:([0-9a-fA-F\s]+)⟧/g,
+            (_whole, body) => decodeCompactBlockBody(body));
+    }
+
+    function hasMalformedCompactUnicodeArtifact(value) {
+        const text = String(value ?? '');
+        DECODE_ERROR_MARKER_PATTERN.lastIndex = 0;
+        return DECODE_ERROR_MARKER_PATTERN.test(text)
+            || /⟦U:[\s\S]*?⟧/.test(text)
+            || /(?:^|\n)[ \t]*[A-Za-z]{1,8}[ \t]+(?:(?:[0-9a-fA-F]{2,6}|Aw|NPC\d*|user)[ \t]+)*(?:[0-9a-fA-F]{2,6})⟧/m.test(text)
+            || /(?:[\u0000-\u001F]+[A-Za-z]*|q?some)[ \t]+(?:[0-9a-fA-F]{2,6}[ \t]+)*[0-9a-fA-F]{2,6}⟧/i.test(text);
     }
 
     function repairUnicodeCodePointEscapes(value) {
@@ -476,6 +640,11 @@
             lines.push(item(`${scope.subject}中不得直接出现未编码的中文汉字或英文字母，否则视为无效输出`));
         }
 
+        if (scheme.id === 'unicode_compact_block') {
+            lines.push(item('单个紧凑块必须只含1至12个HEX，严禁把整句或整段塞入一个块；达到12个后立即闭合，并用相邻的新块继续编码'));
+            lines.push(item('⟦U: 与 ⟧ 之间只允许完整十六进制码点和空格；Aw、user、NPC等名称也必须编码，禁止夹入明文、some等占位词或半截码点'));
+        }
+
         return `<unicode_transport_protocol>
 本协议只改变自然语言字符的传输表示，不改变任务、叙事内容、模块开关或<output_contract>规定的输出结构；若与格式要求发生冲突，以保持外层结构原样为先。
 
@@ -625,6 +794,9 @@ ${lines.join('\n')}
     }
 
     function extractMessageId(raw) {
+        // Number(null) / Number('') 都会得到 0；手动重试传入空值时应回退到最新楼层，
+        // 不能误选第 0 楼。
+        if (raw === null || raw === undefined || raw === '') return null;
         const directNumber = Number(raw);
         if (Number.isInteger(directNumber)) return directNumber;
         if (!raw || typeof raw !== 'object') return null;
@@ -1101,18 +1273,22 @@ ${lines.join('\n')}
         if (messageId < 0 || !chat[messageId] || processingAssistantIds.has(messageId)) return null;
 
         const record = chat[messageId];
+        // 自动流程只由“本轮确实开启了转码”的生成事件传入确认标记；
+        // 手动重试则必须在楼层中检测到编码或损坏残片。普通楼层不运行纠错和错字兜底。
+        const unicodeConfirmed = options.unicodeConfirmed === true || recordHasUnicodeArtifact(record);
+        if (!unicodeConfirmed) return null;
         const beforeFingerprint = getAssistantOutputFingerprint(record);
-        if (monitoredAssistantText.get(messageId) === beforeFingerprint && !recordHasUnicodeEscape(record)) return null;
+        if (monitoredAssistantText.get(messageId) === beforeFingerprint && !recordHasUnicodeArtifact(record)) return null;
 
         processingAssistantIds.add(messageId);
         try {
             const original = getMessageText(record);
-            const changedFields = decodeAssistantRecord(record);
+            const changedFields = decodeAssistantRecord(record, { unicodeConfirmed: true });
             const decoded = getMessageText(record);
             const changed = changedFields.length > 0;
             if (changed) await saveAndRenderMessage(messageId, record);
             monitoredAssistantText.set(messageId, getAssistantOutputFingerprint(record));
-            const unresolved = recordHasUnicodeEscape(record);
+            const unresolved = recordHasUnicodeArtifact(record);
 
             const detail = { source, messageId, original, decoded, changed, changedFields, unresolved };
             monitor('AI输出', detail);
@@ -1145,6 +1321,7 @@ ${lines.join('\n')}
             const timer = setTimeout(() => {
                 assistantRetryTimers.delete(timer);
                 processAssistantMessage(messageId, `${source}+${delay}ms`, {
+                    unicodeConfirmed: true,
                     notifyFailure: delay === delays[delays.length - 1]
                         && /GENERATION_(?:ENDED|STOPPED)/.test(source),
                 }).catch(error => {
@@ -1162,10 +1339,16 @@ ${lines.join('\n')}
             return null;
         }
         failedDecodeIds.delete(messageId);
-        const hadEncodedContent = recordHasUnicodeEscape(getChat()[messageId]);
-        const result = await processAssistantMessage(messageId, 'manual-retry', { notifyFailure: true });
-        if (!hadEncodedContent) notify('info', `第 ${messageId} 楼没有需要解码的 Unicode 内容。`);
-        else if (result && !result.unresolved) notify('success', `第 ${messageId} 楼已重新解码。`);
+        const hadEncodedContent = recordHasUnicodeArtifact(getChat()[messageId]);
+        if (!hadEncodedContent) {
+            notify('info', `第 ${messageId} 楼未检测到 Unicode 转码痕迹，未启用纠错兜底。`);
+            return null;
+        }
+        const result = await processAssistantMessage(messageId, 'manual-retry', {
+            notifyFailure: true,
+            unicodeConfirmed: true,
+        });
+        if (result && !result.unresolved) notify('success', `第 ${messageId} 楼已重新解码。`);
         return result;
     }
 
@@ -2031,6 +2214,7 @@ ${lines.join('\n')}
             repairMalformedUnicodeEscapes,
             decodeHtmlNumericEntities,
             hasUnicodeEscape,
+            hasUnicodeArtifact: value => hasUnicodeEscape(value) || hasMalformedCompactUnicodeArtifact(value),
             monitorUserMessage,
             processAssistantMessage,
             retryLatestDecode,
