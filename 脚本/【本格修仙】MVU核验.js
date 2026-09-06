@@ -211,6 +211,24 @@
     const rawYear = finiteNumber(sd.时间 && sd.时间.年);
     const currentYear = rawYear == null ? null : Math.trunc(rawYear);
     let changed = verifyCharacter(sd, currentYear);
+    if (Array.isArray(sd.传闻)) {
+      sd.传闻 = { 条目: sd.传闻, 上次世界推进时间点: null };
+      changed = true;
+    } else if (!sd.传闻 || typeof sd.传闻 !== "object") {
+      sd.传闻 = { 条目: [], 上次世界推进时间点: null };
+      changed = true;
+    }
+    // 仅补空，不能在普通回合或失败重试时覆盖已记录的推进起点。
+    const worldTime = sd.时间;
+    const timeIsValid = worldTime && [worldTime.年, worldTime.月, worldTime.日].every(v =>
+      v !== null && v !== undefined && String(v).trim() !== "" && Number.isInteger(Number(v))) &&
+      Number(worldTime.月) >= 1 && Number(worldTime.月) <= 12 &&
+      Number(worldTime.日) >= 1 && Number(worldTime.日) <= 30 &&
+      /^(子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥)时$/.test(worldTime.时辰);
+    if (_.isEmpty(sd.传闻.上次世界推进时间点) && timeIsValid) {
+      sd.传闻.上次世界推进时间点 = { 年: Number(worldTime.年), 月: Number(worldTime.月), 日: Number(worldTime.日), 时辰: worldTime.时辰 };
+      changed = true;
+    }
     if (!sd.任务 || typeof sd.任务 !== "object" || Array.isArray(sd.任务)) {
       sd.任务 = {};
       changed = true;

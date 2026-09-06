@@ -732,8 +732,7 @@ const EventSchema = z
   .prefault({ 开启: false, 标题: "", 阶段: "", 已完成事件: [] });
 
 // ===== 传闻 Schema =====
-// 内容由前端引擎 (src/修仙状态栏/timeline-engine.ts) 生成并写回此字段,
-// AI 仅读、不写。详见 [mvu_update]变量更新规则.yaml。
+// 单条传闻格式保持不变；世界推进回合由 AI 更新，其他回合只读。
 const TimelineDateSchema = z.object({
   年: z.coerce.number(),
   月: z.coerce.number(),
@@ -783,8 +782,14 @@ export const Schema = z.object({
   // —— 不变 ——
   关系列表: z.record(z.string(), RelationEntrySchema).prefault({}),
 
-  // —— 传闻 (前端引擎写,AI 仅读) ——
-  传闻: z.array(RumorEntrySchema).prefault([]),
+  // 旧数组无损迁移；时间点由 MVU 核验补空，世界推进完成后由 AI 更新。
+  传闻: z.preprocess(
+    value => Array.isArray(value) ? { 条目: value } : value == null ? {} : value,
+    z.object({
+      上次世界推进时间点: z.preprocess(value => _.isEmpty(value) ? null : value, TimeSchema.nullable()).prefault(null),
+      条目: z.array(RumorEntrySchema).prefault([]),
+    }).prefault({}),
+  ),
 });
 
 // ============================================================
@@ -1084,7 +1089,7 @@ const TOP_LEVEL_CONTAINER_DEFAULTS = {
   傀儡: {},
   灵兽: {},
   关系列表: {},
-  传闻: [],
+  传闻: { 上次世界推进时间点: null, 条目: [] },
 };
 
 const TOP_LEVEL_SCALAR_DEFAULTS = {
@@ -1117,6 +1122,9 @@ function fillMissingDefaults(target, defaults) {
 function repairMissingSchemaContainers(variables) {
   const statData = variables?.stat_data;
   if (!isPlainRecord(statData)) return;
+  if (Array.isArray(statData.传闻)) {
+    statData.传闻 = { 上次世界推进时间点: null, 条目: statData.传闻 };
+  }
 
   for (const [key, defaultValue] of Object.entries(TOP_LEVEL_SCALAR_DEFAULTS)) {
     if (statData[key] === undefined || statData[key] === null || statData[key] === "") {

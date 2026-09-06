@@ -36,7 +36,7 @@ const _txt = [
   ['[角色生成规则]', '角色生成=重要NPC或无主战斗单位首次登场'],
   ['[物品功法生成规则]', '物品展示=交易/战利品/生产完成/发现素材/领悟生成功法等'],
   ['[任务发布规则]', '任务发布=明确委托/查看任务榜/任务状态实质变化'],
-  ['[时间推进规则]', '时间推进=叙事跨度不少于1年'],
+  ['[时间推进规则]', '仅玩家明确要求时回顾上次推进至当前的世界演进；全体人物逐人面板与叙事，最后回到当前玩家，不额外推进时间'],
   ['[轮回转生规则]', '轮回转生=<user>死亡且无保命手段，或冥族主动投入轮回井'],
 ].filter(r => _show(r[0])).map(r => `  - ${r[1]}`).join('\n');
 %>
@@ -112,7 +112,7 @@ const _txt = [
   ['[角色生成规则]', '角色生成: hostile/friendly NPC first appearance / ownerless 灵兽 first appearance → <!-- ... --><char_info> (人物) or <!-- ... --><item_info> (灵兽/傀儡)'],
   ['[物品功法生成规则]', '物品展示: purchase/auction/loot inventory/production completion/material discovery/comprehension-generated 功法... → multiple <!-- ... --><item_info>'],
   ['[任务发布规则]', '任务发布: explicit commission / <user> views a task board / existing task status materially changes → <!-- ... --><task_info>'],
-  ['[时间推进规则]', '时间推进: narrative span ≥ 1 year'],
+  ['[时间推进规则]', 'World evolution only on explicit player request: cover every person with a separate panel and narrative; return to the player at the unchanged current time'],
 ].filter(r => _show(r[0])).map((r, i) => `  ${i + 1}. ${r[1]}`).join('\n');
 _%>
 <%- _txt %>
@@ -200,7 +200,7 @@ const _txt = [
   ['[角色生成规则]', '角色生成: 敌友NPC首次登场 / 无主灵兽首次出现 → <!-- ... --><char_info>(人物) 或 <!-- ... --><item_info>(灵兽/傀儡)'],
   ['[物品功法生成规则]', '物品展示: 购买/拍卖/清点战利品/生产完成/发现素材/领悟生成功法... → 多个 <!-- ... --><item_info>'],
   ['[任务发布规则]', '任务发布: 委托方提出具体委托 / <user>查看任务榜 / 既有任务状态实质变化 → <!-- ... --><task_info>'],
-  ['[时间推进规则]', '时间推进: 叙事跨度≥1年'],
+  ['[时间推进规则]', '时间推进: 仅玩家明确要求时开启，逐人面板与叙事，更新传闻与推进时间点，结尾回到当前玩家'],
 ].filter(r => _show(r[0])).map((r, i) => `  ${i + 1}.${r[1]}`).join('\n');
 _%>
 <%- _txt %>
