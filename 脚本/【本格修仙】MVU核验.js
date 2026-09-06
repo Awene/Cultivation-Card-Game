@@ -1,7 +1,7 @@
 /**
  * 【本格修仙】MVU核验
  * 每轮 MVU 更新结束后核验：
- * - 主角与所有「人物」NPC 的气血/灵气上限，并按原百分比折算现值；
+ * - 主角与所有「人物」NPC 的气血/灵气上限及基础遁速，并按原百分比折算气血/灵气现值；
  * - 主角与所有「人物」NPC 的出生年份及年龄（年龄 = 当前年份 - 生日）；
  * - 主角与所有「人物」NPC 的上次突破时间点：仅当既有角色的境界字段实际变化时，记录当回合年份；
  * - 为旧存档补齐任务根节点，保证后续 JSON Patch 可以直接写入任务；
@@ -179,6 +179,7 @@
     // 严格采用《突破规则/角色生成规则》的资源公式，不附加开局特例下限。
     const hpMax = Math.max(1, Math.floor(tenPowL * (1 + 根骨 * 0.1)));
     const mpMax = Math.max(1, Math.floor(tenPowL * (1 + 气感 * 0.1)));
+    const speed = Math.max(1, Math.floor(tenPowL * (1 + 根骨 * 0.02)));
 
     if (!character.资源池 || typeof character.资源池 !== "object" || Array.isArray(character.资源池)) character.资源池 = {};
     const resources = character.资源池;
@@ -195,6 +196,8 @@
       resources.灵气 = nextMp;
       changed = true;
     }
+    // 这里只核验人物自身的基础遁速；身法、装备与状态加成由战斗规则动态结算。
+    changed = setIfChanged(resources, "遁速", speed) || changed;
     return changed;
   }
 

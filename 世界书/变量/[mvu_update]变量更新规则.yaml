@@ -93,7 +93,8 @@ types:
         };
       }
     check:
-      - 数值仅随功法修炼增长,与境界无关
+      - 技艺为持续累积的非负数值
+      - 仅在对应规则明确结算技艺增长时更新;不得随普通叙事增减
   资源池: &resource_pool
     气血.现值:
       type: number
@@ -168,6 +169,17 @@ types:
       }
     check:
       - 详见<rule ref="状态规则"/>
+  事件:
+    type: |-
+      {
+        开启: boolean;
+        标题: string;
+        阶段: string;
+        已完成事件: string[];
+        进度?: { [进度名: string]: unknown };
+      }
+    check:
+      - 仅<event>中有明确要求时更新，不得自行杜撰事件
   功法: &cultivation
     type: |-
       {

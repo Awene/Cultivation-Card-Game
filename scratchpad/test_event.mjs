@@ -58,7 +58,7 @@ const base = (事件 = {}, extra = {}) => ({
     ...extra,
   },
 });
-const 全毒 = { 蛇: true, 蜈: true, 蝎: true, 蟾: true, 虎: true, 知情: 0, 解法: false };
+const 全毒 = { 蛇: true, 蜈: true, 蝎: true, 蟾: true, 蛛: true, 知情: 0, 解法: false };
 
 let pass = 0, fail = 0;
 function t(name, out, mustHave = [], mustNot = []) {
@@ -69,9 +69,9 @@ function t(name, out, mustHave = [], mustNot = []) {
   else { pass++; console.log(`✓ ${name}`); }
 }
 
-// ① 无事件·无关键词 → 空输出
-t('① 无事件+无关键词=静默', render(base(), '今天天气不错').trim(), [], ['<event>']);
-// 触发: 关键词命中
+// ① 筑基且无其他事件时直接触发，不再要求关键词
+t('① 无事件+无关键词=触发', render(base(), '今天天气不错'), ['结本命蛊', '"path": "/事件/标题", "value": "梦茧"', '"path": "/灵兽/梦茧"'], ["将'事件"]);
+// 有结蛊语境时同样触发
 t('触发器: 结蛊语境触发', render(base(), '长老让{{user}}准备结本命蛊'), ['结本命蛊', '"path": "/事件/标题", "value": "梦茧"', '"path": "/灵兽/梦茧"'], ["将'事件"]);
 // 触发被境界拦截
 t('触发器: 炼气不触发', render(base({}, { 修炼进度: { 境界: '炼气三层' } }), '准备结本命蛊').trim(), [], ['<event>']);
