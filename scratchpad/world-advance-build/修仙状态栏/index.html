@@ -3331,19 +3331,81 @@ const timePeriodAliases = {
   人定: "亥"
 };
 
-const normalizeTimePeriod = input => {
-  const text = String(input ?? "").trim();
+function normalizeTimePeriod(input) {
+  const text = String(input ?? "").normalize("NFKC").replace(/\s/g, "");
   const period = timePeriods.find(item => text === item || [ "时", "初", "正", "刻", "中", "末", "半" ].some(suffix => text.includes(`${item}${suffix}`)));
   if (period) return `${period}时`;
+  const clock = text.match(/^(凌晨|清晨|早上|上午|中午|下午|傍晚|晚上|晚间|夜间)?(\d{1,2}|[零〇一二两三四五六七八九十]+)(?:点|时|:)(?:(\d{1,2})分?|半|整)?$/);
+  if (clock) {
+    let hour = parseCalendarNumber(clock[2]);
+    if (clock[3] && Number(clock[3]) > 59) return undefined;
+    if (hour < 0 || hour > 23) return undefined;
+    if (/下午|傍晚|晚上|晚间|夜间/.test(clock[1] ?? "") && hour < 12) hour += 12;
+    if (/晚上|晚间|夜间/.test(clock[1] ?? "") && hour === 12) hour = 0;
+    if (/凌晨|上午|早上/.test(clock[1] ?? "") && hour === 12) hour = 0;
+    if (clock[1] === "中午" && hour < 11) hour += 12;
+    return `${timePeriods[Math.floor((hour + 1) / 2) % 12]}时`;
+  }
   const alias = Object.entries(timePeriodAliases).find(([name]) => text.includes(name));
-  return alias ? `${alias[1]}时` : "午时";
-};
+  if (alias) return `${alias[1]}时`;
+  const vague = {
+    凌晨: "丑",
+    清晨: "卯",
+    早: "卯",
+    早上: "卯",
+    上午: "巳",
+    中午: "午",
+    白天: "午",
+    日间: "午",
+    下午: "申",
+    傍晚: "酉",
+    晚: "戌",
+    晚间: "戌",
+    晚上: "戌",
+    夜间: "戌",
+    深夜: "亥"
+  };
+  return vague[text] ? `${vague[text]}时` : undefined;
+}
+
+function parseCalendarNumber(input) {
+  if (typeof input === "number") return Number.isFinite(input) ? Math.trunc(input) : NaN;
+  let text = String(input ?? "").normalize("NFKC").trim().replace(/[年月日号]$/, "").replace(/^初/, "");
+  text = {
+    正: "一",
+    冬: "十一",
+    腊: "十二",
+    臘: "十二"
+  }[text] ?? text;
+  if (/^\d+$/.test(text)) return Number(text);
+  const digits = "零一二三四五六七八九";
+  text = text.replace(/〇/g, "零").replace(/两/g, "二").replace(/廿/g, "二十").replace(/卅/g, "三十");
+  if (!/^[零一二三四五六七八九十百千万]+$/.test(text)) return NaN;
+  if (!/[十百千万]/.test(text)) return Number([ ...text ].map(c => digits.indexOf(c)).join(""));
+  let total = 0, section = 0, n = 0;
+  for (const c of text) {
+    const digit = digits.indexOf(c);
+    if (digit >= 0) n = digit; else if (c === "万") {
+      total += (section + n) * 1e4;
+      section = 0;
+      n = 0;
+    } else {
+      section += (n || 1) * {
+        十: 10,
+        百: 100,
+        千: 1e3
+      }[c];
+      n = 0;
+    }
+  }
+  return total + section + n;
+}
 
 const TimeSchema = external_z_namespaceObject.z.object({
-  年: external_z_namespaceObject.z.coerce.number().prefault(1),
-  月: external_z_namespaceObject.z.coerce.number().transform(n => schema_clamp(n, 1, 12)).prefault(1),
-  日: external_z_namespaceObject.z.coerce.number().transform(n => schema_clamp(n, 1, 30)).prefault(1),
-  时辰: external_z_namespaceObject.z.preprocess(normalizeTimePeriod, external_z_namespaceObject.z.enum(timePeriodValues)).prefault("午时")
+  年: external_z_namespaceObject.z.preprocess(parseCalendarNumber, external_z_namespaceObject.z.number().min(1).catch(1)).prefault(1),
+  月: external_z_namespaceObject.z.preprocess(parseCalendarNumber, external_z_namespaceObject.z.number().transform(n => schema_clamp(n, 1, 12)).catch(1)).prefault(1),
+  日: external_z_namespaceObject.z.preprocess(parseCalendarNumber, external_z_namespaceObject.z.number().transform(n => schema_clamp(n, 1, 30)).catch(1)).prefault(1),
+  时辰: external_z_namespaceObject.z.preprocess(normalizeTimePeriod, external_z_namespaceObject.z.enum(timePeriodValues).catch("午时")).prefault("午时")
 }).prefault({
   年: 1,
   月: 1,
@@ -3480,24 +3542,36 @@ const TaskSchema = external_z_namespaceObject.z.object({
 
 const TasksSchema = external_z_namespaceObject.z.record(external_z_namespaceObject.z.string(), TaskSchema).prefault({});
 
-const TimelineDateSchema = external_z_namespaceObject.z.object({
-  年: external_z_namespaceObject.z.coerce.number(),
-  月: external_z_namespaceObject.z.coerce.number(),
-  日: external_z_namespaceObject.z.coerce.number()
-});
+function migrateRumorEntries(value) {
+  if (value == null) return {};
+  if (typeof value !== "object") return value;
+  const array = Array.isArray(value);
+  const result = Object.create(null);
+  for (const [key, raw] of Object.entries(value)) {
+    if (!raw || typeof raw !== "object") {
+      result[key] = raw;
+      continue;
+    }
+    const item = raw;
+    const content = String(item.内容 ?? "");
+    const base = array ? String(item.标题 || content.split(/[，。；\n]/)[0].slice(0, 24) || item.类别 || "旧传闻" + key) : key;
+    let title = base, suffix = 2;
+    while (Object.hasOwn(result, title)) title = base + "（" + suffix++ + "）";
+    const location = String(item.地点 || [ item.世界, item.地域 ].filter(Boolean).join("·"));
+    const category = item.类别 === "通缉魔修" ? "通缉逃犯" : item.类别 === "灵植奇遇" ? "素材奇遇" : item.类别;
+    result[title] = {
+      类别: category ?? "",
+      内容: location && !content.includes(location) ? location + "：" + content : content,
+      难度: item.难度 ?? item.境界 ?? "待查"
+    };
+  }
+  return result;
+}
 
 const RumorEntrySchema = external_z_namespaceObject.z.object({
-  id: external_z_namespaceObject.z.string(),
-  时间区间: external_z_namespaceObject.z.object({
-    起: TimelineDateSchema,
-    止: TimelineDateSchema
-  }),
-  世界: external_z_namespaceObject.z.string(),
-  地域: external_z_namespaceObject.z.string(),
-  地点: external_z_namespaceObject.z.string(),
-  类别: external_z_namespaceObject.z.string(),
-  内容: external_z_namespaceObject.z.string(),
-  难度: external_z_namespaceObject.z.string()
+  类别: external_z_namespaceObject.z.preprocess(v => String(v ?? "待分类"), external_z_namespaceObject.z.string()).prefault("待分类"),
+  内容: external_z_namespaceObject.z.preprocess(v => String(v ?? "暂无详情"), external_z_namespaceObject.z.string()).prefault("暂无详情"),
+  难度: external_z_namespaceObject.z.preprocess(v => Array.isArray(v) ? v.map(x => String(x ?? "待查")).join("—") : String(v ?? "待查"), external_z_namespaceObject.z.string()).prefault("待查")
 });
 
 const CustomStartMetadataSchema = external_z_namespaceObject.z.object({
@@ -3535,7 +3609,7 @@ const CultivationStatusSchema = external_z_namespaceObject.z.object({
     条目: value
   } : value == null ? {} : value, external_z_namespaceObject.z.object({
     上次世界推进时间点: external_z_namespaceObject.z.preprocess(value => _.isEmpty(value) ? null : value, TimeSchema.nullable()).prefault(null),
-    条目: external_z_namespaceObject.z.array(RumorEntrySchema).prefault([])
+    条目: external_z_namespaceObject.z.preprocess(migrateRumorEntries, external_z_namespaceObject.z.record(external_z_namespaceObject.z.string(), RumorEntrySchema)).prefault({})
   }).prefault({}))
 });
 
@@ -4720,7 +4794,10 @@ const openedBuffData = (0, external_Vue_namespaceObject.computed)(() => {
   return buffs?.[state.openedBuff] || null;
 });
 
-const activeTimelineEvents = (0, external_Vue_namespaceObject.computed)(() => useDataStore().data.传闻.条目);
+const activeTimelineEvents = (0, external_Vue_namespaceObject.computed)(() => Object.entries(useDataStore().data.传闻.条目).map(([标题, entry]) => ({
+  ...entry,
+  标题
+})));
 
 const storageCount = key => {
   const store = useDataStore();
@@ -8821,36 +8898,36 @@ const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_2 = {
   class: "world-advance-bar"
 };
 
-const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_3 = [ "disabled" ];
+const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_3 = {
+  class: "world-advance-times"
+};
 
-const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_4 = {
+const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_4 = [ "disabled" ];
+
+const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_5 = {
   key: 0,
   class: "xy-empty"
 };
 
-const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_5 = {
+const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_6 = {
   key: 1,
   class: "xy-rumor-list"
 };
 
-const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_6 = {
+const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_7 = {
   class: "xy-rumor-head"
 };
 
-const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_7 = {
+const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_8 = {
   class: "xy-rumor-seal"
 };
 
-const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_8 = {
+const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_9 = {
   class: "xy-rumor-meta"
 };
 
-const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_9 = {
-  class: "xy-rumor-time"
-};
-
 const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_10 = {
-  class: "xy-rumor-source"
+  class: "xy-rumor-title"
 };
 
 const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_11 = [ "title" ];
@@ -8862,34 +8939,36 @@ const PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_12 = {
 function PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_render(_ctx, _cache, $props, $setup, $data, $options) {
   return (0, external_Vue_namespaceObject.openBlock)(), (0, external_Vue_namespaceObject.createElementBlock)("section", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_1, [ (0, 
   external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_2, [ (0, 
+  external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_3, [ (0, 
   external_Vue_namespaceObject.createElementVNode)("span", null, [ _cache[0] || (_cache[0] = (0, 
   external_Vue_namespaceObject.createTextVNode)("上次推进 ", -1)), (0, external_Vue_namespaceObject.createElementVNode)("strong", null, (0, 
-  external_Vue_namespaceObject.toDisplayString)($setup.lastAdvance), 1) ]), (0, external_Vue_namespaceObject.createElementVNode)("button", {
+  external_Vue_namespaceObject.toDisplayString)($setup.lastAdvance), 1) ]), (0, external_Vue_namespaceObject.createElementVNode)("span", null, [ _cache[1] || (_cache[1] = (0, 
+  external_Vue_namespaceObject.createTextVNode)("当前时间 ", -1)), (0, external_Vue_namespaceObject.createElementVNode)("strong", null, (0, 
+  external_Vue_namespaceObject.toDisplayString)($setup.currentTime), 1) ]) ]), (0, 
+  external_Vue_namespaceObject.createElementVNode)("button", {
     type: "button",
     disabled: $setup.sending,
     onClick: $setup.advanceWorld
-  }, (0, external_Vue_namespaceObject.toDisplayString)($setup.sending ? "发送中…" : "世界推进"), 9, PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_3) ]), $setup.activeTimelineEvents.length === 0 ? ((0, 
-  external_Vue_namespaceObject.openBlock)(), (0, external_Vue_namespaceObject.createElementBlock)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_4, [ ..._cache[1] || (_cache[1] = [ (0, 
+  }, (0, external_Vue_namespaceObject.toDisplayString)($setup.sending ? "发送中…" : "世界推进"), 9, PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_4) ]), $setup.activeTimelineEvents.length === 0 ? ((0, 
+  external_Vue_namespaceObject.openBlock)(), (0, external_Vue_namespaceObject.createElementBlock)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_5, [ ..._cache[2] || (_cache[2] = [ (0, 
   external_Vue_namespaceObject.createElementVNode)("div", {
     class: "xy-empty-mark"
   }, "寂", -1), (0, external_Vue_namespaceObject.createElementVNode)("p", null, "风平浪静，未闻新事", -1) ]) ])) : ((0, 
-  external_Vue_namespaceObject.openBlock)(), (0, external_Vue_namespaceObject.createElementBlock)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_5, [ ((0, 
+  external_Vue_namespaceObject.openBlock)(), (0, external_Vue_namespaceObject.createElementBlock)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_6, [ ((0, 
   external_Vue_namespaceObject.openBlock)(true), (0, external_Vue_namespaceObject.createElementBlock)(external_Vue_namespaceObject.Fragment, null, (0, 
-  external_Vue_namespaceObject.renderList)($setup.activeTimelineEvents, (r, i) => ((0, 
+  external_Vue_namespaceObject.renderList)($setup.activeTimelineEvents, r => ((0, 
   external_Vue_namespaceObject.openBlock)(), (0, external_Vue_namespaceObject.createElementBlock)("article", {
-    key: i,
+    key: r.标题,
     class: "xy-rumor"
-  }, [ (0, external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_6, [ (0, 
-  external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_7, [ (0, 
-  external_Vue_namespaceObject.createElementVNode)("span", null, (0, external_Vue_namespaceObject.toDisplayString)(r.类别), 1) ]), (0, 
+  }, [ (0, external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_7, [ (0, 
   external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_8, [ (0, 
-  external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_9, (0, 
-  external_Vue_namespaceObject.toDisplayString)($setup.formatRange(r.时间区间)), 1), (0, 
-  external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_10, "— " + (0, 
-  external_Vue_namespaceObject.toDisplayString)(r.地点 || "不知何处"), 1) ]), (0, external_Vue_namespaceObject.createElementVNode)("div", {
+  external_Vue_namespaceObject.createElementVNode)("span", null, (0, external_Vue_namespaceObject.toDisplayString)(r.类别), 1) ]), (0, 
+  external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_9, [ (0, 
+  external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_10, (0, 
+  external_Vue_namespaceObject.toDisplayString)(r.标题), 1) ]), (0, external_Vue_namespaceObject.createElementVNode)("div", {
     class: "xy-rumor-difficulty",
     title: `适配境界：${r.难度}`
-  }, [ _cache[2] || (_cache[2] = (0, external_Vue_namespaceObject.createElementVNode)("i", null, "难", -1)), (0, 
+  }, [ _cache[3] || (_cache[3] = (0, external_Vue_namespaceObject.createElementVNode)("i", null, "难", -1)), (0, 
   external_Vue_namespaceObject.createTextVNode)((0, external_Vue_namespaceObject.toDisplayString)(r.难度), 1) ], 8, PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_11) ]), (0, 
   external_Vue_namespaceObject.createElementVNode)("div", PageRumorsvue_type_template_id_7eb01522_scoped_true_ts_true_hoisted_12, (0, 
   external_Vue_namespaceObject.toDisplayString)(r.内容), 1) ]))), 128)) ])) ]);
@@ -8905,32 +8984,29 @@ const PageRumorsvue_type_script_setup_true_lang_ts = (0, external_Vue_namespaceO
       const t = store.data.传闻.上次世界推进时间点;
       return t ? `${t.年}年${t.月}月${t.日}日 · ${t.时辰}` : "等待核验初始化";
     });
+    const currentTime = (0, external_Vue_namespaceObject.computed)(() => {
+      const t = store.data.时间;
+      return t ? `${t.年}年${t.月}月${t.日}日 · ${t.时辰}` : "等待时间数据";
+    });
     async function advanceWorld() {
       if (sending.value) return;
       sending.value = true;
       try {
         const host = window.parent;
-        if (!host.CultivationRuleRouter?.sendWorldAdvance) throw new Error("请先启用支持世界推进的新版路由插件");
-        await host.CultivationRuleRouter.sendWorldAdvance();
+        if (!host.CultivationWorldAdvance?.send) throw new Error("请先启用角色卡的【本格修仙】世界推进脚本");
+        await host.CultivationWorldAdvance.send();
       } catch (error) {
         toastr.warning(error instanceof Error ? error.message : String(error), "世界推进");
       } finally {
         sending.value = false;
       }
     }
-    function formatRange(range) {
-      const s = range.起;
-      const e = range.止;
-      const fmt = d => `${d.年}年${d.月}月${d.日}日`;
-      if (s.年 === e.年 && s.月 === e.月 && s.日 === e.日) return fmt(s);
-      return `${fmt(s)} ~ ${fmt(e)}`;
-    }
     const __returned__ = {
       store,
       sending,
       lastAdvance,
+      currentTime,
       advanceWorld,
-      formatRange,
       get activeTimelineEvents() {
         return activeTimelineEvents;
       }
@@ -10576,7 +10652,7 @@ function CharacterRefinementModalvue_type_template_id_5cbf2e13_scoped_true_ts_tr
 
 const _raw_namespaceObject = "### ${人物名称} (${萝莉|正太|少年|少女|御姐|大叔|老妪|老翁})\r\n角色魅力: ${50~100tokens,角色魅力，如性张力、人格魅力、人物弧光等}\r\n着装(外): ${20~50tokens,常用的外装款式}\r\n着装(内): ${20~50tokens,常用的内衣款式}\r\n法宝: ${3~4种,人物常用法宝类型}\r\n底色: ${100~150tokens,人物性格的底层逻辑，如执念、理想、世界观}\r\n\r\n[${性格特征A}]\r\n① {示例A1，100~150tokens，简述一个生活细节，反映人物性格特征A}\r\n② {示例A2}\r\n③ {示例A3}\r\n\r\n[${性格特征B}]\r\n① {示例B1}\r\n② {示例B2}\r\n③ {示例B3}\r\n\r\n[表白]\r\n{100~150tokens，简述角色有心仪之人时，如何**主动**向其表白}\r\n\r\n[道侣相处]\r\n① {示例C1，100~150tokens，简述一个生活细节，反映人物如何与其道侣互动}\r\n② {示例C2}\r\n③ {示例C3}\r\n④ {示例C4}\r\n";
 
-const _mvu_update_raw_namespaceObject = "---\r\n# 类型定义区\r\ntypes:\r\n  RealmName: &RealmName \"境界: string; #大境界+小境界,如:练气初期\"\r\n  elements: &elements \"五行: '金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌';\"\r\n  quality: &quality \"品质: '凡'|'黄'|'玄'|'地'|'天';\"\r\n  label: &label \"标签: string[]; #参考*RULE_标签加值指导\"\r\n  utility: &utility \"效果?: { [效果名: string]: string }; #参考*RULE_效果加值指导\"\r\n  cost: &cost \"消耗?: string; #'灵气|气血|精血: num',如 '灵气: 5';无消耗则省略此字段\"\r\n  location: &location |-\r\n    {\r\n      世界: '凡界'|'灵界'|'仙界'; #realm\r\n      地域: string; #region\r\n      具体地点: string; #格式:${生态}-${?宗门|秘境|城市}-${具体位置}\r\n    }\r\n  time: &time |-\r\n    {\r\n      年: number; #修仙历xxxx年\r\n      月: number;\r\n      日: number;\r\n      时辰: string; #如:子时\r\n    }\r\n\r\n变量更新规则:\r\n\r\n  姓名:\r\n    type: string\r\n  寿元: &age\r\n    type: |-\r\n      {\r\n        年龄:  number;\r\n        寿命:  number;\r\n        外观年龄: number;\r\n      }\r\n  种族: &race\r\n    type: string #如人族、龙族等,妖族需注明物种,如狐妖、猫妖\r\n  身份: &status\r\n    type: string[] # 散修,或宗门+地位如:北辰学宫内门弟子、镇魔司缉魔使;可多个\r\n    check:\r\n      - 加入/离开宗门、职位晋升、身份揭露或重大身份变动时更新\r\n  灵根: &root\r\n    type: |-\r\n      {\r\n        名称: string; # 格式: {品阶描述}{五行列表}[灵根],如\"金木水火四灵根\"、\"金单灵根\"、\"雷灵根\"(变异)\r\n        五行: ('金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌'|'未知'|'无')[]; // 长度1~5;['无']/['未知']为特殊状态\r\n        品阶: '无灵根' | '未检测' | '单灵根' | '双灵根' | '三灵根' | '四灵根' | '五灵根';\r\n      }\r\n    check:\r\n      - 五行列表需与名称中的五行描述一致,如\"金木双灵根\"→['金','木'],\"金单灵根\"→['金']\r\n      - 特殊情况:\"无灵根\"→['无'],\"未检测\"→['未知'],变异灵根(如雷灵根)→['火'](参考灵根变异设定)\r\n      - 仅在灵根检测、服用神药等重大剧情时更新\r\n  体质: &body\r\n    type: |-\r\n      {\r\n        名称: string;\r\n        *utility\r\n        悟性: number;\r\n        根骨: number;\r\n        气感: number;\r\n        元阴?: boolean;  # 仅女性:处女→true,非处女→false\r\n        元阳?: boolean;  # 仅男性:处男→true,非处男→false\r\n      }\r\n    check:\r\n      - 仅血脉提升、服用神药、重塑道基、夺舍等重大剧情时更新\r\n      - 体质为先天属性,与境界无关\r\n  修炼进度: &realmDetails\r\n    type: |-\r\n      {\r\n        *RealmName\r\n        当前进度: number;\r\n        进度上限: number; #进阶下一级所需的修为\r\n        天谴: number;\r\n        丹毒: number;\r\n      }\r\n  技艺: &skill\r\n    type: |-\r\n      {\r\n        生产类: {\r\n          炼器: number;\r\n          驯兽: number;\r\n          培育: number;\r\n          医术: number;\r\n          炼丹: number;\r\n          制符: number;\r\n        };\r\n        战斗类: {\r\n          御物: number;\r\n          咒法: number;\r\n          幻术: number;\r\n          阵法: number;\r\n          神识: number;\r\n          炼体: number;\r\n        };\r\n      }\r\n    check:\r\n      - 技艺为持续累积的非负数值\r\n      - 仅在对应规则明确结算技艺增长时更新;不得随普通叙事增减\r\n  资源池: &resource_pool\r\n    气血.现值:\r\n      type: number\r\n      check:\r\n        - 归零判定:气血归零→死亡\r\n        - 任何恢复不可超过上限\r\n    气血.上限:\r\n      type: number\r\n    灵气.现值:\r\n      type: number\r\n      check:\r\n        - 归零判定:灵气归零→无法施法\r\n        - 任何恢复不可超过上限\r\n    灵气.上限:\r\n      type: number\r\n    遁速:\r\n      type: number\r\n  固定资产:\r\n    type: |-\r\n      {\r\n        [资产名: string]: {\r\n          类型: '宗门'|'店铺'|'洞府'; #其他类别不视为资产\r\n          人员规模: number;\r\n          所在地: *location;\r\n          现状: string;\r\n          设施: {\r\n            [设施名: string]: {\r\n              *utility\r\n              每月产出: string; # 无产出写\"无\"\r\n              上次收取日期: *time | null; #收取后更新为当前时间，从未收取为 null\r\n            }\r\n          };\r\n          分配人物: string[]; # 此地工作/生活者姓名；仅关系列表中出现的重要NPC\r\n        }\r\n      }\r\n    check:\r\n      - 记录<user>名下的资产，变化时更新；宗门类资产仅<user>成为宗主时添加\r\n  任务:\r\n    type: |-\r\n      {\r\n        [任务名: string]: {\r\n          状态: '进行中'|'待结算';\r\n          委托方: string;\r\n          难度: string; # 以境界表示（如：炼气初期）\r\n          目标: string; # 简述完成条件\r\n          进展: string; # 记录已经发生的关键进展\r\n          奖励: string;\r\n          交付: string; # 领取奖励方式\r\n          截止时间: *time | null; # 无期限为 null\r\n        }\r\n      }\r\n    check:\r\n      - 仅在<user>明确接取、或剧情明确强制赋予任务时添加；\r\n      - 达成目标后将状态改为待结算；实际完成交付并获得奖励后移除任务，奖励仅发放一次\r\n      - 失败或<user>明确放弃时移除任务；超过截止时间视为失败\r\n  地点:\r\n    type: *location\r\n    check:\r\n      - 空间变换时更新\r\n  时间:\r\n    type: *time\r\n  状态效果: &buff\r\n    type: |-\r\n      {\r\n        [效果名称: string]: {\r\n          类型: '增益'|'减益'|'特殊';\r\n          *utility\r\n          层数: number;\r\n          剩余时间: string;\r\n          来源: string;\r\n        }\r\n      }\r\n    check:\r\n      - 详见<rule ref=\"状态规则\"/>\r\n  事件:\r\n    type: |-\r\n      {\r\n        开启: boolean;\r\n        标题: string;\n        阶段: string;\n        已完成事件: string[];\r\n        进度?: { [进度名: string]: unknown };\n      }\r\n    check:\r\n      - 仅<event>中有明确要求时更新，不得自行杜撰事件\r\n  功法: &cultivation\r\n    type: |-\r\n      {\r\n        [功法名称: string]: {\r\n          使用中: boolean; # 由外部脚本处理,禁止修改\r\n          *quality\r\n          *RealmName\r\n          *elements\r\n          类型: '心法'|'攻击'|'幻术'|'神识'|'咒法'|'身法'|'护体'|'阵法';\r\n          *cost\r\n          *label\r\n          *utility\r\n          描述: string;\r\n        }\r\n      }\r\n    check:\r\n      - 仅在更换功法时更新\r\n  灵石: &cash\r\n    type: number\r\n    check:\r\n      - 默认兑换为下品灵石计算\r\n      - 交易、拾取、消耗时更新数量\r\n  物品: &item\r\n    type: |-\r\n      {\r\n        [物品名: string]: {\r\n          *quality\r\n          *RealmName\r\n          类型: '秘籍'|'配方'|'符箓'|'丹药'|'素材'|'工具';\r\n          *cost\r\n          *elements\r\n          *label\r\n          数量: number;\r\n          *utility\r\n          描述: string;\r\n        }\r\n      }\r\n    check:\r\n      - 交易、拾取、消耗时更新\r\n      - 数量为0时移除该key\r\n      - 严禁把武器/防具/饰品写入物品，它们应写为装备\r\n      - 类型必须是上述枚举之一；无法归类的杂物不写入变量\r\n  装备: &equipment\r\n    type: |-\r\n      {\r\n        [装备名: string]: {\r\n          *quality\r\n          *RealmName\r\n          类型: '法宝'|'护甲'|'饰品';\r\n          *cost\r\n          *elements\r\n          *label  # 法宝→[攻击力:N]、护甲→[防御力:N]\r\n          *utility\r\n          描述: string;\r\n          位置: string; #装备位于身体上的位置,如:上装、下装、饰品、手部、储物袋等\r\n        }\r\n      }\r\n    check:\r\n      - 交易、拾取、消耗、赠送时更新\r\n      - 武器(剑/刀/枪/弓/扇/法器/飞剑等) → 类型='法宝',攻击力为数字\r\n      - 衣物(道袍/护甲/护腕/腰带等) → 类型='护甲',防御力为数字\r\n      - 戒指/项链/玉牌/玉佩/储物袋 → 类型='饰品'\r\n      - 类型必须是上述枚举之一,无法归类的杂物不写入变量\r\n  \"${傀儡|灵兽}\": &combat_unit\r\n    type: |-\r\n      {\r\n        [名称: string]: {\r\n          使用中: boolean; # 由外部脚本处理,禁止修改\r\n          *quality\r\n          *RealmName\r\n          *elements\r\n          *label\r\n          描述: string;\r\n          资源池: *resource_pool\r\n          防御力: number;\r\n          技能: {\r\n            [技能名: string]: {\r\n              攻击力: number;\r\n              *cost\r\n              *utility\r\n            };\r\n          };\r\n        }\r\n      }\r\n    check:\r\n      - 获得/炼制/购买/捕获时添加\r\n      - 损毁/遗失/出售/死亡时移除\r\n  关系列表:\r\n    type: |-\r\n      # 关系列表条目以 类型 区分:'人物'(NPC) / '傀儡' / '灵兽' (后两者代表无主战斗单位,如野生妖兽、遗弃傀儡等)\r\n      {\r\n        [名称: string]:\r\n          # === 类型='人物' (NPC) ===\r\n          | {\r\n              类型: '人物';\r\n              在场: boolean;\r\n              种族: *race\r\n              身份: *status\r\n              修炼进度: *realmDetails\r\n              寿元: *age\r\n              灵根: *root\r\n              体质: *body\r\n              技艺: *skill\r\n              资源池: *resource_pool\r\n              状态效果: *buff\r\n              功法: { [功法名称: string]: *cultivation };\r\n              灵石: *cash\r\n              物品: { [物品名: string]: *item };\r\n              装备: { [装备名: string]: *equipment };\r\n              ${傀儡|灵兽}: { [名称: string]: *combat_unit };\r\n              性格: string;\r\n              外貌: string; # 实质变化时更新\r\n              着装: string; # 更衣时更新\r\n              道侣: boolean; # 是否为<user>的道侣\r\n              好感度: number; # -100~100,变化区间±5,重大事件±10,初始值-30~30\r\n              关系: string; # 与<user>的当前双方关系,一句话描述\r\n            }\r\n          # === 类型='傀儡'|'灵兽' (无主战斗单位) ===\r\n          | {\r\n              类型: '傀儡' | '灵兽';\r\n              在场: boolean;\r\n              *quality\r\n              *RealmName\r\n              *elements\r\n              *label\r\n              描述: string;\r\n              资源池: *resource_pool\r\n              防御力: number;\r\n              技能: {\r\n                [技能名: string]: {\r\n                  攻击力: number;\r\n                  *cost\r\n                  *utility\r\n                };\r\n              };\r\n              状态效果: *buff\r\n              好感度: number;\r\n            }\r\n      }\r\n    check:\r\n      - 类型='人物': 角色出场（有<char_info>面板时）添加,死亡删除\r\n      - 类型='人物'.关系: 新增人物时写入；师承、婚恋、亲属、隶属等双方关系实质变化时更新；不得以好感度或一时情绪代替\r\n      - 类型='傀儡'|'灵兽': 野生妖兽/无主傀儡 出场（有<item_info>面板时）添加\r\n      - 驯服流程: 驯服后从 关系列表 移除并以 *combat_unit 形式写入对应人物名下的 ${傀儡|灵兽} 字段;\r\n      - 化形流程: 化形后 移除 该妖兽/傀儡 并以人物形式写入 关系列表;\r\n<%_ {\n  let active = []; try { active = JSON.parse(getvar('路由激活规则') || '[]'); } catch (_) {}\n  if (Array.isArray(active) && active.includes('[时间推进规则]')) {\n_%>\n  传闻:\n    type: |-\n      {\n        上次世界推进时间点: *time | null;\n        条目: {\n          id: string;\n          时间区间: { 起: { 年: number; 月: number; 日: number }; 止: { 年: number; 月: number; 日: number } };\n          世界: string; 地域: string; 地点: string;\n          类别: string; 内容: string; 难度: string;\n        }[];\n      }\n    check:\n      - 仅本轮明确开启[时间推进规则]且有效推演完成时更新；失败或未完成时不标记已推进。\n      - 保留仍有效的旧条目，按id更新同一消息，新增唯一id，清理过期或已证伪条目；不得把人物镜头里的秘密直接写为公开传闻。\n      - 上次世界推进时间点更新为本轮请求记录的当前时间，与人物及传闻变化在同一JSONPatch中结算；不得额外推进根节点时间。\n      - 路径为 /传闻/条目 与 /传闻/上次世界推进时间点；不可再将 /传闻 写成数组。\n<%_ } else { _%>\n  传闻: # 只读；本轮禁止更新条目及上次世界推进时间点\n<%_ } } _%>\n";
+const _mvu_update_raw_namespaceObject = "---\r\n# 类型定义区\r\ntypes:\r\n  RealmName: &RealmName \"境界: string; #大境界+小境界,如:练气初期\"\r\n  elements: &elements \"五行: '金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌';\"\r\n  quality: &quality \"品质: '凡'|'黄'|'玄'|'地'|'天';\"\r\n  label: &label \"标签: string[]; #参考*RULE_标签加值指导\"\r\n  utility: &utility \"效果?: { [效果名: string]: string }; #参考*RULE_效果加值指导\"\r\n  cost: &cost \"消耗?: string; #'灵气|气血|精血: num',如 '灵气: 5';无消耗则省略此字段\"\r\n  location: &location |-\r\n    {\r\n      世界: '凡界'|'灵界'|'仙界'; #realm\r\n      地域: string; #region\r\n      具体地点: string; #格式:${生态}-${?宗门|秘境|城市}-${具体位置}\r\n    }\r\n  time: &time |-\r\n    {\r\n      年: number; #修仙历xxxx年\r\n      月: number;\r\n      日: number;\r\n      时辰: string; #如:子时\r\n    }\r\n\r\n变量更新规则:\r\n\r\n  姓名:\r\n    type: string\r\n  寿元: &age\r\n    type: |-\r\n      {\r\n        年龄:  number;\r\n        寿命:  number;\r\n        外观年龄: number;\r\n      }\r\n  种族: &race\r\n    type: string #如人族、龙族等,妖族需注明物种,如狐妖、猫妖\r\n  身份: &status\r\n    type: string[] # 散修,或宗门+地位如:北辰学宫内门弟子、镇魔司缉魔使;可多个\r\n    check:\r\n      - 加入/离开宗门、职位晋升、身份揭露或重大身份变动时更新\r\n  灵根: &root\r\n    type: |-\r\n      {\r\n        名称: string; # 格式: {品阶描述}{五行列表}[灵根],如\"金木水火四灵根\"、\"金单灵根\"、\"雷灵根\"(变异)\r\n        五行: ('金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌'|'未知'|'无')[]; // 长度1~5;['无']/['未知']为特殊状态\r\n        品阶: '无灵根' | '未检测' | '单灵根' | '双灵根' | '三灵根' | '四灵根' | '五灵根';\r\n      }\r\n    check:\r\n      - 五行列表需与名称中的五行描述一致,如\"金木双灵根\"→['金','木'],\"金单灵根\"→['金']\r\n      - 特殊情况:\"无灵根\"→['无'],\"未检测\"→['未知'],变异灵根(如雷灵根)→['火'](参考灵根变异设定)\r\n      - 仅在灵根检测、服用神药等重大剧情时更新\r\n  体质: &body\r\n    type: |-\r\n      {\r\n        名称: string;\r\n        *utility\r\n        悟性: number;\r\n        根骨: number;\r\n        气感: number;\r\n        元阴?: boolean;  # 仅女性:处女→true,非处女→false\r\n        元阳?: boolean;  # 仅男性:处男→true,非处男→false\r\n      }\r\n    check:\r\n      - 仅血脉提升、服用神药、重塑道基、夺舍等重大剧情时更新\r\n      - 体质为先天属性,与境界无关\r\n  修炼进度: &realmDetails\r\n    type: |-\r\n      {\r\n        *RealmName\r\n        当前进度: number;\r\n        进度上限: number; #进阶下一级所需的修为\r\n        天谴: number;\r\n        丹毒: number;\r\n      }\r\n  技艺: &skill\r\n    type: |-\r\n      {\r\n        生产类: {\r\n          炼器: number;\r\n          驯兽: number;\r\n          培育: number;\r\n          医术: number;\r\n          炼丹: number;\r\n          制符: number;\r\n        };\r\n        战斗类: {\r\n          御物: number;\r\n          咒法: number;\r\n          幻术: number;\r\n          阵法: number;\r\n          神识: number;\r\n          炼体: number;\r\n        };\r\n      }\r\n    check:\r\n      - 技艺为持续累积的非负数值\r\n      - 仅在对应规则明确结算技艺增长时更新;不得随普通叙事增减\r\n  资源池: &resource_pool\r\n    气血.现值:\r\n      type: number\r\n      check:\r\n        - 归零判定:气血归零→死亡\r\n        - 任何恢复不可超过上限\r\n    气血.上限:\r\n      type: number\r\n    灵气.现值:\r\n      type: number\r\n      check:\r\n        - 归零判定:灵气归零→无法施法\r\n        - 任何恢复不可超过上限\r\n    灵气.上限:\r\n      type: number\r\n    遁速:\r\n      type: number\r\n  固定资产:\r\n    type: |-\r\n      {\r\n        [资产名: string]: {\r\n          类型: '宗门'|'店铺'|'洞府'; #其他类别不视为资产\r\n          人员规模: number;\r\n          所在地: *location;\r\n          现状: string;\r\n          设施: {\r\n            [设施名: string]: {\r\n              *utility\r\n              每月产出: string; # 无产出写\"无\"\r\n              上次收取日期: *time | null; #收取后更新为当前时间，从未收取为 null\r\n            }\r\n          };\r\n          分配人物: string[]; # 此地工作/生活者姓名；仅关系列表中出现的重要NPC\r\n        }\r\n      }\r\n    check:\r\n      - 记录<user>名下的资产，变化时更新；宗门类资产仅<user>成为宗主时添加\r\n  任务:\r\n    type: |-\r\n      {\r\n        [任务名: string]: {\r\n          状态: '进行中'|'待结算';\r\n          委托方: string;\r\n          难度: string; # 以境界表示（如：炼气初期）\r\n          目标: string; # 简述完成条件\r\n          进展: string; # 记录已经发生的关键进展\r\n          奖励: string;\r\n          交付: string; # 领取奖励方式\r\n          截止时间: *time | null; # 无期限为 null\r\n        }\r\n      }\r\n    check:\r\n      - 仅在<user>明确接取、或剧情明确强制赋予任务时添加；\r\n      - 达成目标后将状态改为待结算；实际完成交付并获得奖励后移除任务，奖励仅发放一次\r\n      - 失败或<user>明确放弃时移除任务；超过截止时间视为失败\r\n  地点:\r\n    type: *location\r\n    check:\r\n      - 空间变换时更新\r\n  时间:\r\n    type: *time\r\n  状态效果: &buff\r\n    type: |-\r\n      {\r\n        [效果名称: string]: {\r\n          类型: '增益'|'减益'|'特殊';\r\n          *utility\r\n          层数: number;\r\n          剩余时间: string;\r\n          来源: string;\r\n        }\r\n      }\r\n    check:\r\n      - 详见<rule ref=\"状态规则\"/>\r\n  事件:\r\n    type: |-\r\n      {\r\n        开启: boolean;\r\n        标题: string;\r\n        阶段: string;\r\n        已完成事件: string[];\r\n        进度?: { [进度名: string]: unknown };\r\n      }\r\n    check:\r\n      - 仅<event>中有明确要求时更新，不得自行杜撰事件\r\n  功法: &cultivation\r\n    type: |-\r\n      {\r\n        [功法名称: string]: {\r\n          使用中: boolean; # 由外部脚本处理,禁止修改\r\n          *quality\r\n          *RealmName\r\n          *elements\r\n          类型: '心法'|'攻击'|'幻术'|'神识'|'咒法'|'身法'|'护体'|'阵法';\r\n          *cost\r\n          *label\r\n          *utility\r\n          描述: string;\r\n        }\r\n      }\r\n    check:\r\n      - 仅在更换功法时更新\r\n  灵石: &cash\r\n    type: number\r\n    check:\r\n      - 默认兑换为下品灵石计算\r\n      - 交易、拾取、消耗时更新数量\r\n  物品: &item\r\n    type: |-\r\n      {\r\n        [物品名: string]: {\r\n          *quality\r\n          *RealmName\r\n          类型: '秘籍'|'配方'|'符箓'|'丹药'|'素材'|'工具';\r\n          *cost\r\n          *elements\r\n          *label\r\n          数量: number;\r\n          *utility\r\n          描述: string;\r\n        }\r\n      }\r\n    check:\r\n      - 交易、拾取、消耗时更新\r\n      - 数量为0时移除该key\r\n      - 严禁把武器/防具/饰品写入物品，它们应写为装备\r\n      - 类型必须是上述枚举之一；无法归类的杂物不写入变量\r\n  装备: &equipment\r\n    type: |-\r\n      {\r\n        [装备名: string]: {\r\n          *quality\r\n          *RealmName\r\n          类型: '法宝'|'护甲'|'饰品';\r\n          *cost\r\n          *elements\r\n          *label  # 法宝→[攻击力:N]、护甲→[防御力:N]\r\n          *utility\r\n          描述: string;\r\n          位置: string; #装备位于身体上的位置,如:上装、下装、饰品、手部、储物袋等\r\n        }\r\n      }\r\n    check:\r\n      - 交易、拾取、消耗、赠送时更新\r\n      - 武器(剑/刀/枪/弓/扇/法器/飞剑等) → 类型='法宝',攻击力为数字\r\n      - 衣物(道袍/护甲/护腕/腰带等) → 类型='护甲',防御力为数字\r\n      - 戒指/项链/玉牌/玉佩/储物袋 → 类型='饰品'\r\n      - 类型必须是上述枚举之一,无法归类的杂物不写入变量\r\n  \"${傀儡|灵兽}\": &combat_unit\r\n    type: |-\r\n      {\r\n        [名称: string]: {\r\n          使用中: boolean; # 由外部脚本处理,禁止修改\r\n          *quality\r\n          *RealmName\r\n          *elements\r\n          *label\r\n          描述: string;\r\n          资源池: *resource_pool\r\n          防御力: number;\r\n          技能: {\r\n            [技能名: string]: {\r\n              攻击力: number;\r\n              *cost\r\n              *utility\r\n            };\r\n          };\r\n        }\r\n      }\r\n    check:\r\n      - 获得/炼制/购买/捕获时添加\r\n      - 损毁/遗失/出售/死亡时移除\r\n  关系列表:\r\n    type: |-\r\n      # 关系列表条目以 类型 区分:'人物'(NPC) / '傀儡' / '灵兽' (后两者代表无主战斗单位,如野生妖兽、遗弃傀儡等)\r\n      {\r\n        [名称: string]:\r\n          # === 类型='人物' (NPC) ===\r\n          | {\r\n              类型: '人物';\r\n              在场: boolean;\r\n              种族: *race\r\n              身份: *status\r\n              修炼进度: *realmDetails\r\n              寿元: *age\r\n              灵根: *root\r\n              体质: *body\r\n              技艺: *skill\r\n              资源池: *resource_pool\r\n              状态效果: *buff\r\n              功法: { [功法名称: string]: *cultivation };\r\n              灵石: *cash\r\n              物品: { [物品名: string]: *item };\r\n              装备: { [装备名: string]: *equipment };\r\n              ${傀儡|灵兽}: { [名称: string]: *combat_unit };\r\n              性格: string;\r\n              外貌: string; # 实质变化时更新\r\n              着装: string; # 更衣时更新\r\n              道侣: boolean; # 是否为<user>的道侣\r\n              好感度: number; # -100~100,变化区间±5,重大事件±10,初始值-30~30\r\n              关系: string; # 与<user>的当前双方关系,一句话描述\r\n            }\r\n          # === 类型='傀儡'|'灵兽' (无主战斗单位) ===\r\n          | {\r\n              类型: '傀儡' | '灵兽';\r\n              在场: boolean;\r\n              *quality\r\n              *RealmName\r\n              *elements\r\n              *label\r\n              描述: string;\r\n              资源池: *resource_pool\r\n              防御力: number;\r\n              技能: {\r\n                [技能名: string]: {\r\n                  攻击力: number;\r\n                  *cost\r\n                  *utility\r\n                };\r\n              };\r\n              状态效果: *buff\r\n              好感度: number;\r\n            }\r\n      }\r\n    check:\r\n      - 类型='人物': 角色出场（有<char_info>面板时）添加,死亡删除\r\n      - 类型='人物'.关系: 新增人物时写入；师承、婚恋、亲属、隶属等双方关系实质变化时更新；不得以好感度或一时情绪代替\r\n      - 类型='傀儡'|'灵兽': 野生妖兽/无主傀儡 出场（有<item_info>面板时）添加\r\n      - 驯服流程: 驯服后从 关系列表 移除并以 *combat_unit 形式写入对应人物名下的 ${傀儡|灵兽} 字段;\r\n      - 化形流程: 化形后 移除 该妖兽/傀儡 并以人物形式写入 关系列表;\r\n<%_ {\r\n  let active = []; try { active = JSON.parse(getvar('路由激活规则') || '[]'); } catch (_) {}\r\n  if (Array.isArray(active) && active.includes('[时间推进规则]')) {\r\n_%>\r\n  传闻:\r\n    type: |-\r\n      {\r\n        上次世界推进时间点: *time | null; # 世界推进完成后，设为当前时间\r\n        条目: {\r\n          [传闻标题: string]: {\r\n            类别: string; # 从 *RULE_传闻类型表 中选择\r\n            内容: string; # 内容用1至3句交代来源、地点和可调查/参与的线索\r\n            难度: string; # 大境界+小境界,如:练气初期\r\n          };\r\n        };\r\n      }\r\n    check:\r\n      - 依照RULE_传闻类型表维护10~15条传闻，按剧情清理失效传闻，再补足条目数量\r\n      - 传闻发生在<user>所在地域，但内容不得围绕<user>经历展开\r\n    # &RULE_传闻类型表:\r\n    # | 类别 | 消息内容与边界 |\r\n    # | --- | --- |\r\n    # | 秘境传闻 | 未知古洞、秘境入口或探索线索；不限于已定义的秘境 |\r\n    # | 高额悬赏 | 公开的护送、搜寻、采集或讨伐委托；说明目标、发布渠道与线索 |\r\n    # | 妖兽异动 | 兽群迁徙、巢穴扩张、凡人受袭等；符合当地生态 |\r\n    # | 通缉逃犯 | 罪行、特征与追捕线索；被通缉者未必是魔修，罪行多样化 |\r\n    # | 宝物现世 | 遗物、奇物、宝藏的踪迹及线索 |\r\n    # | 素材奇遇 | 灵植、矿脉等素材的消息及守护情况 |\r\n    # | 坊市集会 | 交易集会、拍卖、交换会的时间、地点和可参与内容 |\r\n    # | 灵气潮汐 | 局部灵气、五行、天象的变化及观察线索 |\r\n    # | 古迹奇谭 | 古迹传说、碑文、遗址异象与可调查的谜团；不限于已定义的古迹 |\r\n    # | 时空裂缝 | 空间异常、短暂裂隙或疑似异界通道 |\r\n\r\n<%_ } else { _%>\r\n  传闻: # 只读；本轮禁止更新条目及上次世界推进时间点\r\n<%_ } } _%>\r\n";
 
 const Cultivation_Card_Game_raw_namespaceObject = '<rule name="非战斗判定规则">\n# 参数声明：\n  角色L = 角色当前境界系数\n  挑战L = 判定对象/环境对应的推定境界系数\n  Vg = 有效成长基准值 = 10^min(角色L, 挑战L)\n  [Z%] = 相关增减益%\n  [W] = 相关增减值\n\n# 核心触发条件:\n  激活：当<user>在非战斗状态下，试图克服具有不确定性或风险的客观阻碍时（如：破解机关、忍受极寒、勘破幻象、威压交涉等）。\n  略过：当 角色L ≥ 挑战L + 2 时自动成功，不输出计算面板。\n\n# 第一阶段：确定判据\n  依当前情景，判断的唯一的关联三维与唯一的关联技艺，作为判据：\n  | 示例场景 | 关联三维 | 关联技艺(选择其一) |\n  | --- | --- | --- |\n  | 感知异常、精神震慑 | 气感 | 神识 |\n  | 抵抗极端环境 | 根骨 | 炼体 |\n  | 破解非战斗阵法、机关解谜 | 悟性 | 阵法 |\n  | 鉴别物品、学识比拼 | 悟性 | 相关生产技艺 |\n  | 讲价博弈、拷问情报、蛊惑心智 | 气感 | 幻术 / 神识 |\n  | 驯服妖兽 | 气感 | 驯兽 |\n  | 医疗、手术、下毒 | 气感 | 医术 |\n  ....\n\n# 第二阶段：难度推定与公式化\n  1. 难度系数 (C_diff) 设定：\n     简单=0.5 | 寻常=1.0 | 困难=1.5 | 极难=2.0\n  2. 角色能效公式 (A):\n     A = floor( (10^角色L + 关联三维×5 + 关联技艺) × (1+[Z%]) ) + [W]\n  3. 目标难度公式 (D):\n     - 静态判定 (机关/陷阱/环境/无意识阻碍 — 不具备三维的客观对象):\n       D_static = floor(10^挑战L × C_diff) + 10(固定)\n     - 动态对抗 (具备三维的有意识对手 — 修士/妖兽/灵识):\n       D_dynamic = floor( (10^挑战L + 敌关联三维×5 + 敌关联技艺) × (1+[Z%]) ) + [W]\n  4. 差值阈值 (Δ) 与 结果阶层:\n     Δ = A - D\n     - Δ ≥ 10^挑战L × 0.5 : 【大成功】\n     - 0 ≤ Δ < 10^挑战L × 0.5 : 【成功】\n     - -(10^挑战L × 0.5) < Δ < 0 : 【失败】\n     - Δ ≤ -(10^挑战L × 0.5) : 【大失败】\n\n# 第三阶段：技艺实践增长\n  1. 触发条件: 本次采用了一项具体关联技艺时\n  2. 结果系数: 大成功=0.2 | 成功=0.1 | 失败=0.05 | 大失败=0\n  3. 实践增长: Max(0, floor([Vg] x [结果系数]) × (1+[Z%]) + [W])\n\n# 面板模板(输出前先以 \x3c!-- ... --\x3e 完成思考):\n  \x3c!--\n    - ${确认触发条件: 非战斗状态且存在不确定性阻碍}\n    - ${检查略过条件: 若角色L ≥ 挑战L+2，自动成功，不输出面板}\n    - ${确认本次行为对应的检定类型与关联三维/关联技艺}\n    - ${从<status_current_variables>提取对应三维数值与技艺值}\n    - ${确认挑战L的推定依据(环境/目标/机关等级)与难度系数C的选取理由}\n    - ${判别D走静态(机关/陷阱/环境)还是动态(有意识对手)}\n  --\x3e\n  <action_info>\n    {非战斗判定 - [检定类型]}\n    | 目标:[简述行为，如：神识勘破岩壁幻象] | 环境推定: L=[挑战L] | 难度级: [简单/寻常/困难/极难] (C=[系数]) |\n    | 参数映射: 三维=[关联三维名(悟/根/气)]([数值]) | 技艺=[关联技艺名]([数值]) |\n    {数值对抗}\n    | 角色能效(A): floor((10^[角色L] + 三维[X]×5 + 技艺[X]) × (1+[Z%])) + [W] = [A总值] |\n    (若是静态判定:)\n    | 挑战难度(D): floor(10^[挑战L] × C[X]) + 10(固定) = [D总值] |\n    (若是动态对抗:)\n    | 挑战难度(D): floor((10^[挑战L] + 敌三维[X]×5 + 敌技艺[X]) × (1+[Z%])) + [W] = [D总值] |\n    | 差值结算: A[X] - D[X] = Δ[X] |\n    {判定结果}\n    | 阶层:[大成功 / 成功 / 失败 / 大失败] |\n    (仅采用了具体技艺时:)\n    | 技艺实践: Vg=10^min(角色L[值],挑战L[值])=[Vg] | 实践增长 Max(0, floor([Vg] x [结果系数]) × (1+[Z%]) + [W])  = [提升值] | [技艺名]:[旧值]+[提升值]=[新值] |\n    (若为"驯化收服(灵兽)"或"修复重铸(傀儡)" 成功:)\n    | 所有权变更: 灵兽/傀儡[名称] -> 新主人[名称] |\n  </action_info>\n</rule>\n';
 
@@ -10588,7 +10664,7 @@ const Cultivation_Card_Game_raw_namespaceObject_5 = '<rule name="领悟规则">\
 
 const Cultivation_Card_Game_raw_namespaceObject_7 = '<rule name="生产制作规则">\n# 参数声明：\n  L=境界系数 Q=品质系数 R=灵根系数\n  [Z%] = 相关增减益%\n  [W] = 相关增减值\n\n# 核心指令: 仅当<user>明确进行炼丹、炼器、制符、阵盘刻录、傀儡制造等生产行为时激活\n\n# 核心概念声明：\n  [Vt] = 目标产物基准值 = 10^主材L\n  [Vu] = 角色基准值 = 10^角色L\n  [Vg] = 有效成长基准值 = 10^min(角色L, 主材L)\n  [B] = 批量制作乘数 (单次投入的素材份数，默认为1)\n\n# 第一阶段: 生产分析与素材共鸣计算\n  逻辑与规则:\n    1. 技艺与器具限制:\n      - 炼丹: 需[丹炉];可加成[火焰]\n      - 炼器/制傀: 需[器鼎/锻台/刻刀];可加成[火焰]\n      - 制符: 需[符笔]；禁用[火焰]\n      - 阵法: 需[阵盘/刻刀]；禁用[火焰]\n    2. 主材锚定与品质区间:\n      - 按单份素材配置计算,若未明确,取投入物中[L]最高者为主素材（若L相同取Q最高者）\n      - 目标境界L = 主材L\n      - 锁定品质区间: 下限(Min_Q) = 所有素材中最差品质；上限(Max_Q) = 所有素材中最好品质\n    3. 五行生克与素材灵气 (单份正面加成 P_mat_single):\n      - 基础灵气公式: 10^[素材L] × (1 + [Q系数])\n      - 辅材与主材的生克系数(E): 辅生主(1.5) | 主生辅(1.2) | 无生克(1.0) | 主克辅(0.5) | 辅克主(0.5)\n      - 君臣佐使限制: 辅材中仅取算后数值最高的 前3项 计入正面影响，第4项起因灵气冗余 P=0\n    4. 杂质排异累积 (单份反面难度 D_mat_single):\n      - 无论是主材还是辅材，每一件投入的素材都会增加提纯与压制难度\n      - 单个素材杂质难度 = 10^[该素材L] × 0.5\n\n# 面板模板(输出前先以 \x3c!-- ... --\x3e 完成思考):\n  \x3c!--\n    - ${确认所需工具是否存在于<status_current_variables>，缺失则无法激活}\n    - ${从<status_current_variables>提取炼制者相关技艺值、工具/火焰/功法/阵法各项加值来源}\n    - ${确认批量B与素材清单，依规则锁定主材(L最高/Q最高)与品质区间[Min_Q, Max_Q]}\n    - ${回顾<生产制作协议>君臣佐使限制，确认辅材中哪些计入正面影响、哪些截断为0}\n    - ${确认是否拥有配方，决定无配方惩罚是否计入D}\n    - ${确认是否为首次炼制，决定技艺精进是否触发}\n  --\x3e\n  <action_info>\n    {生产分析}\n    | 技艺: [炼丹/炼器/制符/阵法] | 工具: [加值] | 装备: [加值] | 火焰: [加值] |\n    | 批量(B): [数量] 份素材同炼 | 极值检索: 阵法加成=[最高值] | 功法加成=[最高值] |\n    | 素材定性(单份): 主素材=[素材名 (L=[X], Q=[品质], 五行=[素材五行])] |\n    | 品质区间: 下限=[Min_Q] | 上限=[Max_Q] |\n    | 产物界定: 目标境界L=[主材L] | 基准值Vt=[10^主材L] |\n    {单份素材能效与杂质计算}\n    | 主材能效: 10^[L] × (1+[Q系数]) = [P_main] |\n    | 辅材排序: [排第1高的辅材P值], [排第2的P值], [排第3的P值] (其余截断为0) |\n    | 单份有效加成(P_mat): P_main + 辅材前三项 = [数值] |\n    | 单份杂质累积(D_mat): 投入素材总数[N] -> Σ(10^[素材L] × 0.5) = [数值] |\n  </action_info>\n\n# 第二阶段: 数值对抗与差值计算\n  逻辑与规则:\n    1. 正面影响 (Power):\n      公式: P = [Vu] + [对应技艺数值] + [工具加值] + [火焰加值] + [阵法加成] + [功法加成] + ([P_mat单份] × B)\n      (注: 同类加成取最高一项)\n    2. 反面影响 (Difficulty):\n      公式: D = ([Vt] × 2.0 × B) + ([D_mat单份] × B) + [无配方惩罚(若无则加 Vt×0.5×B)]\n    3. 差值结算 (Δ):\n      公式: Δ = P - D\n\n  面板模板:\n  <action_info>\n    {数值对抗}\n    | 炼制者能力(P_char): [Vu] + 技艺[X] + 工具[X] + 火焰[X] + 阵法[X] + 功法[X] = [数值] |\n    | 总体素材能效: P_mat单份[X] × 批量[B] = [P_mat_total] |\n    | 正面影响(P): P_char + P_mat_total = [P总值] |\n    | 总体杂质与基础难度: (Vt[X]×2.0×[B]) + (D_mat[X]×[B]) = [D_mat_total] |\n    | 反面影响(D): [D_mat_total] + 惩罚[X] = [D总值] |\n    | 差值判定: P[P总值] - D[D总值] = Δ[数值] |\n  </action_info>\n\n# 第三阶段: 产出结算与技艺精进\n  逻辑与规则:\n    1. 成功判定与品质推演 (品质数组: 凡/黄/玄/地/天):\n      - 判定基准阈值 (T) = Vt × B\n      - Δ < 0 : 炼制失败 (素材尽毁)\n      - Δ ≥ 0 : 成功,基础品质 = [Min_Q]\n      - Δ ≥ 0.5 × T : 优秀,品质提升1阶 (如: 黄->玄)\n      - Δ ≥ 1.0 × T : 极品,品质提升2阶 (如: 黄->地)\n      - 封顶限制: 最终品质不可超过 [Max_Q],若超过则强制降至 Max_Q\n    2. 数量生成规则 (仅在成功时计算，此为【单份素材】的产出基数，向下取整):\n      - 法宝/阵盘: 固定 1 个\n      - 傀儡: 1 + floor(Δ / (0.5 × T)) 个\n      - 丹药/符箓: min(1 + floor(Δ / (0.2 × T)),10) 个\n      - 最终总产出 = 【单份产出】 × 批量【B】\n    3. 成品效果数量规则 (与最终推演的品质挂钩):\n      - 凡/黄阶: 1个基础效果\n      - 玄/地阶: 2个效果\n      - 天阶: 3个效果\n    4. 首次炼制技艺精进 (仅非失败的“首次炼制”触发，与批量B无关):\n      - 技艺提升: Max(1, floor([Vg] × 0.2) × (1+[Z%]) + [W])\n\n  面板模板:\n  <action_info>\n    {产出结算}\n    | 判定阈值(T): Vt[X] × B[X] = [T] |\n    | 结果: Δ=[数值] vs T=[T] -> [失败 / 成功 / 优秀 / 极品] |\n    (若失败:)\n    | 状态: 灵气暴走，炼制失败，素材尽毁 |\n    (若成功及以上:)\n    | 品质推演: 基础[Min_Q] + 升阶推演 -> 封顶受限[Max_Q] -> 最终品质: [最终阶级] |\n    | 效果数量: [1/2/3] (依最终品质) |\n    | 产出详情: [产物名称(境界L, 最终品质)] |\n    | 数量: 单份产量[X] × 批量[B] = 总计 [总数量] [单位] |\n    {技艺精进}\n    | 首次配方: [是/否] |\n    | 成长基准: Vg=10^min(角色L[值],主材L[值])=[Vg] |\n    | 技艺提升: Vg=10^min(角色L[值],目标L[值])=[Vg] | 实际提升 Max(1, floor([Vg] × 0.2) × (1+[Z%]) + [W]) =[提升值] | [技艺]: [旧值]+[提升值]=[新值] |\n  </action_info>\n</rule>\n';
 
-const Cultivation_Card_Game_raw_namespaceObject_9 = '<rule name="时间推进规则">\n触发机制: 仅当本轮玩家明确要求以[时间推进规则]进行世界演进时触发。修炼、突破、跨年本身不触发。\n推演区间: 从变量「传闻.上次世界推进时间点」至本轮请求记录的「时间」；只补算这段已流逝的时间，不额外推进玩家时间。\n时间校验: 当前时间必须晚于上次推进时间，哪怕只差一个时辰亦可；相等、倒退或日期无效时不执行、不更新推进时间点。\n短期尺度: 不满一年时以日常活动、修炼积累、消息传播与既有事件进展为主；不得把一个时辰写成多年兴衰，不强行制造突破或灾难。\n数据基准: 当前变量是现有事实，不得对已经结算过的年龄、修为、物品再次累计整段收益；仅补充尚未结算的变化。冥族沿用停龄规则。\n\n# 第一阶段: 变迁参考表\n\n  境界变化: 推演各角色的进阶/跨阶事件时,耗时区间参照 <realm_power_level/> 中的「境界耗时」表\n\n  文明演进:\n  | 时间跨度 | 典型表现 |\n  | --- | --- |\n  | 1~5年 | 王朝政令更迭、局部战乱、城镇人口流动 |\n  | 5~30年 | 小国兴衰、新城建立或旧城荒废、民间信仰转变 |\n  | 30~100年 | 王朝更替、民族迁徙、文化习俗演变 |\n  | 100~500年 | 大国覆灭或崛起、语言分化、城市荒废或新建 |\n  | 500~3000年 | 民族融合或消亡、文明断层、历史神话化 |\n  | 3000年以上 | 语言面目全非、旧时代文明仅余遗迹与传说 |\n  注: 修仙王朝（统治者为修士）发生的变化较小\n\n  世界变迁:\n  | 时间跨度 | 典型表现 |\n  | --- | --- |\n  | 1~5年 | 势力消长、人事更迭、局部战乱平息或爆发 |\n  | 5~30年 | 宗门兴衰、灵脉枯竭或新生、秘境开闭 |\n  | 30~100年 | 小宗门陨落、势力版图重划、部分地域面目全非 |\n  | 100~500年 | 大宗门覆灭或崛起、山河改道、上古遗迹重现 |\n  | 500~3000年 | 大陆格局重塑、种族兴衰、旧势力彻底湮没 |\n  | 3000年以上 | 地形演变、海陆易位、旧时代彻底成为神话 |\n\n# 第二阶段: 人物变化事件表\n  每位人物在时间推进中可触发一次或多次事件（时间越长，事件链越长）\n  事件链格式: [事件A] -> [事件B] -> ...\n\n  | 事件类型 | 触发倾向 | 结算说明 |\n  | --- | --- | --- |\n  | 无变化 | 任意 | 修为略有精进但无实质突破，状态维持 |\n  | 小境界突破 | 修为充足、无天谴 | 境界小进 |\n  | 大境界突破 | 积累充足、有机缘 | 境界大进，实力质变 |\n  | 取得机缘 | 任意 | 获得物品，需注明具体所得 |\n  | 探秘受损 | 中低阶修士 | 秘境险境中受创，可能损失物品/境界倒退 |\n  | 走火入魔 | 修炼激进/天谴高 | 境界倒退，可能获得永久减益状态 |\n  | 被人追杀 | 有仇敌/持宝在身 | 损失物品/灵石，可能受伤/流亡/陨落 |\n  | 势力变动 | 宗门动荡时期 | 身份/所属势力发生变化，如：叛出宗门、被驱逐、晋升长老 |\n  | 仇怨结下 | 竞争/夺宝 | 新增敌对关系，后续事件链可能触发被追杀 |\n  | 陨落 | 寿元耗尽/历劫失败/战败 | 从关系列表中移除，需注明陨落原因 |\n  | 隐世闭关 | 高阶修士/受创后 | 从叙事视野中消失，下落不明，后续可能重出 |\n\n  约束:\n    - 事件链长度: 不满1年=0~1个实质事件，可描绘日常且无数值变化；1~30年=1事件；30~100年=2~4事件；100年以上=4~6事件\n    - 连锁逻辑: 事件须符合因果，如[取得机缘]->[被人追杀夺宝]合理，[陨落]后不可再有事件\n    - 寿元判定: 每次推进须对照寿命上限判断人物是否自然坐化（年龄≥寿命则必然陨落）\n    - 知情边界: NPC镜头可以呈现其真实经历，但主角不会自动知道；面向主角传播的未证实消息用"据说""传闻"，不得把猜测直接结算为死亡或物品变动。\n\n# 第三阶段: 逐人小面板与叙事\n  人物清单: 以推演前关系列表中类型=\'人物\'的全部条目为准，逐人展示，不遗漏不在场人物；傀儡、灵兽不单列为人物。此次陨落者也先完成展示，再按原规则移除。\n  输出顺序: 每人一个完整<time_info>面板，紧接该人物经历的正文段落，然后再输出下一人的面板和正文。禁止把全员塞进一个大面板。\n  单人模板:\n    <time_info>\n      {人物推演}\n      | [人物名] ([当前境界] / 年龄[X]/寿命[X]) |\n      | 区间: [起点] 至 [终点] |\n      | 事件链: [事件A] -> [事件B] / 日常无实质变化 |\n      | 境界变化: [旧境界] -> [新境界 / 维持] |\n      | 寿元变化: [年龄与寿命变化或维持] | 判定: [健在/自然坐化/陨落及原因] |\n      | 物品变动: [获得/失去/无] |\n    </time_info>\n    随后镜头对准此人，以场景、行动、对话描绘区间内经历，而非复述面板清单。\n  世界变化: 必要时另用小<time_info>面板，以{文明演进}或{世界变迁}记录一处势力/地域的变化，并接对应叙事；短期没有变化可省略。\n  叙事指导: 允许镜头暂离<user>逐一跟随NPC；人物保持独立生活与动机。全员展示优先，正文目标2500-3500字（面板不计），人数过多时允许超出。最终镜头必须回到本轮请求记录的当前时间、当前地点的<user>，不替玩家行动、不把时间额外向后推进。\n\n# 第四阶段: 变量与传闻结算\n  - 保留传闻.条目中仍有效的旧消息，按id更新同一事件，新增唯一id，清理过期或已证伪内容；没有新消息不必硬凑。\n  - 每条继续使用id、时间区间(起/止均为年月日)、世界、地域、地点、类别、内容、难度。时间区间表示消息有效期，结束日当天仍有效。\n  - 只有可传播的事件成为传闻；人物私密镜头不自动变成公开情报，未证实消息标明不确定性。\n  - 与本轮人物和传闻变更一起，在同一JSONPatch末尾将 /传闻/上次世界推进时间点 更新为本轮请求记录的当前时间（年、月、日、时辰）；完成后即使没有新传闻也更新此时间点。\n  - 未完成推演、取消或失败时，不提前标记完成；禁止以清空或重置推进时间点来补算。\n</rule>\n';
+const Cultivation_Card_Game_raw_namespaceObject_9 = '<rule name="时间推进规则">\n触发机制: 仅当本轮玩家明确要求以[时间推进规则]进行世界演进时触发。修炼、突破、跨年本身不触发。\n推演区间: 从变量「传闻.上次世界推进时间点」至本轮请求记录的「时间」；只补算这段已流逝的时间，不额外推进玩家时间。\n时间校验: 当前时间必须晚于上次推进时间，哪怕只差一个时辰亦可；相等、倒退或日期无效时不执行、不更新推进时间点。\n短期尺度: 不满一年时以日常活动、修炼积累、消息传播与既有事件进展为主；不得把一个时辰写成多年兴衰，不强行制造突破或灾难。\n数据基准: 当前变量是现有事实，不得对已经结算过的年龄、修为、物品再次累计整段收益；仅补充尚未结算的变化。冥族沿用停龄规则。\n\n# 第一阶段: 变迁参考表\n\n  境界变化: 推演各角色的进阶/跨阶事件时,耗时区间参照 <realm_power_level/> 中的「境界耗时」表\n\n  文明演进:\n  | 时间跨度 | 典型表现 |\n  | --- | --- |\n  | 1~5年 | 王朝政令更迭、局部战乱、城镇人口流动 |\n  | 5~30年 | 小国兴衰、新城建立或旧城荒废、民间信仰转变 |\n  | 30~100年 | 王朝更替、民族迁徙、文化习俗演变 |\n  | 100~500年 | 大国覆灭或崛起、语言分化、城市荒废或新建 |\n  | 500~3000年 | 民族融合或消亡、文明断层、历史神话化 |\n  | 3000年以上 | 语言面目全非、旧时代文明仅余遗迹与传说 |\n  注: 修仙王朝（统治者为修士）发生的变化较小\n\n  世界变迁:\n  | 时间跨度 | 典型表现 |\n  | --- | --- |\n  | 1~5年 | 势力消长、人事更迭、局部战乱平息或爆发 |\n  | 5~30年 | 宗门兴衰、灵脉枯竭或新生、秘境开闭 |\n  | 30~100年 | 小宗门陨落、势力版图重划、部分地域面目全非 |\n  | 100~500年 | 大宗门覆灭或崛起、山河改道、上古遗迹重现 |\n  | 500~3000年 | 大陆格局重塑、种族兴衰、旧势力彻底湮没 |\n  | 3000年以上 | 地形演变、海陆易位、旧时代彻底成为神话 |\n\n# 第二阶段: 人物变化事件表\n  每位人物在时间推进中可触发一次或多次事件（时间越长，事件链越长）\n  事件链格式: [事件A] -> [事件B] -> ...\n\n  | 事件类型 | 触发倾向 | 结算说明 |\n  | --- | --- | --- |\n  | 无变化 | 任意 | 修为略有精进但无实质突破，状态维持 |\n  | 小境界突破 | 修为充足、无天谴 | 境界小进 |\n  | 大境界突破 | 积累充足、有机缘 | 境界大进，实力质变 |\n  | 取得机缘 | 任意 | 获得物品，需注明具体所得 |\n  | 探秘受损 | 中低阶修士 | 秘境险境中受创，可能损失物品/境界倒退 |\n  | 走火入魔 | 修炼激进/天谴高 | 境界倒退，可能获得永久减益状态 |\n  | 被人追杀 | 有仇敌/持宝在身 | 损失物品/灵石，可能受伤/流亡/陨落 |\n  | 势力变动 | 宗门动荡时期 | 身份/所属势力发生变化，如：叛出宗门、被驱逐、晋升长老 |\n  | 仇怨结下 | 竞争/夺宝 | 新增敌对关系，后续事件链可能触发被追杀 |\n  | 陨落 | 寿元耗尽/历劫失败/战败 | 从关系列表中移除，需注明陨落原因 |\n  | 隐世闭关 | 高阶修士/受创后 | 从叙事视野中消失，下落不明，后续可能重出 |\n\n  约束:\n    - 事件链长度: 不满1年=0~1个实质事件，可描绘日常且无数值变化；1~30年=1事件；30~100年=2~4事件；100年以上=4~6事件\n    - 连锁逻辑: 事件须符合因果，如[取得机缘]->[被人追杀夺宝]合理，[陨落]后不可再有事件\n    - 寿元判定: 每次推进须对照寿命上限判断人物是否自然坐化（年龄≥寿命则必然陨落）\n    - 知情边界: NPC镜头可以呈现其真实经历，但主角不会自动知道；面向主角传播的未证实消息用"据说""传闻"，不得把猜测直接结算为死亡或物品变动。\n\n# 第三阶段: 逐人小面板与叙事\n  人物清单: 以推演前关系列表中类型=\'人物\'的全部条目为准，逐人展示，不遗漏不在场人物；傀儡、灵兽不单列为人物。此次陨落者也先完成展示，再按原规则移除。\n  输出顺序: 每人一个完整<time_info>面板，紧接该人物经历的正文段落，然后再输出下一人的面板和正文。禁止把全员塞进一个大面板。\n  时间面板: 正文开头的<tp>沿用原有要求。世界推进过程中的NPC镜头、世界变迁及其时间地点切换无需输出<tp>面板，推演区间由<time_info>标明；最终镜头转回<user>时再输出<tp>，使用本轮请求记录的玩家当前时间、当前地点及对应天气，不因NPC镜头改变玩家时间、地点。\n  单人模板:\n    <time_info>\n      {人物推演}\n      | [人物名] ([当前境界] / 年龄[X]/寿命[X]) |\n      | 区间: [起点] 至 [终点] |\n      | 事件链: [事件A] -> [事件B] / 日常无实质变化 |\n      | 境界变化: [旧境界] -> [新境界 / 维持] |\n      | 寿元变化: [年龄与寿命变化或维持] | 判定: [健在/自然坐化/陨落及原因] |\n      | 物品变动: [获得/失去/无] |\n    </time_info>\n    随后镜头对准此人，以场景、行动、对话描绘区间内经历，而非复述面板清单。\n  世界变化: 必要时另用小<time_info>面板，以{文明演进}或{世界变迁}记录一处势力/地域的变化，并接对应叙事；短期没有变化可省略。\n  叙事指导: 允许镜头暂离<user>逐一跟随NPC；人物保持独立生活与动机。全员展示优先，正文目标2500-3500字（面板不计），人数过多时允许超出。最终镜头必须回到本轮请求记录的当前时间、当前地点的<user>，不替玩家行动、不把时间额外向后推进。\n\n# 第四阶段: 变量与传闻结算\n  - 正文明确公开消息的来源、发生地与线索，区分公开消息和NPC私密镜头，供变量更新AI提取；正文无需逐条叙述全部传闻类别。\n  - 传闻及推进时间点的结算交由变量更新AI按[mvu_update]变量更新规则中的传闻部分执行。\n</rule>\n';
 
 const Cultivation_Card_Game_raw_namespaceObject_11 = "<rule name=\"突破规则\">\r\n<%_ { _%>\r\n<%_\r\n// ============ ① 读取 MVU 变量 (stat_data 由 <status_current_variable> 全量输出) ============\r\nconst _tb_修炼 = getMessageVar('stat_data.修炼进度', { defaults: {} }) || {};\r\nconst _tb_境界 = _tb_修炼.境界 || '凡人';\r\nconst _tb_气感 = Number(getMessageVar('stat_data.体质.气感')) || 0;\r\nconst _tb_世界 = getMessageVar('stat_data.地点.世界') || '凡界';\r\nconst _tb_灵气 = getMessageVar('stat_data.资源池.灵气', { defaults: {} }) || {};\r\nconst _tb_灵气现值 = Number(_tb_灵气.现值) || 0;\r\nconst _tb_灵气上限 = Number(_tb_灵气.上限) || 0;\r\nconst _tb_功法 = getMessageVar('stat_data.功法', { defaults: {} }) || {};\r\nconst _tb_心法 = Object.values(_tb_功法).find(g => g && g.使用中 && (g.类型 === '心法' || !g.类型)) || {};\r\nconst _tb_修行速度 = Number((_tb_心法.效果 || {})['修行速度']) || 0;\r\nconst _tb_物品 = getMessageVar('stat_data.物品', { defaults: {} }) || {};\r\nconst _tb_有筑基丹 = Object.entries(_tb_物品).some(([名, 物]) => 名.includes('筑基丹') && Number(物 && 物.数量) > 0);\r\nconst _tb_技艺 = getMessageVar('stat_data.技艺', { defaults: {} }) || {};\r\nconst _tb_技艺列表 = [];\r\nfor (const _类 of Object.keys(_tb_技艺)) {\r\n  for (const _名 of Object.keys(_tb_技艺[_类] || {})) {\r\n    _tb_技艺列表.push({ 名: `${_类}.${_名}`, 值: Number(_tb_技艺[_类][_名]) || 0 });\r\n  }\r\n}\r\nconst _tb_最高技艺 = _tb_技艺列表.sort((a, b) => b.值 - a.值)[0] || null;\r\n\r\n// ============ ② 境界推导 (参照<rule ref=\"核心系数总表\"/>) ============\r\nconst _tb_大境界定义 = [\r\n  { 名: '炼气', 匹配: ['炼气', '练气'], L: 1 },\r\n  { 名: '筑基', 匹配: ['筑基'], L: 2 },\r\n  { 名: '金丹', 匹配: ['金丹'], L: 3 },\r\n  { 名: '元婴', 匹配: ['元婴'], L: 4 },\r\n  { 名: '化神', 匹配: ['化神'], L: 5 },\r\n  { 名: '返虚', 匹配: ['返虚', '炼虚', '练虚'], L: 6 },\r\n  { 名: '合体', 匹配: ['合体'], L: 7 },\r\n  { 名: '大乘', 匹配: ['大乘'], L: 8 },\r\n  { 名: '渡劫', 匹配: ['渡劫'], L: 9 },\r\n];\r\nconst _tb_小境界加成 = { 初期: 0, 中期: 0.2, 后期: 0.4 };\r\nconst _tb_小境界序 = ['初期', '中期', '后期'];\r\n\r\nconst _tb_解析 = (境界名) => {\r\n  if (!境界名 || 境界名 === '凡人') return { 大境界: '凡人', 小境界: '无', L: 0, 大境界L: 0, 是后期: false, 序号: -1 };\r\n  const 定义 = _tb_大境界定义.find(d => d.匹配.some(k => 境界名.includes(k)));\r\n  if (!定义) return { 大境界: '凡人', 小境界: '无', L: 0, 大境界L: 0, 是后期: false, 序号: -1 };\r\n  const 小境界 = _tb_小境界序.find(k => 境界名.includes(k)) || '初期';\r\n  return { 大境界: 定义.名, 小境界, L: 定义.L + _tb_小境界加成[小境界], 大境界L: 定义.L, 是后期: 小境界 === '后期', 序号: 定义.L - 1 };\r\n};\r\n\r\nconst _tb_现在 = _tb_解析(_tb_境界);\r\nconst _tb_凡人 = _tb_现在.序号 === -1;\r\nconst _tb_可跨大境 = _tb_凡人 || _tb_现在.是后期;\r\nconst _tb_下一大境 = _tb_大境界定义[_tb_现在.序号 + 1] || null;\r\nconst _tb_目标大境 = _tb_凡人 ? '炼气' : (_tb_现在.是后期 ? (_tb_下一大境 ? _tb_下一大境.名 : '') : _tb_现在.大境界);\r\n\r\n// ============ ③ 大境界历劫规则 (按目标大境界裁剪, 仅输出当前相关一条) ============\r\nconst _tb_历劫表 = {\r\n  炼气: `炼气(凡人->炼气初期):\r\n    - 规则: 检索[灵根], 若为\"无灵根\"则自动失败; 否则自动成功`,\r\n  筑基: `筑基(炼气后期->筑基初期):\r\n    - 必须在物品中存在[筑基丹], 否则自动失败 (当前: ${_tb_有筑基丹 ? '有' : '无'})\r\n    - 凝气海判定: 难度[D]额外增加 (体质[气感] × 2) (当前气感=${_tb_气感})`,\r\n  金丹: `金丹(筑基后期->金丹初期) - \"三聚九转\":\r\n    - 挂起常规流程, 强制进入为期3回合的【聚气阶段】\r\n    - 每回合系统自动尝试3次灵气压缩(共9次对应9转)\r\n    - 灵气消耗: 第 N 转固定消耗 = floor(10^L × N × 0.1) (金丹期L=3.0)\r\n    - 判定逻辑: 若当前灵气 ≥ 消耗, 则该转成功并扣除, 继续下一转; 若不足, 则本回合剩余注入立刻中止\r\n    - 回合间隙: 每回合结束时暂停, <user>可执行1次战术动作(如服用1次恢复丹药), 随后进入下一回合\r\n    - 结算: 3回合结束时按最终成功总次数结算为【N转金丹】(N=1~9), N=0则突破失败\r\n    (当前灵气: ${_tb_灵气现值}/${_tb_灵气上限})`,\r\n  元婴: `元婴(金丹后期->元婴初期) - \"碎丹与心魔\":\r\n    - 强制转入<rule ref=\"战斗规则\"/>\r\n    - 碎丹反噬: 开战时<user>获得不可驱散状态[碎丹虚弱] -> 气血与灵气现值减半(持续至突破结束)\r\n    - 宿敌生成: 召唤【心魔】(除无虚弱状态外, 一切与<user>完全一致)\r\n    - 幻术干扰: 每回合开始前, 心魔额外对<user>发动一次【幻术意图】攻击(视为心魔的一次额外行动)\r\n    - 胜负条件: 击败心魔|存活5回合 -> 突破成功; 战败 -> 突破失败+走火入魔`,\r\n  化神: `化神(元婴后期->化神初期) - \"法则融合\":\r\n    - 需明确选择一项自身[技艺]进行严苛法则检定(默认取最高一项) (当前最高: ${_tb_最高技艺 ? `${_tb_最高技艺.名}=${_tb_最高技艺.值}` : '未知'})\r\n    - 法则难度: D_law = floor(10^L × 2) + 天谴 + 丹毒\r\n    - 检定公式: 自身该[技艺]数值 × (1+[Z%]) + d20 vs D_law`,\r\n  返虚: `返虚(化神后期->返虚初期)及以上(灵界):\r\n    - 通过基准判定后进入大境界历劫(结合该境界特性演绎, 失败则走火入魔/修为倒退)`,\r\n};\r\n\r\nlet _tb_历劫段 = '';\r\nif (!_tb_目标大境) {\r\n  _tb_历劫段 = '已至渡劫后期, 进一步突破(飞升仙界)超出本文档范围';\r\n} else if (_tb_世界 === '凡界' && ['返虚', '合体', '大乘', '渡劫'].includes(_tb_目标大境)) {\r\n  _tb_历劫段 = '返虚(化神后期->返虚初期)及以上: 需飞升灵界方可进行(凡界灵气不足以承载)';\r\n} else if (_tb_可跨大境) {\r\n  _tb_历劫段 = _tb_历劫表[_tb_目标大境] || `【${_tb_目标大境}】历劫(规则未详述): 通过基准判定后进入历劫, 结合该境界特性演绎, 失败则走火入魔/修为倒退`;\r\n}\r\n\r\n// ============ ④ 大境界奖励 (按目标大境界裁剪) ============\r\nconst _tb_奖励表 = {\r\n  炼气: '',\r\n  筑基: '筑基奖励: 悟性/根骨/气感 增加 floor([气感] × 0.2)',\r\n  金丹: '金丹奖励: 获得永久状态 [N转金丹] (效果: 修行速度常驻 +N×5%)',\r\n  元婴: '元婴奖励: 悟性/根骨/气感 增加 15 点',\r\n  化神: '化神奖励: 心法品质升阶(至多天阶)融合法则效果, 用于突破判定的[技艺]增加 50000 点',\r\n};\r\nlet _tb_大境奖励段 = '';\r\nif (_tb_可跨大境) {\r\n  _tb_大境奖励段 = '\\n      * 淬毒重生: 丹毒 -> floor(丹毒×0.5) (丹毒随污垢逼出体外)\\n      * 寿元暴增: 15 × 突破后L^3';\r\n  if (_tb_奖励表[_tb_目标大境]) _tb_大境奖励段 += `\\n      * ${_tb_奖励表[_tb_目标大境]}`;\r\n}\r\n\r\n// ============ ⑤ 拼装输出 ============\r\nconst _tb_第二阶段 = _tb_可跨大境 ? `  ${_tb_历劫段}` : `  当前为[${_tb_境界}], 未至大境界跨越门槛(需后期圆满), 本轮仅执行小境界晋升判定`;\r\n\r\nconst _tb_output = `# 突破规则(动态适配: 仅输出与当前境界相关部分)\r\n# 参数声明:\r\n  L=境界系数 R=灵根系数 E_local=局部环境系数\r\n  [P]=突破能效总值 | [D]=突破难度阻力 | [天谴值]/[丹毒值]=人物累积阻力(取自<status_current_variable>修炼进度), 直接抬高[D]\r\n  [Z%] = 匹配当前计算属性的 max(相关增益%) - max(相关减益%)\r\n  [W] = 匹配当前计算属性的 max(相关增值) - max(相关减值)\r\n  [M] = 资质与环境乘数 = (1 + R + E_local + [Z%])\r\n  [X/Y] = 当前修为进度 / 晋升阈值  [Y] = 10^L × 100\r\n  （注: Z%与W为动态求值,仅检索与\"降低突破难度\"或\"增加突破概率\"相关的状态加成; E_local依当前场景灵气浓度判断,参照<rule ref=\"核心系数总表\"/>局部环境系数表）\r\n\r\n# 核心触发条件:\r\n  激活: 1. <user>明确宣告进行突破 2. 当期修为[X] ≥ 晋升阈值[Y]\r\n  禁止: 非<user>的突破行为(仅以叙述呈现)\r\n\r\n# 小境界判定:\r\n  1. 适用范围: 所有小境界晋升(如初期->中期)与大境界跨越的前置基准检定\r\n  2. 能效公式: [P] = floor((10^L + 心法[修行速度]×10) × [M]) + d20  (当前修行速度=${_tb_修行速度})\r\n  3. 难度公式: [D] = Max(1, floor(10^L × 1.5) + [天谴值] + [丹毒值] - [W])\r\n  4. 判定标准:\r\n    - [P] ≥ [D] -> 小境界进入【突破成功结算】; 大境界进入【大境界历劫】\r\n    - [P] < [D] -> 跳至【突破失败结算】\r\n\r\n  基准判定面板:\r\n  <action_info>\r\n    {突破基准判定}\r\n    | 目标境界: [名](L=[L]) | R=[X] | E_local=[X] | 突破增益[Z%]=[X%] |\r\n    | 能效[P]: floor((10^[L]+心法速度[X]×10)×[M]) + d20[骰值] = [P值] |\r\n    | 难度[D]: Max(1, floor(10^[L]×1.5)+天谴[X]+丹毒[X]-[W]) = [D值] |\r\n    | 结果: [P] vs [D] -> [成功(小境界直接晋升/大境界进入历劫) / 失败] |\r\n  </action_info>\r\n\r\n# 大境界历劫:\r\n${_tb_第二阶段}\r\n\r\n# 突破结算:\r\n  1. 突破成功结算\r\n    - 修为池: [当前修为X]归零, [Y]更新为新境界阈值[Y] = 10^L × 100, 更新人物[境界]标签\r\n    - 状态全满: 气血与灵气恢复至全新上限\r\n    - 大境界巨额奖励(仅跨越大境界成功时):${_tb_大境奖励段 || '\\n      (无, 本轮非大境界跨越)'}\r\n  2. 突破失败结算\r\n    - 修为倒退: 扣除相当于当前境界上限[Y] × 20% 的修为\r\n  3. 重新计算资源\r\n    - 气血上限 = floor(10^L × (1+根骨×0.1)) | 灵气上限 = floor(10^L × (1+气感×0.1)) | 遁速 = floor(10^L × (1+根骨×0.02))\r\n  4. 叙事指导: 大境界突破成功·淬毒重生时, 描摹毒素随污垢自毛孔逼出(如皮肤浮现一层厚厚的黑褐污垢、散发秽臭), 涤净后焕然一新\r\n  5. 输出要求: 历劫与结算过程以 <action_info> 表格呈现, 输出前先以 \x3c!-- ... --\x3e 完成思考`;\r\n_%>\r\n<%- _tb_output %>\r\n<%_ } _%>\r\n</rule>";
 
@@ -12316,7 +12392,7 @@ $(async () => {
 /*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/.pnpm/css-loader@7.1.4_webpack@5.110.1/node_modules/css-loader/dist/cjs.js??clonedRuleSet-48.use[1]!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.4_e80818a1e9b853761367e6f26d264e47/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.1_postcs_cc2bce6ac39f59835b7d67b8d9f54cc8/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.4_e80818a1e9b853761367e6f26d264e47/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[6].use[0]!./src/修仙状态栏/pages/PageRumors.vue?vue&type=style&index=0&id=7eb01522&scoped=true&lang=css ***!
   \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
-.world-advance-bar[data-v-7eb01522]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--xy-line-gold);border-radius:9px}.world-advance-bar>span[data-v-7eb01522]{color:var(--xy-ink-mute);font-size:12px;overflow-wrap:anywhere}.world-advance-bar strong[data-v-7eb01522]{color:var(--xy-gold-deep);font-weight:normal}.world-advance-bar button[data-v-7eb01522]{flex-shrink:0;border:1px solid var(--xy-line-gold);border-radius:999px;padding:7px 14px;color:var(--xy-cinnabar);background:var(--xy-paper-warm);cursor:pointer;font:inherit;font-size:13px}.world-advance-bar button[data-v-7eb01522]:disabled{opacity:.5;cursor:wait}@media (max-width:560px){.xy-rumor[data-v-7eb01522]{padding:12px;min-height:0}.xy-rumor[data-v-7eb01522]::before{display:none}.xy-rumor-head[data-v-7eb01522]{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.xy-rumor-seal[data-v-7eb01522]{position:static;grid-column:1;grid-row:1;justify-self:start;width:auto;height:auto;max-width:100%;padding:4px 8px;font-size:11px;writing-mode:horizontal-tb;transform:none;box-shadow:none}.xy-rumor-meta[data-v-7eb01522]{grid-column:1/-1;grid-row:2;min-width:0;flex-direction:column;align-items:flex-start;gap:2px}.xy-rumor-time[data-v-7eb01522]{font-size:11px;letter-spacing:0;overflow-wrap:anywhere}.xy-rumor-source[data-v-7eb01522]{overflow-wrap:anywhere}.xy-rumor-difficulty[data-v-7eb01522]{grid-column:2;grid-row:1;align-self:center;margin:0;font-size:10px}.xy-rumor-body[data-v-7eb01522]{text-indent:0}}
+.xy-rumor-title[data-v-7eb01522]{color:var(--xy-ink);font-size:15px;line-height:1.5;overflow-wrap:anywhere}.xy-rumor-meta[data-v-7eb01522]{min-width:0}.world-advance-bar[data-v-7eb01522]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--xy-line-gold);border-radius:9px}.world-advance-times[data-v-7eb01522]{display:flex;flex:1 1 260px;flex-wrap:wrap;align-items:baseline;gap:4px 18px;min-width:0;color:var(--xy-ink-mute);font-size:12px}.world-advance-times>span[data-v-7eb01522]{overflow-wrap:anywhere}.world-advance-bar strong[data-v-7eb01522]{color:var(--xy-gold-deep);font-weight:normal}.world-advance-bar button[data-v-7eb01522]{flex-shrink:0;border:1px solid var(--xy-line-gold);border-radius:999px;padding:7px 14px;color:var(--xy-cinnabar);background:var(--xy-paper-warm);cursor:pointer;font:inherit;font-size:13px}.world-advance-bar button[data-v-7eb01522]:disabled{opacity:.5;cursor:wait}@media (max-width:560px){.xy-rumor[data-v-7eb01522]{padding:12px;min-height:0}.xy-rumor[data-v-7eb01522]::before{display:none}.xy-rumor-head[data-v-7eb01522]{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.xy-rumor-seal[data-v-7eb01522]{position:static;grid-column:1;grid-row:1;justify-self:start;width:auto;height:auto;max-width:100%;padding:4px 8px;font-size:11px;writing-mode:horizontal-tb;transform:none;box-shadow:none}.xy-rumor-meta[data-v-7eb01522]{grid-column:1/-1;grid-row:2;min-width:0;flex-direction:column;align-items:flex-start;gap:2px}.xy-rumor-title[data-v-7eb01522]{font-size:14px}.xy-rumor-difficulty[data-v-7eb01522]{grid-column:2;grid-row:1;align-self:center;margin:0;font-size:10px}.xy-rumor-body[data-v-7eb01522]{text-indent:0}}
 
 /*!******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/.pnpm/css-loader@7.1.4_webpack@5.110.1/node_modules/css-loader/dist/cjs.js??clonedRuleSet-48.use[1]!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.4_e80818a1e9b853761367e6f26d264e47/node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/.pnpm/postcss-loader@8.2.1_postcs_cc2bce6ac39f59835b7d67b8d9f54cc8/node_modules/postcss-loader/dist/cjs.js!./node_modules/.pnpm/vue-loader@17.4.2_vue@3.5.4_e80818a1e9b853761367e6f26d264e47/node_modules/vue-loader/dist/index.js??ruleSet[1].rules[6].use[0]!./src/自定义开局/components/ItemCard.vue?vue&type=style&index=0&id=01069c7d&scoped=true&lang=css ***!

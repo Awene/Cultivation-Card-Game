@@ -206,6 +206,25 @@
     return verifyResources(character) || birthdayChanged;
   }
 
+// 旧数组/旧类别兼容；新条目只保留类别、内容、难度。重名加序号，避免覆盖。
+function migrateRumorEntries(value) {
+  if (value == null) return {};
+  if (typeof value !== 'object') return value;
+  const array = Array.isArray(value);
+  const result = Object.create(null);
+  for (const [key, raw] of Object.entries(value)) {
+    if (!raw || typeof raw !== 'object') { result[key] = raw; continue; }
+    const content = String(raw.内容 ?? '');
+    const base = array ? String(raw.标题 || content.split(/[，。；\n]/)[0].slice(0,24) || raw.类别 || ('旧传闻' + key)) : key;
+    let title = base, suffix = 2;
+    while (Object.hasOwn(result, title)) title = base + '（' + suffix++ + '）';
+    const location = String(raw.地点 || [raw.世界, raw.地域].filter(Boolean).join('·'));
+    const category = raw.类别 === '通缉魔修' ? '通缉逃犯' : raw.类别 === '灵植奇遇' ? '素材奇遇' : raw.类别;
+    result[title] = { 类别: category ?? '', 内容: location && !content.includes(location) ? location + '：' + content : content, 难度: raw.难度 ?? raw.境界 ?? '待查' };
+  }
+  return result;
+}
+
   function verifyStatData(sd) {
     if (!sd || typeof sd !== "object") return false;
     const rawYear = finiteNumber(sd.时间 && sd.时间.年);
@@ -215,10 +234,15 @@
       sd.传闻 = { 条目: sd.传闻, 上次世界推进时间点: null };
       changed = true;
     } else if (!sd.传闻 || typeof sd.传闻 !== "object") {
-      sd.传闻 = { 条目: [], 上次世界推进时间点: null };
+      sd.传闻 = { 条目: {}, 上次世界推进时间点: null };
       changed = true;
     }
     // 仅补空，不能在普通回合或失败重试时覆盖已记录的推进起点。
+    const rumors = migrateRumorEntries(sd.传闻.条目);
+    if (!_.isEqual(rumors, sd.传闻.条目)) {
+      sd.传闻.条目 = rumors;
+      changed = true;
+    }
     const worldTime = sd.时间;
     const timeIsValid = worldTime && [worldTime.年, worldTime.月, worldTime.日].every(v =>
       v !== null && v !== undefined && String(v).trim() !== "" && Number.isInteger(Number(v))) &&

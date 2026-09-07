@@ -544,28 +544,55 @@ const TIME_PERIOD_ALIASES = {
 };
 
 function normalizeTimePeriod(input) {
-  const text = String(input ?? "").trim();
+  const text = String(input ?? "").normalize('NFKC').replace(/\s/g, '');
   const period = TIME_PERIODS.find((item) =>
     text === item || ["时", "初", "正", "刻", "中", "末", "半"].some((suffix) => text.includes(`${item}${suffix}`)),
   );
   if (period) return `${period}时`;
+  const clock = text.match(/^(凌晨|清晨|早上|上午|中午|下午|傍晚|晚上|晚间|夜间)?(\d{1,2}|[零〇一二两三四五六七八九十]+)(?:点|时|:)(?:(\d{1,2})分?|半|整)?$/);
+  if (clock) {
+    let hour = parseCalendarNumber(clock[2]);
+    if (clock[3] && Number(clock[3]) > 59) return undefined;
+    if (hour < 0 || hour > 23) return undefined;
+    if (/下午|傍晚|晚上|晚间|夜间/.test(clock[1] ?? '') && hour < 12) hour += 12;
+    if (/晚上|晚间|夜间/.test(clock[1] ?? '') && hour === 12) hour = 0;
+    if (/凌晨|上午|早上/.test(clock[1] ?? '') && hour === 12) hour = 0;
+    if (clock[1] === '中午' && hour < 11) hour += 12;
+    return `${TIME_PERIODS[Math.floor((hour + 1) / 2) % 12]}时`;
+  }
   const alias = Object.entries(TIME_PERIOD_ALIASES).find(([name]) => text.includes(name));
-  return alias ? `${alias[1]}时` : "午时";
+  if (alias) return `${alias[1]}时`;
+  const vague = { 凌晨:'丑', 清晨:'卯', 早:'卯', 早上:'卯', 上午:'巳', 中午:'午', 白天:'午', 日间:'午', 下午:'申', 傍晚:'酉', 晚:'戌', 晚间:'戌', 晚上:'戌', 夜间:'戌', 深夜:'亥' };
+  return vague[text] ? `${vague[text]}时` : undefined;
+}
+
+// 接受中文数字及月份别名；无法理解时返回 NaN，由命令钩子保留原值。
+function parseCalendarNumber(input) {
+  if (typeof input === 'number') return Number.isFinite(input) ? Math.trunc(input) : NaN;
+  let text = String(input ?? '').normalize('NFKC').trim().replace(/[年月日号]$/, '').replace(/^初/, '');
+  text = ({ 正:'一', 冬:'十一', 腊:'十二', 臘:'十二' })[text] ?? text;
+  if (/^\d+$/.test(text)) return Number(text);
+  const digits = '零一二三四五六七八九';
+  text = text.replace(/〇/g,'零').replace(/两/g,'二').replace(/廿/g,'二十').replace(/卅/g,'三十');
+  if (!/^[零一二三四五六七八九十百千万]+$/.test(text)) return NaN;
+  if (!/[十百千万]/.test(text)) return Number([...text].map(c=>digits.indexOf(c)).join(''));
+  let total=0, section=0, n=0;
+  for (const c of text) {
+    const digit=digits.indexOf(c);
+    if (digit>=0) n=digit;
+    else if(c==='万') { total+=(section+n)*10000; section=0; n=0; }
+    else { section+=(n||1)*({十:10,百:100,千:1000})[c]; n=0; }
+  }
+  return total+section+n;
 }
 
 const TimeSchema = z
   .object({
-    年: z.coerce.number().prefault(1),
-    月: z.coerce
-      .number()
-      .transform((n) => _.clamp(n, 1, 12))
-      .prefault(1),
-    日: z.coerce
-      .number()
-      .transform((n) => _.clamp(n, 1, 30))
-      .prefault(1),
+    年: z.preprocess(parseCalendarNumber, z.number().min(1).catch(1)).prefault(1),
+    月: z.preprocess(parseCalendarNumber, z.number().transform(n=>_.clamp(n,1,12)).catch(1)).prefault(1),
+    日: z.preprocess(parseCalendarNumber, z.number().transform(n=>_.clamp(n,1,30)).catch(1)).prefault(1),
     // “子时中 / 子时三刻 / 子初 / 子正”等可理解写法统一收敛到所属时辰。
-    时辰: z.preprocess(normalizeTimePeriod, z.enum(TIME_PERIODS.map((item) => `${item}时`))).prefault("午时"),
+    时辰: z.preprocess(normalizeTimePeriod, z.enum(TIME_PERIODS.map((item) => `${item}时`)).catch('午时')).prefault("午时"),
   })
   .prefault({ 年: 1, 月: 1, 日: 1, 时辰: "午时" });
 
@@ -732,24 +759,28 @@ const EventSchema = z
   .prefault({ 开启: false, 标题: "", 阶段: "", 已完成事件: [] });
 
 // ===== 传闻 Schema =====
-// 单条传闻格式保持不变；世界推进回合由 AI 更新，其他回合只读。
-const TimelineDateSchema = z.object({
-  年: z.coerce.number(),
-  月: z.coerce.number(),
-  日: z.coerce.number(),
-});
+// 旧数组/旧类别兼容；新条目只保留类别、内容、难度。重名加序号，避免覆盖。
+function migrateRumorEntries(value) {
+  if (value == null) return {};
+  if (typeof value !== 'object') return value;
+  const array = Array.isArray(value);
+  const result = Object.create(null);
+  for (const [key, raw] of Object.entries(value)) {
+    if (!raw || typeof raw !== 'object') { result[key] = raw; continue; }
+    const content = String(raw.内容 ?? '');
+    const base = array ? String(raw.标题 || content.split(/[，。；\n]/)[0].slice(0,24) || raw.类别 || ('旧传闻' + key)) : key;
+    let title = base, suffix = 2;
+    while (Object.hasOwn(result, title)) title = base + '（' + suffix++ + '）';
+    const location = String(raw.地点 || [raw.世界, raw.地域].filter(Boolean).join('·'));
+    const category = raw.类别 === '通缉魔修' ? '通缉逃犯' : raw.类别 === '灵植奇遇' ? '素材奇遇' : raw.类别;
+    result[title] = { 类别: category ?? '', 内容: location && !content.includes(location) ? location + '：' + content : content, 难度: raw.难度 ?? raw.境界 ?? '待查' };
+  }
+  return result;
+}
 const RumorEntrySchema = z.object({
-  id: z.string(),
-  时间区间: z.object({
-    起: TimelineDateSchema,
-    止: TimelineDateSchema,
-  }),
-  世界: z.string(),
-  地域: z.string(),
-  地点: z.string(),
-  类别: z.string(),
-  内容: z.string(),
-  难度: z.string(),
+  类别: z.preprocess(v=>normalizeLooseString(v, '待分类'), z.string()).prefault('待分类'),
+  内容: z.preprocess(v=>normalizeLooseString(v, '暂无详情'), z.string()).prefault('暂无详情'),
+  难度: z.preprocess(v=>Array.isArray(v) ? v.map(x=>normalizeLooseString(x,'待查')).join('—') : normalizeLooseString(v,'待查'), z.string()).prefault('待查'),
 });
 
 // ===== 主 Schema (扁平化:基本信息/修炼功法/储物空间 三大类拆掉) =====
@@ -787,7 +818,7 @@ export const Schema = z.object({
     value => Array.isArray(value) ? { 条目: value } : value == null ? {} : value,
     z.object({
       上次世界推进时间点: z.preprocess(value => _.isEmpty(value) ? null : value, TimeSchema.nullable()).prefault(null),
-      条目: z.array(RumorEntrySchema).prefault([]),
+      条目: z.preprocess(migrateRumorEntries, z.record(z.string(), RumorEntrySchema)).prefault({}),
     }).prefault({}),
   ),
 });
@@ -1089,7 +1120,7 @@ const TOP_LEVEL_CONTAINER_DEFAULTS = {
   傀儡: {},
   灵兽: {},
   关系列表: {},
-  传闻: { 上次世界推进时间点: null, 条目: [] },
+  传闻: { 上次世界推进时间点: null, 条目: {} },
 };
 
 const TOP_LEVEL_SCALAR_DEFAULTS = {
@@ -1125,6 +1156,10 @@ function repairMissingSchemaContainers(variables) {
   if (Array.isArray(statData.传闻)) {
     statData.传闻 = { 上次世界推进时间点: null, 条目: statData.传闻 };
   }
+  if (statData.传闻 && typeof statData.传闻 === "object") {
+    statData.传闻.条目 = migrateRumorEntries(statData.传闻.条目);
+  }
+
 
   for (const [key, defaultValue] of Object.entries(TOP_LEVEL_SCALAR_DEFAULTS)) {
     if (statData[key] === undefined || statData[key] === null || statData[key] === "") {
@@ -1165,11 +1200,13 @@ function decodeJsonPointerSegment(segment) {
 
 function splitPath(rawPath) {
   if (typeof rawPath !== "string" || !rawPath) return [];
+  if (rawPath.trimStart().startsWith('/')) return rawPath.trimStart().slice(1).split('/').map(decodeJsonPointerSegment);
   const stripped = rawPath.replace(/^[\\"'` ]+|[\\"'` ]+$/g, "");
   if (stripped.startsWith("/")) {
     return stripped.split("/").filter(Boolean).map(decodeJsonPointerSegment);
   }
-  return _.toPath(stripped).filter(Boolean).map(decodeJsonPointerSegment);
+  // 非 Pointer 路径已经解码过；再次解码会把标题中的字面 ~1 误改成斜杠。
+  return _.toPath(stripped).filter(Boolean);
 }
 
 function joinPath(segments) {
@@ -1218,6 +1255,7 @@ function fixPath(rawPath) {
 
   // B. 扫描中段是否有 top-level-only 键 (错误嵌套), 有则从该段截断
   for (let i = 1; i < segments.length; i++) {
+    if (segments[0] === '传闻' && segments[1] === '条目') break;
     if (TOP_LEVEL_ONLY_KEYS.has(segments[i])) {
       segments.splice(0, i);
       break;
@@ -1248,17 +1286,69 @@ function restoreOriginalJsonPatchPath(command) {
     return;
   }
 
-  const targetSegments = splitPath(patch.path ?? patch.to);
+  const wholeEntry = patch.value && typeof patch.value === 'object' && ['类别','内容','难度'].some(key=>Object.hasOwn(patch.value,key));
+  const targetSegments = splitPath(repairRumorPointer(patch.path ?? patch.to, wholeEntry));
   if (targetSegments.length === 0) return;
   if (command.type === "insert") {
     command.args[0] = joinPath(targetSegments.slice(0, -1));
     command.args[1] = JSON.stringify(targetSegments.at(-1));
   } else if (command.type === "move") {
-    command.args[0] = joinPath(splitPath(patch.from));
+    command.args[0] = joinPath(splitPath(repairRumorPointer(patch.from)));
     command.args[1] = joinPath(targetSegments);
   } else {
     command.args[0] = joinPath(targetSegments);
   }
+}
+
+// 传闻字典只允许三种末级字段。补救 AI 未转义的标题斜杠，原文不改名。
+function repairRumorPointer(path, wholeEntry = false) {
+  if (typeof path !== 'string' || !path.startsWith('/')) return path;
+  const parts = path.slice(1).split('/');
+  if (parts[0] !== '传闻' || parts[1] !== '条目' || parts.length <= 3) return path;
+  const field = !wholeEntry && ['类别','内容','难度'].includes(parts.at(-1)) ? parts.pop() : null;
+  const title = parts.slice(2).map(decodeJsonPointerSegment).join('/');
+  return '/传闻/条目/' + title.replace(/~/g,'~0').replace(/\//g,'~1') + (field ? '/' + field : '');
+}
+
+function normalizeTimeCommand(command, variables) {
+  if (!['set','insert'].includes(command.type)) return true;
+  const parts = splitPath(command.args[0]);
+  if (command.type === 'insert') parts.push(String(tryParseValue(command.args[1])));
+  const index = command.args.length - 1;
+  const value = tryParseValue(command.args[index]);
+  const isTime = path => path.join('.') === '时间' || path.join('.') === '传闻.上次世界推进时间点'
+    || (path[0] === '固定资产' && path.length === 5 && path[2] === '设施' && path[4] === '上次收取日期');
+  if (isTime(parts.slice(0,-1)) && ['年','月','日','时辰'].includes(parts.at(-1))) {
+    const field = parts.at(-1);
+    const parsed = field === '时辰' ? normalizeTimePeriod(value) : parseCalendarNumber(value);
+    if (parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))) {
+      console.warn('[JSONPatch preprocessor] 无法识别时间，保留原值:', parts, value);
+      return false;
+    }
+    command.args[index] = field === '时辰' ? JSON.stringify(parsed) : parsed;
+  } else if (isTime(parts) && (!value || typeof value !== 'object' || Array.isArray(value))) {
+    if (value === null && parts.join('.') !== '时间') return true;
+    console.warn('[JSONPatch preprocessor] 无法识别时间对象，保留原值:', parts, value);
+    return false;
+  } else if (value && typeof value === 'object') {
+    // 完整时间对象或批量替换根对象也采用旧值兜底，避免错误年份重置到 1。
+    const visit = (node, path) => {
+      if (!node || typeof node !== 'object') return;
+      if (isTime(path)) {
+        const old = _.get(variables?.stat_data, path) ?? {};
+        for (const field of ['年','月','日','时辰']) {
+          const parsed = field === '时辰' ? normalizeTimePeriod(node[field]) : parseCalendarNumber(node[field]);
+          if (node[field] !== undefined && (parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))))
+            console.warn('[JSONPatch preprocessor] 时间对象字段无法识别，使用旧值:', [...path,field], node[field]);
+          node[field] = parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))
+            ? (old[field] ?? (field === '时辰' ? '午时' : 1)) : parsed;
+        }
+      } else for (const [key, child] of Object.entries(node)) visit(child, [...path,key]);
+    };
+    visit(value, parts);
+    command.args[index] = value;
+  }
+  return true;
 }
 
 function commandCreatesPath(command, targetPath) {
@@ -1304,6 +1394,14 @@ function jsonPatchPreprocessor(_variables, commands) {
     // 1. 先修正路径(args[0] 是 path, 对 move 命令 args[1] 也是 path)
     if (cmd.args.length > 0) cmd.args[0] = fixPath(cmd.args[0]);
     if (cmd.type === "move" && cmd.args.length > 1) cmd.args[1] = fixPath(cmd.args[1]);
+    const targets = [splitPath(cmd.args[0])];
+    if (cmd.type === 'insert') targets[0].push(String(tryParseValue(cmd.args[1])));
+    if (cmd.type === 'move') targets.push(splitPath(cmd.args[1]));
+    if (targets.some(parts=>parts.some(p=>['__proto__','prototype','constructor'].includes(p)))) {
+      console.warn('[JSONPatch preprocessor] 忽略危险原型路径:', cmd.args[0]);
+      commands.splice(ci,1); continue;
+    }
+    if (!normalizeTimeCommand(cmd, _variables)) { commands.splice(ci,1); continue; }
     // 1.5 容错: 修正后路径根段仍不属于当前 schema 的合法顶级词条 → 指向不存在的字段。
     //     整批 JSONPatch 是原子应用的,留着它会令同批的正确命令(如新增 NPC)一并失败,
     //     故在此丢弃,使其余命令照常生效。判定以 ALL_TOP_LEVEL_KEYS 为准 —— 日后新增

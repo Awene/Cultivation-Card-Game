@@ -53,6 +53,7 @@ const timers = [];
 const events = new Map();
 let writes = 0;
 const lodash = {
+  isEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); },
   get(object, path) {
     return String(path).split('.').reduce((value, key) => value?.[key], object);
   },

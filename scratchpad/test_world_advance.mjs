@@ -38,14 +38,22 @@ vm.createContext(schemaCtx);
 vm.runInContext(read('../脚本/变量结构.js').replace(/^import .*?;\r?\n/, '').replace('export const Schema', 'const Schema') + '\nthis.schema = Schema;', schemaCtx);
 const entry = { id: 'old', 时间区间: { 起: date(), 止: date(2) }, 世界: '凡界', 地域: '东土', 地点: '某城', 类别: '日常', 内容: '旧消息', 难度: '炼气初期' };
 const parsed = schemaCtx.schema.parse({ 传闻: [entry] });
-assert.equal(parsed.传闻.条目[0].id, 'old');
+assert.equal(parsed.传闻.条目.旧消息.内容, '某城：旧消息');
+assert.deepEqual(Object.keys(parsed.传闻.条目.旧消息).sort(), ['内容', '类别', '难度'].sort());
+const duplicates = schemaCtx.schema.parse({ 传闻: { 上次世界推进时间点: date(), 条目: [entry, entry] } });
+assert.deepEqual(Object.keys(duplicates.传闻.条目), ['旧消息', '旧消息（2）']);
+assert.deepEqual(schemaCtx.schema.parse(duplicates), duplicates);
+const current = schemaCtx.schema.parse({ 传闻: { 条目: { '坊市公告': { 类别: '坊市集会', 内容: '东土月底开市', 难度: '炼气初期' } } } });
+assert.equal(current.传闻.条目.坊市公告.内容, '东土月底开市');
+const renamed = schemaCtx.schema.parse({ 传闻: [{ ...entry, 类别: '通缉魔修' }, { ...entry, 类别: '灵植奇遇' }] });
+assert.deepEqual(Object.values(renamed.传闻.条目).map(x=>x.类别), ['通缉逃犯', '素材奇遇']);
 assert.equal(parsed.传闻.上次世界推进时间点, null);
 assert.equal(schemaCtx.schema.parse({ 传闻: { 上次世界推进时间点: {}, 条目: [] } }).传闻.上次世界推进时间点, null);
 assert.deepEqual(schemaCtx.schema.parse(parsed), parsed);
 const oldData = { stat_data: { 传闻: [entry] } };
 vm.runInContext('this.repair = repairMissingSchemaContainers', schemaCtx);
 schemaCtx.repair(oldData);
-assert.equal(oldData.stat_data.传闻.条目[0].id, 'old');
+assert.equal(oldData.stat_data.传闻.条目.旧消息.内容, '某城：旧消息');
 
 const verifierCtx = { _, console, $() {}, setTimeout() {}, clearTimeout() {}, eventOn() {}, waitGlobalInitialized: async () => {} };
 vm.createContext(verifierCtx);
@@ -53,7 +61,7 @@ const verifier = read('../脚本/【本格修仙】MVU核验.js').replace('  asy
 vm.runInContext(verifier, verifierCtx);
 const old = { 时间: date(), 传闻: [entry] };
 verifierCtx.verifyForTest(old);
-assert.equal(old.传闻.条目[0].id, 'old');
+assert.equal(old.传闻.条目.旧消息.内容, '某城：旧消息');
 assert.deepEqual(JSON.parse(JSON.stringify(old.传闻.上次世界推进时间点)), date());
 old.时间 = date(2);
 verifierCtx.verifyForTest(old);
@@ -71,18 +79,17 @@ for (const active of [[], ['[时间推进规则]']]) {
 }
 
 const config = JSON.parse(read('../插件/cultivation-rule-router-config.json'));
-const rumorRule = read('../世界书/变量/[mvu_update][传闻更新规则].txt');
-assert.equal(ejs.render(rumorRule, { getvar: () => '[]' }).trim(), '');
-assert.equal(ejs.render(rumorRule, { getvar: () => 'invalid-json' }).trim(), '');
+const rumorRule = read('../世界书/变量/[mvu_update]变量更新规则.yaml');
+assert.ok(!ejs.render(rumorRule, { getvar: () => '[]' }).includes('RULE_传闻类型表'));
+assert.ok(!ejs.render(rumorRule, { getvar: () => 'invalid-json' }).includes('RULE_传闻类型表'));
 const renderedRumors = ejs.render(rumorRule, { getvar: () => '["[时间推进规则]"]' });
-assert.ok(renderedRumors.includes('<rule name="传闻更新规则">'));
-const example = JSON.parse(renderedRumors.match(/\[\n  \{"op":"replace"[\s\S]*?\n\]/)[0]);
-assert.equal(example.at(-1).path, '/传闻/上次世界推进时间点');
-assert.equal(schemaCtx.schema.parse({ 传闻: { 条目: example[0].value, 上次世界推进时间点: example[1].value } }).传闻.条目.length, 10);
-assert.deepEqual(example[0].value.map(x => x.类别), ['秘境传闻', '高额悬赏', '妖兽异动', '通缉魔修', '宝物现世', '灵植奇遇', '坊市集会', '灵气潮汐', '古迹奇谭', '时空裂缝']);
-assert.equal(new Set(example[0].value.map(x => x.id)).size, 10);
-assert.ok(example[0].value.every(x => x.内容.trim()));
-assert.ok(read('../本格修仙.yaml').includes('名称: "[mvu_update][传闻更新规则]"'));
+assert.ok(renderedRumors.includes('[传闻标题: string]'));
+const categories = [...renderedRumors.matchAll(/^\s*# \| ([^|]+) \|/gm)].map(x => x[1].trim()).filter(x => !['类别', '---'].includes(x));
+assert.deepEqual(categories, ['秘境传闻', '高额悬赏', '妖兽异动', '通缉逃犯', '宝物现世', '素材奇遇', '坊市集会', '灵气潮汐', '古迹奇谭', '时空裂缝']);
+assert.ok(renderedRumors.includes('维护10~15条传闻'));
+assert.ok(renderedRumors.includes('难度: string; # 大境界+小境界'));
+assert.ok(renderedRumors.includes('从 *RULE_传闻类型表 中选择'));
+assert.ok(!read('../本格修仙.yaml').includes('名称: "[mvu_update][传闻更新规则]"'));
 for (const rules of Object.values(config.filters)) for (const item of Object.values(rules)) assert.ok(!item.linked.includes('[时间推进规则]'));
 
 // 路由端集成模拟：验证固定选择、关联关闭、额外 API、下一轮与时间拦截。

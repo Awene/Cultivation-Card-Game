@@ -10,10 +10,10 @@ const _ = require('lodash');
 const read = p => fs.readFileSync(new URL(p, import.meta.url), 'utf8');
 const time = { 年: 7200, 月: 4, 日: 7, 时辰: '午时' };
 const entries = [
-  { id: '1', 时间区间: { 起: time, 止: { ...time, 日: 10 } }, 类别: '坊市消息', 地点: '东土 · 临渊水乡', 难度: '炼气初期', 内容: '沿河坊市新添了几处丹药摊位，往来散修传言近日有炼丹师在此暂居。' },
-  { id: '2', 时间区间: { 起: time, 止: { ...time, 日: 20 } }, 类别: '人物近况', 地点: '东土 · 琉璃丹宗', 难度: '筑基初期', 内容: '据说林清远结束了短期闭关，正在整理药圃；是否有所突破，外人尚不得知。' },
+  { 标题: '临渊水乡 · 沿河丹市将开', 类别: '坊市集会', 难度: '炼气初期', 内容: '沿河坊市新添了几处丹药摊位，往来散修传言近日有炼丹师在此暂居。' },
+  { 标题: '雨后青崖浮现灵矿踪迹，山民邀修士共同探查旧矿道深处的异响', 类别: '素材奇遇', 难度: '筑基初期', 内容: '据山民说，东土青崖雨后露出带灵纹的矿石。旧矿道有异响，前往者可先在村口询问向导。' },
 ];
-const data = vue.reactive({ 时间: { ...time, 时辰: '未时' }, 传闻: { 上次世界推进时间点: time, 条目: entries } });
+const data = vue.reactive({ 时间: { ...time, 时辰: '未时' }, 传闻: { 上次世界推进时间点: time, 条目: Object.fromEntries(entries.map(({标题, ...entry}) => [标题, entry])) } });
 const descriptor = compiler.parse(read('../../tavern_helper_template-main/src/修仙状态栏/pages/PageRumors.vue')).descriptor;
 const script = compiler.compileScript(descriptor, { id: 'preview', inlineTemplate: true });
 const compiled = ts.transpileModule(script.content, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
