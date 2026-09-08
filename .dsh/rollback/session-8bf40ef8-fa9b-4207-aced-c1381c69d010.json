@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "sessionId": "session-8bf40ef8-fa9b-4207-aced-c1381c69d010",
+  "cwd": "d:\\application\\Tavern\\mod\\世界书\\Cultivation-Card-Game",
+  "updatedAt": 1788834951069,
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "7291b0557c06a23813378c6c455124ee0d9a7d66",
+      "parent": "7291b0557c06a23813378c6c455124ee0d9a7d66",
+      "time": 1788833688044,
+      "untracked": [],
+      "truncated": false,
+      "after": {
+        "commit": "911c66dfc403764c455b48fe308d6e31957aa8c3",
+        "time": 1788833886309
+      }
+    },
+    {
+      "turn": 2,
+      "commit": "911c66dfc403764c455b48fe308d6e31957aa8c3",
+      "parent": "911c66dfc403764c455b48fe308d6e31957aa8c3",
+      "time": 1788834119574,
+      "untracked": [
+        "scratchpad/check_refs.mjs"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 3,
+      "commit": "911c66dfc403764c455b48fe308d6e31957aa8c3",
+      "parent": "911c66dfc403764c455b48fe308d6e31957aa8c3",
+      "time": 1788834289868,
+      "untracked": [
+        "scratchpad/check_refs.mjs"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 4,
+      "commit": "911c66dfc403764c455b48fe308d6e31957aa8c3",
+      "parent": "911c66dfc403764c455b48fe308d6e31957aa8c3",
+      "time": 1788834870396,
+      "untracked": [
+        "scratchpad/check_refs.mjs"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "2590ae013ec0c750bd1197943aeca0442854dec6",
+        "time": 1788834949899
+      }
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}
