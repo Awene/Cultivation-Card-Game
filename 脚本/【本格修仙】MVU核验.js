@@ -69,8 +69,13 @@
     return Number.isFinite(number) ? number : null;
   };
 
+  function normalizeCultivationRealm(value) {
+    const text = String(value || "").trim();
+    return /^凡人(?:初期|前期|中期|后期)$/.test(text) ? "凡人" : text;
+  }
+
   function realmL(境界) {
-    const text = String(境界 || "").trim();
+    const text = normalizeCultivationRealm(境界);
     const realm = Object.keys(REALM_L_BASE).find((name) => text.includes(name));
     if (!realm) return null;
     const base = REALM_L_BASE[realm];
@@ -98,7 +103,7 @@
   }
 
   function realmName(character) {
-    return String(character && character.修炼进度 && character.修炼进度.境界 || "").trim();
+    return normalizeCultivationRealm(character && character.修炼进度 && character.修炼进度.境界);
   }
 
   // 此事件同时给出更新前后的 MVU 数据；在此刻比较，才不会因核验脚本延后执行而丢失旧境界。
@@ -201,9 +206,34 @@
     return changed;
   }
 
+  // 仅纠正实体的境界字段；品质、数量和已有属性保持原值。
+  function verifyEntityRealm(entity) {
+    if (!entity || typeof entity !== "object") return false;
+    if (normalizeCultivationRealm(entity.境界) !== "凡人") return false;
+    return setIfChanged(entity, "境界", "炼气初期");
+  }
+
+  function verifyStorageRealms(character) {
+    let changed = false;
+    for (const key of ["物品", "装备", "功法", "灵兽", "傀儡"]) {
+      for (const entity of Object.values(character[key] || {})) {
+        changed = verifyEntityRealm(entity) || changed;
+      }
+    }
+    return changed;
+  }
+
   function verifyCharacter(character, currentYear) {
+    let realmChanged = false;
+    const cultivation = character && character.修炼进度;
+    if (cultivation && typeof cultivation === "object") {
+      const realm = normalizeCultivationRealm(cultivation.境界);
+      if (realm && realm !== cultivation.境界) realmChanged = setIfChanged(cultivation, "境界", realm);
+    }
     const birthdayChanged = verifyBirthday(character, currentYear);
-    return verifyResources(character) || birthdayChanged;
+    const resourcesChanged = verifyResources(character);
+    const storageChanged = verifyStorageRealms(character);
+    return realmChanged || resourcesChanged || birthdayChanged || storageChanged;
   }
 
 // 旧数组/旧类别兼容；新条目只保留类别、内容、难度。重名加序号，避免覆盖。
@@ -272,6 +302,9 @@ function migrateRumorEntries(value) {
     const relations = sd.关系列表 || {};
     for (const name of Object.keys(relations)) {
       const npc = relations[name];
+      if (npc && (npc.类型 === "灵兽" || npc.类型 === "傀儡")) {
+        changed = verifyEntityRealm(npc) || changed;
+      }
       if (!npc || npc.类型 !== "人物") continue;
       if (!npc.修炼进度 || typeof npc.修炼进度 !== "object") npc.修炼进度 = {};
       if (!("上次突破时间点" in npc.修炼进度)) {
