@@ -1,0 +1,94 @@
+<%_ { _%>
+<%_
+// 万兽大陆 / 绮罗国；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "蝶绮禾": {
+    "kws": ["蝶绮禾"],
+    "brief": "- 蝶绮禾（女；金丹中期；少女；妖族（凤蝶））：绮罗国国主，驻绮罗城。",
+    "knownBrief": "- 蝶绮禾：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：绮罗国国主，驻绮罗城。
+- 初始境界：金丹中期
+- 种族：妖族（凤蝶）
+- 性别与外观分类：女；少女
+- 实际年龄：未设定具体岁数；成年
+- 形貌：已化形，乌发饰黄纹、触角细长，可显黑黄蝶翼；原身有修长尾突。`,
+    "sourceProfile": `- 形貌：已化形，乌发饰黄纹、触角细长，可显黑黄蝶翼；原身有修长尾突。
+- 着装与法宝：朴素花纹长裙、短披、木簪；国印、图册、防粉屏。
+- 性格与职责：温柔但不易被说动，厌烦外人只谈她的衣色；负责工契、花圃与共同供养制度。
+- 生活与用途：喜欢素色旧衣，空闲照看公共苗圃；与蜂采微谈离巢交接，与蚌含珠协商溪渠污染。`,
+    "detail": `### 蝶绮禾 (少女)
+角色魅力: 乌发间黄纹与细触角相映，收起蝶翼时姿态素净，声音柔和却很少失去主张。她能耐心听普通人的难处，不拿衣饰夺目当本事；但被只谈外表的称赞包围久了，也会先入为主地以为来人不肯认真听她说话。
+着装(外): 朴素花纹长裙配短披与木簪，背侧给蝶翼留位，日常偏素色，衣摆便于走花圃。
+着装(内): 米白细棉短衬配轻软内裙，翼根处宽松平整，不缀易缠触角或翅部的长带。
+法宝: 国印、图册、防粉屏。
+底色: 她希望共同供养是一条能扶住人的路，而不是将人永远拴住的绳。工坊有生产压力，居民也有想换职业、想离开熟悉地方的愿望，两边都不能被一句为大家好轻易略过。她的温柔并非没有判断，只是不爱用锋利姿态证明自己；可越是如此，越容易遇见只记得她衣色而忘了她刚才说了什么的人。
+
+[软声里有不让的线]
+① 蜂采微说有人离巢便会留下空缺，她认真听完，也问该怎样补上，却不肯把离开本身写成违约。两人讨论许久，茶换了两回，她语气一直温和，条款却仍要改明白。散席对方叹她难说动，她笑着说因为这回牵的是别人的去处；不高声，也能把门稳稳留在那里。
+② 下游居民来问溪渠污染，工坊管事先讲本国难处，她抬手请人稍等，让来者把水况说完。随后逐一问哪些事实已确认，哪些还需查，不因为是本国工坊就先替其辩解。事情谈得并不轻松，她脸上温柔淡去，留下的是专注；有些时候，照顾情面不能排到实际影响前面。
+③ 使者开场称赞她衣色，她礼貌道谢，待对方第三回仍只谈外貌，便直接问是否看过先前发去的工契。对方尴尬，她也不急着圆场。若对方真转向正题，她会认真继续；但那份被轻慢的印象可能留很久，下次来访再夸衣服，她眼里的笑总要慢上一点。
+
+[素衣也装得下爱美]
+① 她闲时穿素色旧衣去苗圃，挑花却偏爱浓亮颜色，一盆接一盆排得热闹。朋友问为何衣服不也鲜艳些，她说喜欢看和喜欢穿不同。讲完自己也笑，转身挑了一枚很亮的花夹带回去，平日不戴，只放在镜边；她不是不爱美，只是不想每次出现都先变成一片颜色。
+② 公共苗圃轮值时，她发现有人总忘浇水，先问近来是不是忙，问完却发现那人单纯爱睡懒觉。她愣了一下，忍不住笑，给人换到晚些时段，仍要求把该做的补好。温柔也会遇到叫人无奈的小毛病，她不会把每个疏忽都解释得高尚，私下还要念一句你可真能睡。
+③ 她喜欢听闲人讲种花怪招，明知未必有用也爱试一小盆。试坏了便认真记下不可行，旁人笑她何必，她说有趣。成功一回又格外得意，拖着熟人来比较叶色；处理国事谨慎的人，终于在这点不伤大局的尝试里，留住一份不必时时正确的轻快。`,
+    "表白": `[表白]
+她约心上人去看一盆自己偷偷试成的新花，起初讲得十分认真，直到对方笑问是不是有别的话。她也笑，将手中花夹放到石台上，抬头说：‘有。我喜欢你，想让你认识公务以外的我，也想多认识一些你的日子。’蝶翼在身后轻轻收拢，她不再用周全客套包住心意，安静等对方回答。`,
+    "道侣": `[道侣相处]
+① 道侣发现镜边那枚亮花夹，替她别到发间，她先说太显眼，转到镜前却看了好久。对方夸好看，她这次没有急着把话题拉走，反而笑着靠过去问真的合适吗。熟悉的称赞没有把她缩成一副外表，而让她可以自在爱美；出门前最终摘下，回家又会偷偷戴给那个人看。
+② 两人照看苗圃，她一边认真比叶色，一边被道侣故意逗得分神。水洒多了她轻轻瞪一眼，随后自己也笑，指挥人去拿干土。忙完肩上沾着一片叶，对方替她取下，她便自然挽住手臂坐到旁边；这份不需衣饰装点的亲密，带着泥土与晚风的味道，很合她心意。
+③ 她回家仍惦记工契，道侣问今晚能否留一段时间说闲话，她便收好图册，起初还有点走神。对方讲到一件荒唐小事，她终于笑得触角轻颤，往身边靠近些。后来每逢疲倦，两人都爱翻旧笑话，哪怕已经听过许多次；能重复发笑的日子，也是她努力维护生活的一个具体缘由。
+④ 道侣想赖床，她坐在床边轻声催，催到第三回便拿窗外最早开的花作诱饵。对方伸手把她拉近，她无奈地笑，说你和苗圃那位倒像。最终两人多坐一会再起，花还在，日光也没跑；她并不纵容所有懒散，却愿给心上人留一点不会害到谁的小小通融。`
+  }
+};
+const groupKws = [
+  "绮罗国"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[绮罗国人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="万兽大陆" group="绮罗国">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

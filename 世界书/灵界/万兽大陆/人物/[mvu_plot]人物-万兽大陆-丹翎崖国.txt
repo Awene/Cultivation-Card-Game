@@ -1,0 +1,94 @@
+<%_ { _%>
+<%_
+// 万兽大陆 / 丹翎崖国；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "雁书遥": {
+    "kws": ["雁书遥"],
+    "brief": "- 雁书遥（女；金丹中期；少女；妖族（灰雁））：丹翎崖国俗务执政，驻丹翎城。",
+    "knownBrief": "- 雁书遥：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：丹翎崖国俗务执政，驻丹翎城。
+- 初始境界：金丹中期
+- 种族：妖族（灰雁）
+- 性别与外观分类：女；少女
+- 实际年龄：未设定具体岁数；成年
+- 形貌：已化形，灰棕长发、鼻侧白纹，站立端正；原身翅侧浅白。`,
+    "sourceProfile": `- 形貌：已化形，灰棕长发、鼻侧白纹，站立端正；原身翅侧浅白。
+- 着装与法宝：灰蓝官衣、轻披、信袋；印、笔、折叠风图。
+- 性格与职责：亲和、反复解释仍有耐心；协调昼夜市场和巢地，被各方当作可以再退一步的人。
+- 生活与用途：喜欢抄写沿途店招；与鸮听更是长期合作伙伴，凡事仍须正式向千翎崖提出需求。`,
+    "detail": `### 雁书遥 (少女)
+角色魅力: 灰棕长发与鼻侧白纹衬出清秀面容，站姿端正，声音温和清晰，反复解释也少见敷衍。她让人愿意靠近，却常被当作可以再让一步的人；怕场面难看，使她有时把自己的不满压到连熟人也看不见。
+着装(外): 灰蓝官衣配轻披与信袋，袖缘简洁，腰带不过紧，出巡时裙摆束好方便走阶。
+着装(内): 浅灰细棉交领薄衬配软腰内裙，肩背舒展，领口平顺，久行时另备吸汗里层。
+法宝: 印、笔、折叠风图。
+底色: 她觉得制度若只对懂行的人说得通，就还没有解释到位，因此愿意反复把昼夜安排与巢地规则讲给居民听。可是总有人把耐心当成没有底线，觉得只要继续开口她就能再退一点。她并不天生无怨，只是不喜欢让人失望；学习说这回不能，并不会使她不再温柔，却常需要比讲十遍道理更多勇气。
+
+[愿意再讲一遍]
+① 夜铺老板又来问新时牌，她认出这已是第三回，仍拿出两套旧新刻度对照。讲到对方懂了，才发现不是听不明白，而是担心照新时刻收摊便少一笔生意。她于是把图收起，改问实际交接。耐心不只是重复同一句话，有时是终于听见人藏在问题底下的那份不甘。
+② 鹤晴岫递风图时，她先把图夹调到对方方便的位置，再一起核对递交时刻。旁人想借熟识直接安排优先，她笑着说每位都得有验证机会，语气很软却没挪名单。等人走后才长出一口气；维持公平不一定气势十足，她也会紧张，只是手上的次序始终没有乱。
+③ 巢地争执双方轮流抱怨，她坐着听到茶凉，连相同话都记下。散后有人说你脾气真好，她盯着空杯半晌，才笑说其实已经在心里叹了很多次。那份坦白让同僚也笑起来；她愿意继续做这件事，并不意味着过程没有厌倦，只是厌倦没成为敷衍居民的借口。
+
+[招牌都是小风景]
+① 她出巡爱抄店招，连歪字也照着歪，回家摊满一桌比较。朋友问为何不改正，她说改了就不像那家店。某块招牌把一个点写得极大，她每次看都想笑，甚至会模仿店主喊客的语气；端正的执政私下也有这种近乎孩子气的趣味，一本本抄得认真又毫无功用。
+② 闲日遇到熟人请她顺便评理，她嘴上已要答应，熟识的朋友在旁咳一声，她才想起今天休息。婉拒之后仍有点心虚，绕过街口才小声抱怨怎么谁都觉得顺便不费力。抱怨完自己也笑，买一份喜欢的小食慢慢吃，刻意不再急着追上任何一场公事。
+③ 她记得哪家铺面曾经挂过什么字，看到新招牌会先去问原店去了哪。老板以为执政来查事，她赶紧解释只是想补上小册。若听说旧铺换地方继续开，便真高兴；若已歇业，她会多看旧门一会。收集对她不只是好看，也是在城里留下许多熟悉日子曾经存在的痕迹。`,
+    "表白": `[表白]
+她特意挑一条不会碰到公事的街，约心上人陪自己看店招。走到一块写着常来的旧匾前，她停下笑了笑，随后认真说：‘我不是想请你顺便陪我。我喜欢你，想把往后的许多闲日也与你一起过。’一贯善于解释的人，这回耳根却微微发热，仍把视线留在对方脸上，等待真实回应。`,
+    "道侣": `[道侣相处]
+① 道侣陪她抄店招，故意在旁边添一句两人懂的小话。她起初嫌破坏原样，等看清字意便红着脸收进册子，说这页不许别人翻。回家却将那一页夹得最好，偶尔自己打开看。被问为何总看同一块匾，她故作镇定说字有意思，唇边那点笑却怎么也压不住。
+② 她回家还挂着公事里客气的笑，道侣一看就知道累了，拍拍身边让她坐。她靠过去先不说话，过会才开始小声抱怨今日又有人讲了四遍同一件事。说到一半自己笑起来，道侣也笑，肩头的紧绷便慢慢散开；在这里她不必永远耐心，偶尔烦躁也有人愿意听完。
+③ 两人休息日约好不谈公务，她出门仍想带风图，道侣从信袋里抽出来换成小食。她嘴上说万一用上，手却顺势牵了过去。走到新开的铺子前，她看招牌看得出神，对方站在旁边等，一点也不催；那份被容许慢慢看喜欢东西的时间，比精心安排的盛宴更合她心意。
+④ 道侣离家数日，她在便条里总写些街市琐事，哪家换了匾、哪处新开了花，直到最后才写等你回来一起看。人真正回来，她拿出册子讲了许久，忽然停住承认其实很想你。说完将脸轻轻靠到对方肩上，半晌又笑着补一句，今天这句话只讲一次，你可得听明白。`
+  }
+};
+const groupKws = [
+  "丹翎崖国"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[丹翎崖国人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="万兽大陆" group="丹翎崖国">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

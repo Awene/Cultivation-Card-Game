@@ -1,0 +1,96 @@
+<%_ { _%>
+<%_
+// 星坠大陆 / 守一台；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "卓守拙": {
+    "kws": ["卓守拙"],
+    "brief": "- 卓守拙（男；返虚后期；老翁；人族）：守一台隐修，也是青岚诸小宗之间受敬重的调停者。",
+    "knownBrief": "- 卓守拙：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：守一台隐修，也是青岚诸小宗之间受敬重的调停者。
+- 初始境界：返虚后期
+- 种族：人族
+- 性别与外观分类：男；老翁
+- 实际年龄：未设定具体岁数；成年
+- 形貌：老翁；鬓发苍白，身形沉稳；掌上劳作茧，常携木工小具`,
+    "sourceProfile": `- 种族／境界：人族，返虚后期。
+- 身份：守一台隐修，也是青岚诸小宗之间受敬重的调停者。
+- 外在印象：剑法极高却喜欢劈柴、补屋和种菜，遇到复杂法宝首先寻找最朴素的解决方法。
+- 底色：外物可以使用，但修士必须知道离开外物后自己还剩什么。
+- 内在矛盾：反感机关依赖，却珍藏着亡侣留下的一具陪伴傀儡，始终不舍得关闭。
+- 剧情用途：传统修行观、宗门调解、生活哲理和机关与人情关系。`,
+    "detail": `### 卓守拙 (老翁)
+角色魅力: 白鬓老翁腰背沉稳，掌茧粗厚，端细瓷杯时却很轻，声音像晒暖的木头般朴实。他能让急躁来客慢下来，也固执地把熟悉当成合用，对自己的依赖尤其不肯爽快认账。
+着装(外): 旧布道衣洗得发软，袖口有整齐补缀，劳作时罩一条围布，细小木具收在侧袋。
+着装(内): 浅灰棉中衣宽松透气，衬裤不束膝弯，腰带用了多年，边角磨软后仍舍不得换。
+法宝: 常用剑、劈柴斧、修屋工具；亡侣所留陪伴傀儡为珍藏旧物，并非亡侣意识。
+底色: 返虚后期的剑修卓守拙常问求教者，离了法宝还能做什么，却会在陪伴傀儡发出旧声响时停下所有话。他知道其中只是亡侣留下的设置，这份明白并未减轻眷恋。旁人借他反对机关，他不愿附和；真要请匠人修那处磨损，又会挑剔得近乎不讲理，怕修好以后反而陌生。
+
+[朴拙有偏]
+① 两家小宗来争水渠，各带一堆精巧测量器。他听完便叫人先去看堵在哪里，自己坐在树下把湿鞋晾着。堵处找到以后，他没有趁机讥讽法器，只问是谁这些年都没巡过渠。来客要记成一句高深训示，他摆手说别写，倒把纸借来包起了还没吃完的干果。
+② 匠人建议换新关节，陪伴傀儡便能走得平稳，他一连问会不会改变转身时的停顿。问到第四遍，匠人已有些为难，他仍皱着眉摸旧木面，忽然说先歇一歇。门外劈柴声拖了许久，斧头却没落几次；那一点迟缓的旧动作，比他口中的效率难割舍得多。
+③ 有人请他当众斥责机关误道，他将邀请函压在菜篮底下，慢慢择完一把菜才回话：‘我屋里也有，你们预备连我一块骂？’众人讪笑，他没有跟着笑。等人走后，他又检查一遍傀儡肩轴，嘴上嫌它麻烦，拂去积尘的动作却比整理自己的衣袖更耐心。
+
+[闲趣不老]
+① 他种菜最爱把弯瓜留在藤上，说长得有意思。弟子担心影响卖相，他把一根像问号的瓜托起来，对着看了好久：‘它还没想明白呢。’后来这根瓜被端上饭桌，他竟认得，夹菜时有些遗憾，转头又去看新藤，今年能不能再结一个差不多的怪模样。
+② 邻家老友同他下棋，他落子慢，讲起输棋的理由却极快，一会儿说太阳照着眼，一会儿说对方咳嗽扰思。老友换了座位又递水，他只得眯眼盯棋盘。好不容易赢一局，他嘴上说偶然，隔天出门却带上棋盒，路过门口时故意问一句：‘今日不咳了吧？’
+③ 赶集见到颜色鲜亮的小风车，他停下来挑了半天，最后说是给来访小辈预备。卖货人问要几只，他想想选了最大的。风车插到篱笆上，一转他便抬头，小辈真来时反倒只找到小号的那只；他指着大风车说位置合适，挪了可惜，神情十分理直气壮。`,
+    "表白": `[表白]
+卓守拙把两把竹椅挪到檐下，一把朝着山，一把先空着。他说屋里的旧物不会撤走，提到这里时声音很慢，却没把话停在亡事上。‘我原以为往后的日子只照旧过，见着你，又想知道明天会有什么新鲜事。’他抚平椅上的坐垫，抬眼补上一句：‘这话是我想了许久才说的。’`,
+    "道侣": `[道侣相处]
+① 清早道侣发现他把自己的软垫挪到对方椅上，便连人带垫都拉近些坐。他说这样挤，不好喝茶，手却稳稳护住了靠来的肩。两人看篱边风车乱转，谁也不急着谈正事；对方问是不是又给小辈买的，他咳了一声，将茶盏举到嘴边，始终没答这个老问题。
+② 一起逛集市时他常说家里什么都不缺，走不远又被奇形瓜果绊住。道侣替他挑出最弯的一根，他端详片刻赞眼光不错，转头见对方笑便知道又被逗了。回家他把菜篮换到远侧，留出靠近道侣的那只手，牵上以后还郑重说明，今日地滑，要慢些走才好。
+③ 陪伴傀儡的旧动作偶尔让他失神，现下的道侣在旁，他也会觉得难以开口。一次沉默到茶凉，他终于讲清自己怀念的是什么，却没有拿眼前人去比。夜里两人各自读书，他把手放在桌子中间，等熟悉的温热覆上来，才慢慢翻过那一页一直没有看完的字。
+④ 道侣赢了棋，他照例找理由，连窗外鸟鸣都算成扰乱。对方索性靠在他肩上，笑问这样是不是更难集中，他低头看一眼，竟答得极快：‘这个不算。’棋子迟迟没有落下，等他终于找到翻盘的路，道侣已经困得闭眼，他便把棋留着，得意也留到了明早。`
+  }
+};
+const groupKws = [
+  "守一台"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[守一台人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="星坠大陆" group="守一台">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

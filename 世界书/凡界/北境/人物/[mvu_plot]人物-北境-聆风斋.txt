@@ -15,7 +15,7 @@ const 人物关系 = getMessageVar('stat_data.关系列表') || {};
 const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
 let scanText = 具体地点;
 try {
-  scanText += '\n' + (getChatMessages(10) || []).join('\n');
+  scanText += '\n' + (getChatMessages(-10) || []).join('\n');
 } catch(e) {}
 const secondaryKeywordHit = (kws) => kws.some(kw => kw && scanText.includes(kw));
 

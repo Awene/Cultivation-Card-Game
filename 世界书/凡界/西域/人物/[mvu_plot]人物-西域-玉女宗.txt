@@ -9,7 +9,7 @@ const 人物关系 = getMessageVar('stat_data.关系列表') || {};
 const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
 let recentText = '';
 try {
-  recentText = (getChatMessages(10) || []).join('\n');
+  recentText = (getChatMessages(-10) || []).join('\n');
 } catch(e) {}
 const secondaryKeywordHit = (c) =>
   c.kws.some(kw => kw && recentText.includes(kw)) ||

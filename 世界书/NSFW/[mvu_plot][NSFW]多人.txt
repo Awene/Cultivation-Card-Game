@@ -1,6 +1,6 @@
 <NSFW_Multiplayer_Process>
 <%_ {
-let _s='';try{_s=getChatMessages(`${Math.max(0,lastMessageId-3)}-${lastMessageId}`).map(m=>m.message).join('\n');}catch(e){}
+let _s='';try{_s=getChatMessages(-4).join('\n');}catch(e){}
 const 命中=(ks)=>ks.some(k=>_s.includes(k));
 _%>
 <%_ {

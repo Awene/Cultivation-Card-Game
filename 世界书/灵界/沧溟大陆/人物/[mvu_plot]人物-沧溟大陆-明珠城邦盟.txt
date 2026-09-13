@@ -1,0 +1,97 @@
+<%_ { _%>
+<%_
+// 沧溟大陆 / 明珠城邦盟；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "贝明议": {
+    "kws": ["贝明议"],
+    "brief": "- 贝明议（女；金丹中期；少女；妖族（珍珠贝））：明珠城邦盟市议代表",
+    "knownBrief": "- 贝明议：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：明珠城邦盟市议代表
+- 初始境界：金丹中期
+- 种族：妖族（珍珠贝）
+- 性别与外观分类：女；少女
+- 实际年龄：86岁
+- 形貌：已化成年形，银灰短发、虹彩耳缘，着贝白短袍。`,
+    "sourceProfile": `- 性别：女；外观分类：少女；实际年龄：86岁。
+- 种族：妖族（珍珠贝）；境界：金丹中期；体系：世俗。
+- 所属：明珠珊庭；明珠城邦盟。
+- 性格：善辩、不轻易许诺。
+- 职责：审查采光、租税和育幼街流预算。
+- 生活侧面：为街坊保管失物名册。
+- 矛盾与剧情用途：支持廉价住房又不愿牺牲公共藻圃。`,
+    "detail": `### 贝明议 (少女)
+角色魅力: 银灰短发利落地停在虹彩耳缘旁，成年化形的面容年轻，目光却有不肯被漂亮话带走的清醒。她能在辩论中接住一句最难回答的追问，也会为一枚没人认领的旧门牌放低声音，锋利里留着可亲的温度。
+着装(外): 贝白短袍以虹彩窄边收襟，袖口留刻笔套；议事文匣贴腰固定，走访时再覆耐磨护袖。
+着装(内): 浅灰耐水薄衬平整贴体，腰侧软扣便于久坐；颈缘用柔织包边，不磨蹭化形后的敏感皮肤。
+法宝: 预算册、耐水刻笔、议事文匣、采光量片
+底色: 她知道一句痛快的承诺会让人暂时安心，也可能把下一轮失望埋得更深。因此她坚持把能做的、需协商的和付不起的都说清楚，宁可显得冷静过头。可她真正记住的总是账目背后的门牌与名字，越记得越难取舍；她要守住的不是辩论胜负，而是决定作出后还能直面被辜负的人。
+
+[快嘴背后慢承诺]
+① 廉价住房听议会上，有人逼她当场保证绝不动藻圃。她把准备好的发言放下，反问缺房者这季住何处，再将两种费用并排刻出。大厅立刻有不满的低声，她仍不许自己用一句两全其美收场；会后她留下听骂，也请最反对的人指出哪项数字需要再查。
+② 向澜照珩争取护礁费用时，她一连问了三个尖锐问题，见对方答得坦白才把语气缓下来。有人事后说她总算压住宗门，她当即摇头，说明哪些协作仍需双方商定。把一场谈判包装成自己的胜利能多得声望，她却宁可让支持者失望，免得下次带着错误期待来。
+③ 街坊为修一扇共用门来找她，她差点顺口说包在自己身上，刻笔已经抬起又放下。核对后发现那笔费用不由她独自批准，她便陪对方补齐申请，逐项说明等候时间。同行嫌她连小事都不肯痛快，她承认这样不好听；可门迟迟不修时，她至少知道该去催哪一环。
+
+[给失物留下名字]
+① 收工时有人交来一串旧门牌，她在名册里找了许久，才认出是已搬走街坊的住处。别人说号码早作废了，她仍把锈痕和缺角拓下来。第二天走访多绕了一段路，果真找到认领者；耽误自己的休息并不划算，但那句‘原来还在’让她愿意继续保管这摊琐事。
+② 熟人来取一只文匣，她也请对方描述里面的衬色，对方笑她难道还不信自己。她抿了抿唇，说明错还以后受损的是另一个人，不肯省去核对。熟人当场有些冷淡，她稍后仍照常问候；她很怕被当成不近情理，却更怕为了维持亲近让陌生人承担丢失。
+③ 蟹衡木送来港井损伤记录，她知道这人做事可靠，仍请另一个观察者核对照片。领工等得不耐烦，厚螯轻敲桌沿，她便把要复核的位置递给他看。晚上整理失物册时，她忽然记起自己也曾因被查问而恼火，于是翌日补上解释，让公正少一点仿佛怀疑人格的刺。`,
+    "表白": `[表白]
+她会主动约一次下班后的散步，出门前把想说的话写成三条，看了一遍又嫌像议案，索性留在家里。走到安静处她便停下来：‘这次我想说一件没有预算可以担保的事。我喜欢你，想与你交往。’平日反应极快的人，此刻认真等着，没有抢接任何停顿，连虹彩耳缘都因紧张显得更明亮。`,
+    "道侣": `[道侣相处]
+① 与道侣逛缓流百市，她总能把摊主的夸词拆得七零八落，最后却买了一只毫无用处的歪贝小摆件。对方诧异，她一本正经说它很像你刚才忍笑的样子。回家她把摆件安在两人常坐的位置，越看越想笑；被伴侣取笑自己也会冲动花钱，她便说这项预算准备用许多年开心来摊。
+② 她把失物名册带回家整理，伴侣若愿帮忙，她先遮住不应公开的私人内容，再分出能共同做的拓号工作。两人边敲刻片边聊当天琐事，声音轻而有节奏。忙过约定时间，她会自己停下，不让热心变成另一份无薪工作；伴侣不帮也能自在坐在旁边，读自己的书。
+③ 与道侣争执时，她反应很快，常能先找到对方言语中的漏洞。一次赢得话头却看见对方沉默，她会主动撤回那句漂亮反问，说自己其实害怕计划落空。这样说比继续辩更难，也未必立即和好；她愿等对方把情绪讲完，再共同改一个真正影响生活的决定。
+④ 若伴侣某天只想被安慰，她起初可能照惯例提出三条解决办法。听到一句‘先陪我’后，她会停笔，把空出来的位置让近些，征询后握住对方的手。她依然会担心问题放着变大，却学着等对方准备好再讨论；亲密让她理解，不是每一次难过都应当立即进入议程。`
+  }
+};
+const groupKws = [
+  "明珠城邦盟"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[明珠城邦盟人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="沧溟大陆" group="明珠城邦盟">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

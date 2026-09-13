@@ -21,8 +21,8 @@ const 具体地点 = String(getMessageVar('stat_data.地点.具体地点', { def
 
 let scanText = 具体地点;
 try {
-  const 起 = Math.max(0, lastMessageId - 5);
-  const messages = getChatMessages(`${起}-${lastMessageId}`) || [];
+
+  const messages = getChatMessages(-6) || [];
   scanText += '\n' + messages.map(m => typeof m === 'string' ? m : (m?.message || '')).join('\n');
 } catch (e) {}
 const 提到 = (kws) => kws.some(k => k && scanText.includes(k));

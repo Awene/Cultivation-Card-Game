@@ -1,7 +1,8 @@
 // 事件条目离线验证脚本(事件写作规范.md 第七步)
 // 用法: node scratchpad/test_event.mjs [事件文件路径]
-// 原理: 迷你 EJS 渲染器 + 酒馆助手函数 mock, 逐场景喂 stat_data, 断言各阶段渲染行为
+// 原理: 迷你 EJS 渲染器 + 本机 ST-Prompt-Template 消息实现，逐场景检查触发。
 import { readFileSync } from 'node:fs';
+import { chatRuntime } from './ejs_chat_runtime.mjs';
 
 const file = process.argv[2] || '世界书/事件/五毒教/梦茧.txt';
 const src = readFileSync(file, 'utf8');
@@ -37,7 +38,7 @@ function makeEnv(state, recentText = '') {
       const v = get(state, path);
       return v !== undefined ? v : (opts && 'defaults' in opts ? opts.defaults : undefined);
     },
-    getChatMessages: () => (recentText ? [{ message: recentText }] : []),
+    ...chatRuntime([...Array(20).fill('无关旧消息'),...(recentText?[recentText]:[])]),
     lastMessageId: 5,
   };
 }

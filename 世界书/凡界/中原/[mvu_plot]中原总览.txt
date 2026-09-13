@@ -35,7 +35,7 @@ if (mode !== 'hidden') {
   // 读取最近聊天 + 具体地点 用于关键字检测
   let scanText = 具体地点;
   try {
-    const recent = getChatMessages(10) || [];
+    const recent = getChatMessages(-10) || [];
     scanText += '\n' + recent.join('\n');
   } catch(e) {}
   const mentioned = (kws) => kws.some(kw => kw && scanText.includes(kw));

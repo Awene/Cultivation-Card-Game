@@ -3,7 +3,7 @@
 // 叙事辅助: 仅当最近剧情命中相应技艺关键词时, 才在该技艺下展开叙事指导, 避免常驻占用注意力
 let scanText = '';
 try {
-  const recent = getChatMessages(`${Math.max(0, lastMessageId - 4)}-${lastMessageId}`) || [];
+  const recent = getChatMessages(-5) || [];
   scanText = recent.map(m => (typeof m === 'string' ? m : (m && m.message) || '')).join('\n');
 } catch (e) {}
 const 命中 = (kws) => kws.some(k => k && scanText.includes(k));

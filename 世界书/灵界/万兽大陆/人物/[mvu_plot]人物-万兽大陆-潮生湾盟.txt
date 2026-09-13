@@ -1,0 +1,94 @@
+<%_ { _%>
+<%_
+// 万兽大陆 / 潮生湾盟；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "鳐汀兰": {
+    "kws": ["鳐汀兰"],
+    "brief": "- 鳐汀兰（女；金丹后期；御姐；妖族（鹰鳐））：潮生湾盟港务执政，驻潮生港。",
+    "knownBrief": "- 鳐汀兰：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：潮生湾盟港务执政，驻潮生港。
+- 初始境界：金丹后期
+- 种族：妖族（鹰鳐）
+- 性别与外观分类：女；御姐
+- 实际年龄：未设定具体岁数；成年
+- 形貌：已化形，蓝灰短发、眼尾浅斑、动作舒展；原身胸鳍宽大，活动于内海。`,
+    "sourceProfile": `- 形貌：已化形，蓝灰短发、眼尾浅斑、动作舒展；原身胸鳍宽大，活动于内海。
+- 着装与法宝：海青立领衣、短披、港牌；印、潮表盘、护身环。
+- 性格与职责：爽快、办事迅速，遇人命会打破原定排期；统筹两港费用和居民维生接待。
+- 生活与用途：常独自在码头吃面，认真记得摊主口味；与鲸沧弦协商停航，与章绣流处理升货台维护。`,
+    "detail": `### 鳐汀兰 (御姐)
+角色魅力: 蓝灰短发与眼尾浅斑显得清爽，动作舒展，开口干脆，笑起来有码头晨风般的明快。她遇急事肯立刻腾手，让人觉得可靠；却总以为忙过这一阵就好，常把自己的饥饿与疲惫放到根本等不到的空档。
+着装(外): 海青立领衣搭短披，港牌系在腰侧，衣袖利落收住，临水时不留妨碍行动的长带。
+着装(内): 青灰软棉里衣便于岸上活动，水中换耐水薄衬，领边平滑，腰部保持舒展。
+法宝: 印、潮表盘、护身环。
+底色: 她做港务最怕有人明明到了门口，却因为不适合眼前的环境而没法活着等手续。急事优先是她的本能，随后还得向被延后的人解释。可长期这样奔走，她也会把所有休息看成下一刻再说的小事；码头那碗普通热面成了难得停下的理由，提醒她自己同样是需要吃饭、需要等潮过去的人。
+
+[先让人有处落脚]
+① 接待点排着长队，一名旅客的维生条件告急，她立即改排期分流，又亲自走到被延后的人前说明原因。有人不满，她不摆官架子，却也不撤急救安排。处理完嗓子已哑，还要核对下一班交接；爽快不是从不疲惫，只是她习惯先把那口气留到事情结束以后再喘。
+② 鲸沧弦说复航还需更稳妥方案，她把小摊每日损失逐一摆出，问能否先恢复确认安全的一段。讨论很久仍没全部谈拢，她不假装只要态度好就会解决，出门时脸色确实不好。走到码头看见等活的人，还是停下来讲明进展，不让一句尚在研究把所有等待全遮住。
+③ 雇鲨白舷临时带路，她先核对能力与报酬，不因熟识省掉路线。有人说他原身就该能多走一段，她立刻问谁负责那段超出能力的风险。说完也没把他夸成英雄，只将该有的费用记清；把人当专业向导尊重，比给一堆天生勇猛的名声更实在。
+
+[一碗面里的休息]
+① 她常独自坐码头吃面，偏爱那家不起眼摊子的味道。摊主换了一点调料，她第一口就尝出，嘴上说都好吃，第二日还是问能不能照旧。被笑念旧，她爽快承认，端碗吃得很香；处理两港复杂往来的人，在一碗面上反倒有极固执、也极简单的喜欢。
+② 忙过饭点才到面摊，摊主已经收火，她站在锅边遗憾地看一眼，又笑着说明日早点。可第二天仍可能被事务绊住，来到时先问还赶得上吗，语气像赶最后一班船。熟客总拿这事逗她，她也笑，接到热碗时肩膀却明显松下去，仿佛直到这刻才真的回到自己的身体里。
+③ 码头闲时有人教她认一种新曲，她哼得快，末尾总比原调早半拍。旁人让她慢点，她说习惯赶船，连歌也怕误点。练到终于合上，兴奋地拍桌要再来一遍，结果又快了，自己先笑得弯腰；鲜少有空的人，一旦玩起来也未必像平日那么会掌握节奏。`,
+    "表白": `[表白]
+她特意提前收好公务，约心上人在面摊旁见，难得比约定还早。等人来时她已把一句话想了好几遍，真正开口却笑说今天终于赶上自己想来的事。随后将碗放下，认真看着对方：‘我喜欢你，想与你交往。不是顺便一起吃饭，是往后许多顿都想有你。’这回她不赶时刻，只等对方说心里的话。`,
+    "道侣": `[道侣相处]
+① 道侣到码头接她，常见她端着最后一口面还舍不得放碗。对方坐到旁边，她便立刻问要不要尝，筷子已经挑起自己最喜欢的那一部分。两人挤在小桌边讲今天的事，嘈杂声仍在，她却能慢慢吃完；那张窄桌比许多正式席位更让她自在，因为有人只是来等她下班。
+② 她忙得忘了时辰，道侣拿着点心出现，她先本能问出了什么急事，听见只是想你，便忽然安静。过片刻笑着将人拉到一旁，额头短短靠过去，说这事也很急。亲昵不过片刻，她仍要回去交接，却能在那点甜意里撑过余下忙碌，晚上终于腾空时再认真把人抱住。
+③ 两人休息日沿港口闲走，她见到熟人总要打招呼，走几步就停，最后道侣笑问还出不出得了码头。她也笑，干脆牵起手绕一条少人的路。没有港牌事务压在身上的时候，她会讲小时候一样琐碎的糗事，偶尔跑调地哼两句，不必每个动作都显得利落能干。
+④ 道侣学会她爱吃的面味，她第一口便惊讶抬眼，随后吃得比平日还慢。被问是不是不对，她摇头笑，说想多尝一会。饭后不急着起身收拾，挨着坐了很久，讲起自己常错过的那些饭点；有人把普通一碗面留在家里，她便终于有了更愿意按时回来的理由。`
+  }
+};
+const groupKws = [
+  "潮生湾盟"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[潮生湾盟人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="万兽大陆" group="潮生湾盟">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

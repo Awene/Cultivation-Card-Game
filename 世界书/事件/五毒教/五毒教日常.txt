@@ -28,8 +28,8 @@ const 时辰   = String(getMessageVar('stat_data.时间.时辰') || '');
 const 具体地点 = getMessageVar('stat_data.地点.具体地点', { defaults: '' }) || '';
 let scanText = 具体地点;
 try {
-  const 起 = Math.max(0, lastMessageId - 5);
-  scanText += '\n' + getChatMessages(`${起}-${lastMessageId}`).map(m => m.message).join('\n');
+
+  scanText += '\n' + getChatMessages(-6).join('\n');
 } catch (e) {}
 const 提到 = (kws) => kws.some(k => k && scanText.includes(k));
 const 夜晚 = ['戌', '亥', '子', '丑'].some(k => 时辰.includes(k)) || 提到(['入夜', '夜里', '夜色', '深夜', '晚上']);

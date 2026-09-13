@@ -3,7 +3,7 @@
 const world = getMessageVar('stat_data.地点.世界') || '凡界';
 let scanText = '';
 try {
-  const recent = getChatMessages(10) || [];
+  const recent = getChatMessages(-10) || [];
   scanText = recent.join('\n');
 } catch(e) {}
 const mentioned = (kws) => kws.some(kw => kw && scanText.includes(kw));

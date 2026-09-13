@@ -1,0 +1,94 @@
+<%_ { _%>
+<%_
+// 万兽大陆 / 盐泉驿盟；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "沙问泉": {
+    "kws": ["沙问泉"],
+    "brief": "- 沙问泉（男；金丹中期；大叔；妖族（沙蜥））：盐泉驿盟执事，驻盐泉城。",
+    "knownBrief": "- 沙问泉：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：盐泉驿盟执事，驻盐泉城。
+- 初始境界：金丹中期
+- 种族：妖族（沙蜥）
+- 性别与外观分类：男；大叔
+- 实际年龄：未设定具体岁数；成年
+- 形貌：已化形，砂褐皮肤、鬓边细鳞、眼周风尘纹；原身背有浅色纵线。`,
+    "sourceProfile": `- 形貌：已化形，砂褐皮肤、鬓边细鳞、眼周风尘纹；原身背有浅色纵线。
+- 着装与法宝：浅麻长衣、防沙披巾、皮水袋；印、井图、示警旗。
+- 性格与职责：善算路程、讲价利落，对外低声说话而不轻易让利；平衡停采与井寨生计。
+- 生活与用途：替每位远行亲友留一只杯子；与狼砚行及蜈绛缕讨论安全与费用，经常需要先筹粮再谈修井。`,
+    "detail": `### 沙问泉 (大叔)
+角色魅力: 砂褐皮肤与鬓边细鳞留着行路风尘，眼角纹路随浅笑展开，声音低而沉。善算路程也懂留余地，让人觉得稳靠；可他对每一笔损耗都太敏感，连朋友请喝茶都要先想谁付，轻松日子常被自己算窄了。
+着装(外): 浅麻长衣配防沙披巾，皮水袋斜挂身侧，袖口收好，衣色耐尘，行路时下摆束起。
+着装(内): 沙白柔棉里衫与宽松衬裤吸汗透气，腰侧无硬饰，鬓鳞附近用软布包领。
+法宝: 印、井图、示警旗。
+底色: 他知道说停采容易，让井寨在停下之后仍有饭吃很难，所以每次讨论安全都要追问补给从哪里来。这并不是把性命标价，而是拒绝让好决定落地后变成另一种困境。然而盘算久了，他也会忘记一场闲聚无需收益，亲友留下的空杯提醒他，有些位置值得保留，即使等不到确定归期。
+
+[低声也不轻让]
+① 狼砚行要再延长一次搜索，他先听路线，接着问补给余下多少。对方以为他不愿救，他将水袋放到两人之间，说先弄清能撑到哪，不然又多一队要找的人。争执并没马上平息，最后共同划定范围，他仍记着那些可能未被找到的名字；算得明白，不等于心里轻巧。
+② 矿商想以熟识压低补偿，他不抬声音，只把受影响井寨需要的数目再念一遍。对方讲难处，他也承认难，却不让那几户人凭空消失。谈到最后嗓子干了才喝一口水，水袋已空，又忍不住自己笑；替别人算得周全，自己的那一口反倒常放到最末。
+③ 蜈绛缕提出停采要求，他先问有哪些区域可继续，听完把粮运替代线画出来。纸上路线很清楚，实际筹粮仍难，他没有假装已有十成把握。散席后坐在门边许久，盯着井图揉眼角；旁人只见他讲价利落，很少看见那些说不出口、必须自己继续盘算的疲惫。
+
+[杯子替人占着位置]
+① 每位远行亲友他都留一只杯，洗杯时能顺口讲出谁拿杯最爱转半圈。朋友说屋里像茶铺，他低笑回答茶铺好歹有人付钱。空位久了也不急着撤，收到一封信便将对应那只洗净摆正；他不要求谁一定返乡，只让屋里始终记得，那人曾经在这里坐得很自在。
+② 逛市集他讲价极稳，轮到买一只喜欢的杯却犹豫很久，便宜了怕不耐用，贵了又嫌没必要。摊主被问得直笑，最后让他自己试握，他一握就舍不得放。回家却说只是换只实用的，直到友人发现旧杯还完好，才摸着新杯笑，说颜色总算合眼。
+③ 熟人请喝茶，他习惯先算对方近来收入，想着是不是该自己付。朋友看他又走神，索性说这回不许算，他便笑着认输。坐定聊到旧趣事，难得忘了时辰，出门却还是顺手带走最轻的账单。被叫住才发觉又犯老毛病，双方一笑，他终于把钱收回袖里。`,
+    "表白": `[表白]
+他提前把那只常留给心上人的杯洗净，见人坐下却迟迟没有倒茶。被问怎么了，便低低笑一下，说自己想过许多合适的话，最后还是该直说。‘我喜欢你，想与你过日子。这只杯我总盼着有人用，盼的就是你。’他把杯放到对方面前，话音稳，指尖却紧张地在桌沿停了片刻。`,
+    "道侣": `[道侣相处]
+① 道侣不在时他仍留着那只杯，洗得比别的更勤，回来一眼便能认出桌上哪个位置一直没动。被问有没有想，他先说天天忙，随后自己笑，承认杯子都快洗薄了。两人坐着慢慢喝茶，他讲井寨的小事，对方讲路上风景；有些等待不靠誓言，只在这个始终留下的空位里。
+② 两人逛市集，他刚要替道侣讲价，对方已经买下小礼物递给他。他拿着愣一会，本能想问花多少，见人挑眉便把话咽回，换成很喜欢。那只杯后来成了他的常用物，每次端起都会摸一下花纹；计算的习惯没有消失，只是学着在被爱的时候先接受那份欢喜。
+③ 道侣嫌他休息也在看井图，他便卷好放开，过会手又伸过去，被对方按住手背才笑着停。两人坐到门外看晚风，他起初还在想公事，后来却专心讲起年轻时一次迷路的糗事。说到最狼狈处自己先笑，那些不必证明可靠的记忆，只有最亲近的人能听得这么完整。
+④ 夜里风大，他替道侣拢好披巾，仍要念一句出门前早该多带一层。对方笑着贴近他，说现在也很暖，他便不再追究，低头将两人的手拢在一起。走得很慢，一路看见多少盏灯就数多少；这一次没有估路程，也没有算损耗，只有想让这段回家路再长一点的私心。`
+  }
+};
+const groupKws = [
+  "盐泉驿盟"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[盐泉驿盟人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="万兽大陆" group="盐泉驿盟">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

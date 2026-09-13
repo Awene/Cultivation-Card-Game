@@ -33,7 +33,7 @@ if (mode !== 'hidden') {
   // 参考: https://github.com/zonde306/ST-Prompt-Template/blob/master/docs/reference.md
   let scanText = 具体地点;
   try {
-    const recent = getChatMessages(10) || [];
+    const recent = getChatMessages(-10) || [];
     scanText += '\n' + recent.join('\n');
   } catch(e) {}
   const mentioned = (kws) => kws.some(kw => kw && scanText.includes(kw));

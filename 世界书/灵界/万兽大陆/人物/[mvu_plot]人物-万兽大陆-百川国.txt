@@ -1,0 +1,94 @@
+<%_ { _%>
+<%_
+// 万兽大陆 / 百川国；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "牛穗宁": {
+    "kws": ["牛穗宁"],
+    "brief": "- 牛穗宁（女；金丹后期；御姐；妖族（水牛））：百川国国主，驻会川城。",
+    "knownBrief": "- 牛穗宁：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：百川国国主，驻会川城。
+- 初始境界：金丹后期
+- 种族：妖族（水牛）
+- 性别与外观分类：女；御姐
+- 实际年龄：未设定具体岁数；成年
+- 形貌：已化形，乌发、宽眉、弯角，笑容稳实；原身黑背、角尖磨平。`,
+    "sourceProfile": `- 形貌：已化形，乌发、宽眉、弯角，笑容稳实；原身黑背、角尖磨平。
+- 着装与法宝：赭青礼袍、谷纹腰带；国印、简牍、护身牌。
+- 性格与职责：务实、记账细，懂得向高阶修士求援但不轻易接受追加税额；统筹粮食、河渠和北部属地。
+- 生活与用途：会揉面，压力大时替厨房做一桌饼；与岳沉岚的争执体现凡国供养与庇护，不具备元婴以上隐藏战力。`,
+    "detail": `### 牛穗宁 (御姐)
+角色魅力: 乌发与弯角衬着宽眉，笑容稳实，站在人群里自有能撑住场面的踏实感。声音温厚不空泛，听得见日常烟火；她懂得节制开支，却容易把情绪也一并憋住，压力越大越爱盯着细小的不齐整。
+着装(外): 赭青礼袍配谷纹腰带，袖口收得利落，角旁不挂累赘饰物，下摆便于走田埂。
+着装(内): 米白软棉交领里衣配宽腰衬裤，肩背宽松，腰间不用硬扣，久坐时不勒腹。
+法宝: 国印、简牍、护身牌。
+底色: 她知道仓里每一笔数字都对应着某户人的饭碗，所以宁愿被高阶修士嫌算得细，也不轻易让新增税额从民间悄悄过去。可当一个人的日子总被托付到手上，她就难再容许自己说累。揉面、整齐分饼成了情绪出口，她也有固执与急躁，只是常把这些藏在一张看似稳当的笑脸后面。
+
+[先把今天过稳]
+① 岳沉岚提出工程要先停粮运，她把受影响的住户列到案边，不急着反驳山主的本领，只问停的几日拿什么吃。对方说会尽快，她仍追问具体安排。两人彼此信任，也照样能争得满堂安静；她不想用莽撞证明气节，只是不肯让一句尽快替自己答应百姓的饥饿。
+② 鼠稔秋递来分类意见，声音小得几乎听不见，她便从高桌后绕出，蹲到低柜旁看刻板。看完先问现行账怎样衔接，既不急着称天才，也不因身份低便忽略。等把人送走，她又盯着原账很久；承认制度有错并不轻松，尤其那套分法自己从前也点过头。
+③ 走访田间，随行者想把泥多的路改掉，她却先看那正是住户每日经过的路。走到半程靴底粘泥，她也会皱眉抱怨难走，没有刻意表现吃苦从容。到人家门口先刮干净再进，坐下讲的是这条路什么时候修，而不是自己今日走得如何辛苦。
+
+[烦恼都揉进面里]
+① 议事不顺，她回厨房揉面，越揉越用力，饼却分得一个比一个齐。厨役远远看见整桌圆饼，就知道今日又有难题，谁也不敢问。等终于有一只烙歪，她盯着半晌，忽然笑出声说好，至少这个不是我分错。那一点歪斜，反倒让紧绷的肩膀松了一寸。
+② 赶集时她看见喜欢的粗陶碗，明明价格不高仍要在手里掂许久。摊主夸结实，她先问耐不耐热，最后才小声说花纹也好看。买回去却最先给自己用，旁人问为何不待客，她笑说总得有一只不用分出去；公事里习惯顾全众人，私下也想留一小点偏爱。
+③ 她听民间笑话常慢半拍，旁人已经笑完，她才低低笑起来，随后忍不住复述给下一位听。故事到她嘴里多了几处认真解释，笑点反而迟迟不到。朋友等得着急，她自己也觉出不妙，索性摆手说我不是讲这个的料，却依然很爱收集；愿意被逗笑，并不需要擅长逗人。`,
+    "表白": `[表白]
+她约心上人到普通茶棚坐坐，先把国印与公文留在办事处。准备的话原本很周全，开口却只问人家饿不饿，问完自己先笑，承认有些紧张。随后端正坐好，说：‘我喜欢你，想和你认真过日子。有些时候我也会累，也会固执，想让你认识这样的我。’她说完安静等着，不替对方安排答案。`,
+    "道侣": `[道侣相处]
+① 道侣回家看到满桌一样大的饼，便知道她今日不顺。她还要解释只是手痒，对方挑一只故意掰成两半，说现在终于不齐了。她瞪一眼又忍不住笑，接过半块挨着坐下，慢慢讲白日争论。饼未必多好吃，可有人能从这点固执看见她的疲倦，让她不用一直撑着那副稳实笑容。
+② 两人逛陶器摊，她喜欢的碗被道侣抢先买下，回家才发现碗底留了两人都懂的小记号。她端着看很久，嘴里说花这些心思干什么，第二天却特意用它盛第一口热粥。道侣问好不好用，她笑着点头，随后把碗推近些，说你也尝一口；属于自己的小偏爱，又甘愿分出一半。
+③ 她习惯替人筹划，道侣说想随意过一天，她起初还问那午饭在哪吃。走着走着两人被街边小戏留住，饭点过去，她竟也忘了催。散场后笑说今日倒真没安排明白，语气却轻松得很；平日总要心里有数的人，也能在熟悉的陪伴里享受一次不用先知道结尾的下午。
+④ 夜深她卸下谷纹腰带，道侣替她揉肩，她先低声叹气，随后把额头靠过去。对方说今日辛苦，她不再急着回答应该的，只说确实累。两人静坐片刻，她又会想到一件好笑小事慢慢讲起来，讲得仍不算精彩，道侣却肯陪着笑；这份不必得体的松弛，是她最珍惜的私下日子。`
+  }
+};
+const groupKws = [
+  "百川国"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[百川国人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="万兽大陆" group="百川国">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

@@ -2,6 +2,7 @@
 // 用法: node scratchpad/test_wudu_daily.mjs
 // 说明: 入宗介绍为无条件优先触发(首次入教即触发), 其余事件场景一律先标记其已完成
 import { readFileSync } from 'node:fs';
+import { chatRuntime } from './ejs_chat_runtime.mjs';
 const src = readFileSync('世界书/事件/五毒教/五毒教日常.txt', 'utf8');
 
 function compile(tpl) {
@@ -30,7 +31,7 @@ function makeEnv(state, recent, rnd = 0) {
   M.random = () => rnd;
   return {
     getMessageVar: (p, opt) => { const v = get(state, p); return v !== undefined ? v : (opt && 'defaults' in opt ? opt.defaults : undefined); },
-    getChatMessages: () => (recent ? [{ message: recent }] : []),
+    ...chatRuntime([...Array(20).fill('无关旧消息'),...(recent?[recent]:[])]),
     lastMessageId: 5, Math: M,
   };
 }

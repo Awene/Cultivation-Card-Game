@@ -35,7 +35,7 @@ if (mode !== 'hidden') {
   //   - `getChatMessages(count)` 返回 string[]
   let scanText = 具体地点;
   try {
-    const recent = getChatMessages(10) || [];
+    const recent = getChatMessages(-10) || [];
     scanText += '\n' + recent.join('\n');
   } catch(e) {}
   const mentioned = (kws) => kws.some(kw => kw && scanText.includes(kw));

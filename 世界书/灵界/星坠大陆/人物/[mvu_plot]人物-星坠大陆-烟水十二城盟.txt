@@ -1,0 +1,93 @@
+<%_ { _%>
+<%_
+// 星坠大陆 / 烟水十二城盟；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "顾照蘅": {
+    "kws": ["顾照蘅"],
+    "brief": "- 顾照蘅（女；金丹后期；御姐；人族）：当值盟首、镜花城城使",
+    "knownBrief": "- 顾照蘅：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：当值盟首、镜花城城使
+- 初始境界：金丹后期
+- 种族：人族
+- 性别与外观分类：女；御姐
+- 实际年龄：未设定具体岁数；成年
+- 形貌：御姐；乌发高髻、笑意稳妥，袖口佩小巧城使印；袖口小巧城使印`,
+    "sourceProfile": "",
+    "detail": `### 顾照蘅 (御姐)
+角色魅力: 乌发高髻衬着顾照蘅端稳眉眼，她转身落座总给旁人留得恰好，嗓音温和，笑意周到。那份从容里有真诚的体贴，也有算得太快的习惯，独被问喜欢什么时反而迟疑，像一时找不到可参照的人心。
+着装(外): 藕色交领长裙搭素锦外披，玉带收出利落腰线，小巧城使印安置袖侧，不妨碍举杯与展扇。
+着装(内): 素绢中衣贴合而不紧绷，轻衬裙柔软遮稳衣层，腰侧细带系得平整，久坐宴席也不磨身。
+法宝: 扇、印、簪。
+底色: 金丹后期的顾照蘅任烟水十二城盟当值盟首兼镜花城城使，深知共同生活未必出于相爱，也可以出于谁都不肯掀桌的利益。她的周到并非虚情，但算计太熟，连一份无所求的邀请都容易被她拆成来意。她希望有人只为见她而来，又害怕自己真放下筹码以后，没有足够有趣的自己可供相处。
+
+[妥帖过了头]
+① 画舫上来客被排错座，她先笑着请人到窗边看灯，另让侍者查缘由，没有让尴尬悬在席间。事情解决后她仍记得那人不饮浓茶，换上清淡的一盏。姬流月问这是否也算铺路，她看着杯中水色答，照顾人和替日后留余地并不相斥，说完自己也没能分清各占了几分。
+② 朋友送来一张只写游玩的请帖，她翻到背面确认没有遗漏，连纸上小花也看了两遍。赴约后见桌上真只有点心，心里反而有些悬，谈着谈着便问最近可有难处。对方笑说只是想请她吃，她顿了一下，将伸向袖中便笺的手收回，重新尝那块糕，这一次才真正记住甜味。
+③ 两城代表争得厉害，她顺着各自最不肯退的部分慢慢换条件，终于让席间气氛松动。散席姬流月约她听曲，她脱口问需要哪位来客，见对方抬眉才觉答偏。她笑着叹气说职业病，仍没立刻从脑里移开那张席位表，过了半条桥，才想起来该问今夜究竟奏哪一首。
+
+[独处失准]
+① 一桌人吃饭她总能顾到口味，独自逛小摊却在甜咸两锅前站了许久。摊主问究竟想吃什么，她竟先问哪种卖得好，听完又犹豫。最后买了两份，吃得太撑，慢慢扶着栏杆散步，忍不住笑自己的本领竟没法给一顿小食定夺，回去仍记不清究竟更偏爱哪一碗。
+② 她喜欢看灯影落在水中的碎样，常选最不起眼的船坐到最后，手里扇子半晌不动。朋友问在想什么，她答灯歪了一盏，伸手指给人看，随后又觉得歪着也不错。那晚她特意买一只并不对称的小灯，回去挂在窗边，侍者想摆正，她看了看，难得说就这样，不必处处齐整。
+③ 她平日记人极准，玩猜画却爱想得过深，一只普通鸭子被她猜成两城分水的暗示。朋友笑得将笔扔下，她也笑，却仍为自己的解释找出几条凭据。下一轮索性自己画最简单的圆，谁都不敢直猜饼，终于扳回一局；她得意地展开扇，承认这回确实是有意误导。`,
+    "表白": `[表白]
+顾照蘅约人散步，袖里这次没有备便笺，手指空落落的，很不习惯。走到一盏歪灯旁，她先笑说有件事不能再讲得像商量条件。‘我总想着怎样让相处妥帖，可近来见不到你，妥帖也不能让我高兴。’她收起扇子，露出少有的紧张，说自己想被对方喜欢，不是作为值得结交的城使。`,
+    "道侣": `[道侣相处]
+① 道侣陪她逛夜市，到了点心摊便不替她做主，只笑着等她慢慢挑。她瞧了半天终于指向甜的，买完又想尝咸，道侣这才拿出自己的那份分来。她笑着靠近，咬一口便不再分析谁让了哪一步，两人沿水边走，手指挨到一起，她主动扣住，甜咸之外总算有一件不用犹豫的事。
+② 她将那只歪灯挂低些，道侣路过轻碰一下，影子便晃到两人脸上。她原想提醒小心，抬眼却被那副滑稽光影逗笑，索性靠在身边一起看。对方问灯为何不换，她说已经看熟了，手里的扇也搁下，随后把头轻放到肩上，今夜连一句漂亮的感想都懒得替自己准备。
+③ 争执时她容易用十分周全的话讲清双方得失，道侣却会觉得连难过也被拿来衡量。一次对方起身离桌，她没有再端茶劝留，坐着慢慢承认自己其实是怕被丢下。那句话说出口并未让争执自动结束，却比所有妥当的措辞更难说；后来再见面，她仍带着不熟练的惶惑。
+④ 清闲的早晨道侣画一只鸭给她猜，她认真瞧了半晌，忽然直接说鸭子，对方故作惊讶，她便笑着推过去让人再画。玩到后来两人都故意画得很丑，她挨着肩笑到扇子落地。捡起来时发现袖边城使印碰得微响，她将它放到桌角，回来又坐近一点，这一局不急着让谁赢。`
+  }
+};
+const groupKws = [
+  "烟水十二城盟",
+  "水盟议会",
+  "镜花城城使"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[烟水十二城盟人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="星坠大陆" group="烟水十二城盟">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>

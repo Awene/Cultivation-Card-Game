@@ -1,6 +1,6 @@
 <%_ { let _炼丹语境 = false, _突破语境 = false, _生产语境 = false, _阵法语境 = false, _天谴语境 = false; try {
-  const _始 = Math.max(0, lastMessageId - 3);
-  const _上文 = getChatMessages(`${_始}-${lastMessageId}`).map(m => m.message).join('\n');
+
+  const _上文 = getChatMessages(-4).join('\n');
   _炼丹语境 = ['炼丹','炼药','丹药','丹方','丹炉','丹鼎','丹室','丹毒','服丹'].some(k => _上文.includes(k));
   _突破语境 = ['突破','瓶颈','筑基丹'].some(k => _上文.includes(k));
   _生产语境 = _炼丹语境 || ['炼制','炼器','制符','刻符','阵盘','刻录','锻造','器鼎','锻台','刻刀','符笔','驯兽','培育'].some(k => _上文.includes(k));

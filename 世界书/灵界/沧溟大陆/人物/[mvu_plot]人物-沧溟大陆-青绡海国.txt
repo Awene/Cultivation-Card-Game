@@ -1,0 +1,97 @@
+<%_ { _%>
+<%_
+// 沧溟大陆 / 青绡海国；人物蓝图为初始参考，不回写或重置 MVU。
+const C = {
+  "绡予禾": {
+    "kws": ["绡予禾"],
+    "brief": "- 绡予禾（女；金丹初期；少女；妖族（鱼人））：青绡海国轮圃署主事",
+    "knownBrief": "- 绡予禾：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
+    "initial": `- 初始身份：青绡海国轮圃署主事
+- 初始境界：金丹初期
+- 种族：妖族（鱼人）
+- 性别与外观分类：女；少女
+- 实际年龄：74岁
+- 形貌：褐发束辫、青白尾鳍，穿朴素蓝褂、佩田契匣。`,
+    "sourceProfile": `- 性别：女；外观分类：少女；实际年龄：74岁。
+- 种族：妖族（鱼人）；境界：金丹初期；体系：世俗。
+- 所属：青绡林海；青绡海国。
+- 性格：务实、乐于听异议。
+- 职责：排定轮养和灾年减免。
+- 生活侧面：会把多余家常菜送给夜班驿员。
+- 矛盾与剧情用途：被要求为虚报灾田盖印，需兼顾真正受灾农户。`,
+    "detail": `### 绡予禾 (少女)
+角色魅力: 褐发辫子束得利落，朴素蓝褂衬着成年而明净的面容，青白尾鳍停在案前时很稳。她耐心听完一户人的琐事，回家却会为一盒家常菜调味皱眉；会办事也会认真过日子的实在，让人不必端着架子接近。
+着装(外): 朴素蓝褂以耐水短扣合襟，田契匣贴侧固定；尾部不套长摆，袖外留一块可换的记事片。
+着装(内): 柔软耐水短衬配尾根平衬，缝线避开鳍缘；内层便于清洗，不因长期坐案勒紧腰侧。
+法宝: 田契匣、轮养排期板、文印、田界量绳
+底色: 她不信把日子讲得响亮便能过得更好，愿意从一户人的田界、一班夜驿的饭点开始处理事情。务实让她少许空诺，也使她容易高估自己还能再接一件事。她想让真正受灾者及时得到减免，而不是在每次查出虚报后连他们也一起停办；这需要细碎而不讨巧的耐心，也常耗尽她留给自己的精神。
+
+[异议也先问田在哪]
+① 农户拍着排期板说根本轮不到自己，她不先解释整套规则，而把板转过去，请他指出是哪一畦。旁边催办的人叹气，她仍沿着标线追问，终于找出两户用了同一个旧地名。事情解决得不壮观，队伍却多等了许久；她只能继续接下一位，不期待所有旁观者都理解这份慢。
+② 熟人拿来几份明显夸大的灾田记录，说全村都等着她盖印。她将文印收进匣里，逐户圈出需要复查的部分，另把证据齐全者先办完。对方说这样不给面子，她平静问哪户愿意当面说明损失。晚间她反复想起熟人的脸色，知道以后回乡吃饭可能又多一阵难听话。
+③ 海迟舟讲偏远药路断了，她翻预算时发现没有现成项目能直接塞进去。送药人一片期待，她仍把不能即刻答应说明白，随后请他按真实班次补出所需费用。人走后她留着空表坐了许久，既想帮，又讨厌自己总只能说还要几份资料；务实并不让无能为力变得轻松。
+
+[多做半盒家常味]
+① 她在隔水灶间准备家常菜，总顺手多做几份，再装进封盒标好内容送往夜驿。某次驿员笑问是不是特意多做，她说刚好剩下，下一次却因对方随口称赞又做同样口味。她不大擅长承认想被喜欢，只好把那点期待藏在调味里，听见盒子吃空了便心情很好。
+② 夜班驿员婉拒她送的菜，她嘴上说好，拿回家却反复试味，怀疑自己是不是放错了料。后来才知道对方刚换了食谱，她听罢松气又有些好笑。隔日仍送给愿意收的人，给那位只带一句问候；她乐于分享，却还在学不把别人拒绝一盒菜当作拒绝自己。
+③ 她休息时也爱把食材分得整整齐齐，偏有一道拿手菜每回凭感觉调。朋友问配方，她报到一半便说不准，只能再做一次让人看。忙到夜深发现自己的晚饭反而没留，她会坐在灶边吃简单的一份，嘴里嘀咕下回少管一点；下回夜驿有人值班，她又想起多做半盒。`,
+    "表白": `[表白]
+她会主动约一次隔水食堂的晚饭，特意没带田契匣，坐稳却先习惯性问对方这几日过得顺不顺。等菜上齐，她把筷子放下，笑着承认最近多做的那份并非顺手剩下。‘我想与你交往，所以总忍不住记你喜欢什么。’话说得实在，褐发辫尾却被她捏了又松；这一次，她将能否继续的决定留在两人之间。`,
+    "道侣": `[道侣相处]
+① 她和道侣在隔水厨房一起做饭，总坚持某道菜该由自己掌勺，却放心把最喜欢的味道交给对方先尝。听见夸奖她会假装淡定，手上却立刻多盛一点。两人偶尔把晚饭做得过量，就笑着分出第二天的封盒，留一份名字写得格外大的给对方，免得又被她顺手送出去。
+② 道侣陪她整理田契，她常念着念着便打哈欠，仍说还剩不多。对方把已完成的一叠推远，她才发现真的忙了一整晚，便主动靠近要歇一会儿。她会枕在对方愿意借出的肩边，低声抱怨今天最荒唐的一句催办，讲到自己都笑；能不急着解决的抱怨，也是她珍惜的亲近。
+③ 两人出门闲逛，她很容易认出农户又聊起田事。伴侣在旁等得无趣，她未必当下察觉，回过头才发现约好的摊位已经收了。她会认真补一次只属于两人的出游，途中若再被叫住，便把稍后联系的时刻说清；留下闲暇对她并不自然，却值得专门学习。
+④ 她不太会写缠绵的信，寄给远行道侣的讯息常是今天吃了什么、驿边换了哪块招牌。写完嫌太平淡，最后添一句这些等你回来再一起看。回信到了便在家务间读好多遍，连菜煮到哪一步都险些忘记；她平日最重实在，想念起来也会让寻常的小事忽然失去次序。`
+  }
+};
+const groupKws = [
+  "青绡海国"
+];
+const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
+const world = String(readVar('stat_data.地点.世界') || '');
+const relations = readVar('stat_data.关系列表') || {};
+const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
+const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
+const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
+let recentText = '';
+try {
+  if (typeof getChatMessages === 'function') {
+    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
+    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
+  }
+} catch(e) {}
+const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
+const mentioned = kws => kws.some(k => k && scanText.includes(k));
+const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
+const groupHit = mentioned(groupKws);
+const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
+const detailOf = ([n,c]) => {
+  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
+  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
+    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
+  let text = appeared(n)
+    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
+    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
+  if (appeared(n)) {
+    const rel=relations[n];
+    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
+    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
+    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
+    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
+  }
+  return text;
+};
+let outputText = '';
+if (world === '灵界') {
+  if (hit.length) {
+    outputText = hit.map(detailOf).join('\n\n');
+    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
+    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
+  } else if (groupHit) outputText = '[青绡海国人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
+  if (outputText) outputText = '<spirit_characters region="沧溟大陆" group="青绡海国">\n'
+    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
+    +outputText+'\n</spirit_characters>';
+}
+_%>
+<%- outputText %>
+<%_ } _%>
