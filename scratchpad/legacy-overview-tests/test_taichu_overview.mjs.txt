@@ -1,0 +1,112 @@
+// ARCHIVE ONLY: pre-unification renderer and obsolete mock API; not executable verification.
+// 离线验证自包含 EJS；不需要酒馆，不发送消息、不修改变量。
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+const file = new URL('../世界书/灵界/太初大陆/[mvu_plot]太初大陆总览.txt', import.meta.url);
+const src = readFileSync(file,'utf8');
+const D = JSON.parse(src.match(/const D = ([\s\S]+?);\nfunction renderTaichu/)[1]);
+function compile(tpl) {
+  let code = 'let __out="";\n', cursor = 0;
+  const re = /<%([_=\-]?)([\s\S]*?)([_\-]?)%>/g;
+  for (const m of tpl.matchAll(re)) {
+    code += `__out += ${JSON.stringify(tpl.slice(cursor,m.index))};\n`;
+    code += ['=','-'].includes(m[1]) ? `__out += String((${m[2]}) ?? '');\n` : m[2] + '\n';
+    cursor = m.index + m[0].length;
+  }
+  return code + `__out += ${JSON.stringify(tpl.slice(cursor))};\n__out;`;
+}
+const program = new vm.Script(compile(src), {filename:'太初大陆总览.ejs'});
+let checks = 0;
+function test(name, fn) { fn(); checks++; }
+function render(overrides = {}, messages = []) {
+  const vars = { 'stat_data.地点.世界':'灵界', 'stat_data.地点.地域':'太初大陆',
+    'stat_data.地点.具体地点':'', 'stat_data.身份':[], 'stat_data.修炼进度.境界':'凡人',
+    'stat_data.关系列表':{}, ...overrides };
+  return program.runInNewContext({ getMessageVar:p => vars[p], getChatMessages:() => {
+    if (messages instanceof Error) throw messages; return messages;
+  } }, {timeout:2000}).trim();
+}
+const base = render();
+const other = render({'stat_data.地点.地域':'星坠大陆'});
+test('静态内容完整', () => {
+  assert.equal(D.ecosystems.length,8); assert.equal(D.sects.length,6);
+  assert.equal(D.countries.length,4); assert.equal(D.cities.length,9);
+  assert.equal(D.characters.length,32); assert.equal(D.characters.filter(c => c.sex==='女').length,28);
+  assert.equal(D.characters.filter(c => c.realm.includes('大乘')).length,2);
+  assert.equal(D.secrets.length,24); assert.equal(D.secrets.flatMap(m=>m.stages).length,96);
+  assert.equal(D.ecosystems.flatMap(e=>e.inspiration).length,48);
+  assert.equal(D.relationships.length,18);
+  for (const x of D.secrets) assert.equal(x.stages.length,4);
+  for (const e of D.ecosystems) assert.equal(D.secrets.filter(m=>m.eco===e.name).length,3);
+});
+test('所有世俗人物最高金丹', () => {
+  const names = new Set([...D.countries,...D.cities].flatMap(c=>c.roster));
+  for (const c of D.characters.filter(c=>names.has(c.name))) assert.match(c.realm,/^(炼气|筑基|金丹)/,c.name);
+  for (const c of D.countries) assert(c.fields['主要庇护']);
+});
+for (const world of ['凡界','冥界','仙界','',null]) test(`世界门禁 ${world}`, () => assert.equal(render({'stat_data.地点.世界':world}),''));
+test('他大陆保持简报', () => {
+  assert(other.includes('承川旧衡府')); assert(other.includes('叠岳地脉遗枢'));
+  for (const s of D.secrets.filter(s=>!s.important)) assert(!other.includes(s.name), s.name);
+  for (const s of D.sects) assert.equal(other.includes(`### ${s.title}`),s.large);
+  assert(!other.includes('region_map')); assert(!other.includes('### 承川古国'));
+  assert(!other.includes('[门内视角]')); assert(!other.includes('险:'));
+});
+test('地域缺失不误当作本地', () => assert(!render({'stat_data.地点.地域':null}).includes('region_map')));
+test('本地骨架完整且默认不泄秘境解法', () => {
+  for (const x of [...D.ecosystems,...D.sects,...D.countries]) assert(base.includes(`### ${x.title}`),x.name);
+  for (const c of D.cities) assert(base.includes(`### ${c.name}`));
+  assert(base.includes('region_map')); assert(!base.includes('解:')); assert(!base.includes('[门内视角]'));
+});
+for (const m of D.secrets) test(`秘境位置展开 ${m.name}`, () => {
+  const out = render({'stat_data.地点.具体地点':`太初大陆-${m.eco}-${m.name}-内部`});
+  assert(out.includes('顺序: 1→2→3→4'));
+  for (const s of m.stages) {
+    assert(out.includes('险: '+s.danger)); assert(out.includes('解: '+s.solution)); assert(out.includes('获: '+s.reward));
+  }
+  assert.equal((out.match(/顺序: 1→2→3→4/g)||[]).length,1);
+  const chatOnly = render({},[{message:`谈起${m.name}`}]);
+  assert(!chatOnly.includes('解:'));
+});
+test('非本大陆即使具体地点命中秘境也不展开', () => {
+  assert(!render({'stat_data.地点.地域':'沧溟大陆','stat_data.地点.具体地点':'承川旧衡府'}).includes('解:'));
+});
+const tiers = [['凡人',0],['练气初期',0],['元婴中期',0],['化神后期',1],['返虚初期',2],['炼虚中期',2],['合体初期',3],['大乘中期',3],['渡劫后期',3],['异常值',0],[5,0]];
+for (const sect of D.sects) for (const [realm,tier] of tiers) test(`门内 ${sect.name} ${realm}`, () => {
+  const out = render({'stat_data.身份':[`${sect.name}弟子`],'stat_data.修炼进度.境界':realm});
+  assert.equal((out.match(/\[门内视角\]/g)||[]).length,1);
+  assert(out.includes(sect.inner[tier]));
+});
+test('身份字符串兼容与退出身份', () => {
+  assert(render({'stat_data.身份':'观岳道院内门弟子'}).includes('[门内视角]'));
+  for(const id of ['观岳道院访客','已退出观岳道院','观岳道院仇敌']) assert(!render({'stat_data.身份':[id]}).includes('[门内视角]'));
+  assert(!render({'stat_data.身份':['观岳道院弟子'],'stat_data.地点.地域':'星坠大陆'}).includes('[门内视角]'));
+});
+for (const c of D.characters) test(`人物按名字展开与已出场处理 ${c.name}`, () => {
+  const out = render({},[{content:c.name}]);
+  assert(out.includes(c.life)); assert(out.includes(c.arts));
+  const appeared = render({'stat_data.关系列表':{[c.name]:{}}},[c.name]);
+  assert(appeared.includes(`${c.name}: 已出场`));
+  assert(!appeared.includes(c.appearance)); assert(!appeared.includes(c.life)); assert(!appeared.includes(c.arts));
+});
+for(const city of D.cities) test(`城市展开 ${city.name}`,()=>{
+  assert(render({},[city.name]).includes(city.fields['结构与经济']));
+});
+test('历史读取容错',()=>{
+  for (const m of [null,undefined,{},[],new Error('不可用')]) assert(render({},m).includes('太初大陆生态'));
+  assert(render({'stat_data.身份':7,'stat_data.关系列表':7}).includes('region_map'));
+});
+test('地方灵感仅在当前生态输出且明确为备选',()=>{
+  assert(!base.includes('## 地方故事备选'));
+  const out=render({'stat_data.地点.具体地点':'太初大陆-承川盆地-承都'});
+  assert(out.includes('不是已发生事实'));
+  assert.equal(D.ecosystems[0].inspiration.filter(i=>out.includes(i)).length,2);
+  for(const e of D.ecosystems.slice(1)) assert(!e.inspiration.some(i=>out.includes(i)));
+});
+test('已解决内容与奖励约束常驻',()=>{
+  assert(base.includes('不重复刷取')); assert(base.includes('不自动增加修为'));
+  assert(base.includes('局部证据')); assert(!base.includes('xxxx'));
+});
+const longest=render({'stat_data.地点.具体地点':'太初大陆-叠岳古壑-叠岳地脉遗枢','stat_data.身份':['观岳道院弟子'],'stat_data.修炼进度.境界':'合体初期'},D.characters.map(c=>c.name));
+console.log(JSON.stringify({通过场景:checks,输出字符数:{非灵界:0,其他大陆:other.length,本地默认:base.length,多人物提及与秘境:longest.length},说明:'字符数非token数；离线EJS执行通过，未连接酒馆实测'},null,2));

@@ -1,0 +1,104 @@
+// ARCHIVE ONLY: pre-unification renderer and obsolete mock API; not executable verification.
+// 执行实际总览EJS块，模拟酒馆API；不替代浏览器端联调。
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {build,data,targetPath} from './build_wanshou_overview.mjs';
+const source=readFileSync(targetPath,'utf8').replace(/\r\n/g,'\n');
+assert.equal(source.trim(),build().trim(),'生成结果与蓝图及构建器一致');
+let program='let rendered="";\n', cursor=0;
+for(const m of source.matchAll(/<%([_=\-]?)([\s\S]*?)([_\-]?)%>/g)){
+  assert(!source.slice(cursor,m.index).trim());
+  program+=(['-','='].includes(m[1])?'rendered += ('+m[2]+');':m[2])+'\n';
+  cursor=m.index+m[0].length;
+}
+assert(!source.slice(cursor).trim()); program+='\nrendered;';
+const compiled=new vm.Script(program,{filename:targetPath});
+function render(vars={},messages=[],history='normal'){
+  const values={'地点.世界':'灵界','地点.地域':'万兽大陆','地点.具体地点':'',...vars};
+  const ctx={getMessageVar:k=>values[k.replace(/^stat_data\./,'')]};
+  if(history!=='missing')ctx.getChatMessages=()=>{if(history==='throw')throw Error('模拟不可访问');return messages;};
+  return compiled.runInNewContext(ctx,{timeout:3000});
+}
+let count=0;
+const test=(name,fn)=>{fn();count++;console.log('通过: '+name);};
+test('配置引用已存在，无需新增重复条目',()=>assert(readFileSync('本格修仙.yaml','utf8').includes('文件: 世界书\\灵界\\万兽大陆\\[mvu_plot]万兽大陆总览')));
+test('非灵界隐藏，不被聊天或身份误激活',()=>{
+  for(const w of ['凡界','冥界','仙界','',null])assert.equal(render({'地点.世界':w,'身份':['镇岳山盟弟子']},['百脉回声窟、岳沉岚']), '');
+});
+test('他大陆仅八生态、四大势力、两重要秘境',()=>{
+  const out=render({'地点.地域':'星坠大陆','地点.具体地点':'百脉回声窟'},data.secrets.map(s=>s.name));
+  for(const e of data.ecology)assert(out.includes(e.title));
+  for(const s of data.sects)assert.equal(out.includes('### '+s.title),s.type==='大');
+  for(const s of data.secrets)assert.equal(out.includes(s.name),s.important);
+  assert(!out.includes('<region_map'));assert(!out.includes('## 本轮涉及人物'));
+  assert(!out.includes('## 万兽大陆凡国与城市'));
+  for(const s of data.secrets)assert(!out.includes(s.steps[0]));
+});
+test('本大陆所有地区、组织、人物名册与秘境简报均挂载',()=>{
+  const out=render();
+  for(const list of [data.ecology,data.sects,data.countries,data.cities,data.secrets,data.people])for(const x of list)assert(out.includes(x.name),x.name);
+  for(const s of data.secrets)assert(!out.includes(s.steps[0]));
+  assert(out.includes('<region_map realm="灵界" region="万兽大陆">'));
+  assert(!out.includes('undefined'));assert(!out.includes('待用户确认'));assert(!out.includes('第十节'));
+});
+test('聊天提及所有秘境均不展开内部',()=>{
+  const out=render({},data.secrets.map(s=>s.name));
+  for(const s of data.secrets)assert(!out.includes(s.steps[0]));
+});
+for(const selected of data.secrets)test('位置仅展开 '+selected.name,()=>{
+  const out=render({'地点.具体地点':'万兽大陆-'+selected.name+'-入口'});
+  for(const s of data.secrets)for(const step of s.steps)assert.equal(out.includes(step),s===selected,s.name);
+});
+test('八国按名称、城市或代表人物展开详细制度',()=>{
+  const base=render();
+  for(const k of data.countries){
+    const key=Object.keys(k.fields).find(n=>/^(政体|居民与政体)/.test(n)); assert(key,k.name);
+    assert(!base.includes(k.fields[key]));
+    assert(render({},[k.name]).includes(k.fields[key]));
+    assert(render({},[{message:k.roster[0]}]).includes(k.fields[key]));
+    const city=data.cities.find(c=>c.country.startsWith(k.name));assert(city,k.name);
+    assert(render({'地点.具体地点':city.name}).includes(k.fields[key]));
+  }
+});
+test('九城按名称展开结构',()=>{
+  for(const c of data.cities){
+    assert(!render().includes('- 城市结构: '+c.structure));
+    assert(render({},[{content:c.name}]).includes('- 城市结构: '+c.structure));
+  }
+});
+test('九宗四档兼容身份数组与境界别名',()=>{
+  for(const s of data.sects)for(const [r,level] of [['凡人',0],['练气后期',0],['元婴中期',0],['化神初期',1],['炼虚中期',2],['返虚后期',2],['合体初期',3],['大乘',3],['渡劫',3]]){
+    const out=render({'身份':['散修经历',s.name+'弟子'],'修炼进度.境界':r});
+    assert.equal((out.match(/\[门内视角\]/g)||[]).length,1);
+    s.internal.forEach((w,i)=>assert.equal(out.includes(w),i===level,s.name+r));
+  }
+});
+test('无身份、跨大陆与异常数据兜底',()=>{
+  assert(!render().includes('[门内视角]'));
+  assert(!render({'地点.地域':'沧溟大陆','身份':['镇岳山盟弟子']}).includes('[门内视角]'));
+  assert(render({'身份':'镇岳山盟弟子','修炼进度.境界':123},[],'missing').includes(data.sects[0].internal[0]));
+  assert(render({},[],'throw').includes('## 万兽大陆生态'));
+  assert(render({'地点.世界':' 灵界 ','地点.地域':' 万兽大陆 '}).includes('<region_map'));
+});
+test('45名人物均能展开，已出场不重复境界外貌及初始关系',()=>{
+  for(const p of data.people){
+    const out=render({},[p.name]);assert(out.includes('### '+p.name));
+    assert(out.includes(p.fields['性格与职责']));assert(out.includes(p.fields['形貌']));
+    for(const state of [0,{}, {境界:'变化后',身份:'变更'}]){
+      const seen=render({'关系列表':{[p.name]:state}},[p.name]);
+      assert(seen.includes('### '+p.name));assert(!seen.includes(p.fields['形貌']));
+      assert(!seen.includes(p.fields['性格与职责']));assert(!seen.includes(p.realm+'；'+p.role));
+      for(const r of data.relations.filter(r=>r.names.includes(p.name)))assert(!seen.includes(r.text));
+    }
+  }
+});
+test('八国境界、性别比例与秘境阶段校准',()=>{
+  assert.equal(data.people.filter(p=>p.gender==='女').length,36);
+  assert.equal(data.people.filter(p=>p.realm.startsWith('大乘')).length,2);
+  for(const k of data.countries)assert(data.people.find(p=>p.name===k.roster[0]).realm.startsWith('金丹'));
+  assert.equal(data.secrets.flatMap(s=>s.steps).length,96);
+  assert.equal(new Set(data.people.map(p=>p.name)).size,45);
+});
+console.log('完成 '+count+' 项测试。');
+for(const [label,vars] of [['hidden',{'地点.世界':'凡界'}],['other',{'地点.地域':'星坠大陆'}],['in',{}]])console.log(label+' 输出字符数: '+render(vars).length);

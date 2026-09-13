@@ -1,0 +1,164 @@
+// ARCHIVE ONLY: pre-unification renderer and obsolete mock API; not executable verification.
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import vm from "node:vm";
+
+const path = new URL(
+  "../世界书/灵界/圣银大陆/[mvu_plot]圣银大陆总览.txt",
+  import.meta.url,
+);
+const source = fs.readFileSync(path, "utf8");
+const blocks = [...source.matchAll(/<%(?!-)_?\s*([\s\S]*?)\s*_?%>/g)].map(
+  (m) => m[1],
+);
+assert.equal(
+  blocks.length,
+  3,
+  "应包含外层开启、主程序和外层闭合三个 EJS 代码块",
+);
+const marker =
+  "const outputText=renderShengyin(getMessageVar,typeof getChatMessages==='function'?getChatMessages:()=>[]);";
+assert.ok(blocks[1].includes(marker), "找不到总览最终装配逻辑");
+blocks[1] = blocks[1].replace(
+  marker,
+  marker + "\nglobalThis.__output=outputText;globalThis.__DATA=DATA;",
+);
+const program = blocks.join("\n");
+new vm.Script(program, { filename: "shengyin-overview.ejs.js" });
+
+function run(vars = {}, messages = []) {
+  const context = {
+    getMessageVar: (key) => vars[key],
+    getChatMessages: () => messages,
+    Math,
+  };
+  vm.createContext(context);
+  new vm.Script(program).runInContext(context);
+  return { output: context.__output, data: context.__DATA };
+}
+
+assert.equal(
+  run({ "stat_data.地点.世界": "凡界" }).output,
+  "",
+  "非灵界必须 hidden",
+);
+const other = run({
+  "stat_data.地点.世界": "灵界",
+  "stat_data.地点.地域": "玄黄大陆",
+}).output;
+assert.match(other, /圣银大陆概述/);
+assert.match(other, /柱根回廊〔重要〕/);
+assert.match(other, /无主誓庭〔重要〕/);
+assert.doesNotMatch(other, /丰穗田邦/);
+assert.doesNotMatch(other, /月桂医谕院/);
+
+const local = run({
+  "stat_data.地点.世界": "灵界",
+  "stat_data.地点.地域": "圣银大陆",
+});
+assert.match(local.output, /圣银大陆凡国|凡国与城市/);
+assert.match(local.output, /<region_map realm="灵界" region="圣银大陆">/);
+assert.match(local.output, /曜衡昭华/);
+assert.doesNotMatch(local.output, /断谱石门/, "未命中具体秘境时不得展开内部");
+
+for (const s of local.data.secrets) {
+  const result = run({
+    "stat_data.地点.世界": "灵界",
+    "stat_data.地点.地域": "圣银大陆",
+    "stat_data.地点.具体地点": s.name,
+  }).output;
+  assert.match(result, new RegExp("#### " + s.name));
+  assert.match(result, /四阶段:/);
+}
+
+for (const [realm, expected] of [
+  ["金丹后期", "基础课程"],
+  ["化神初期", "真实任务"],
+  ["返虚中期", "院务复核"],
+  ["合体初期", "高阶传承"],
+]) {
+  const result = run({
+    "stat_data.地点.世界": "灵界",
+    "stat_data.地点.地域": "圣银大陆",
+    "stat_data.身份": ["明辩学宫弟子"],
+    "stat_data.修炼进度.境界": realm,
+  }).output;
+  assert.match(result, new RegExp(expected));
+}
+
+const chars = local.data.characters;
+assert.equal(chars.length, 42);
+assert.equal(chars.filter((c) => c.gender === "女").length, 35);
+assert.equal(chars.filter((c) => c.gender === "男").length, 7);
+assert.deepEqual(
+  Object.fromEntries(
+    ["御姐", "少女", "萝莉"].map((k) => [
+      k,
+      chars.filter((c) => c.appearance === k).length,
+    ]),
+  ),
+  { 御姐: 13, 少女: 11, 萝莉: 11 },
+);
+assert.equal(chars.filter((c) => c.realm.includes("大乘")).length, 2);
+assert.equal(local.data.secrets.length, 21);
+assert.deepEqual(
+  Array.from(
+    local.data.secrets.filter((s) => s.important),
+    (s) => s.name,
+  ),
+  ["柱根回廊", "无主誓庭"],
+);
+
+const allowed = new Set(["凡人", "炼气", "筑基", "金丹"]);
+const secularNames = new Set(
+  local.data.countries.flatMap((k) => k[4].split("、")),
+);
+for (const c of chars.filter((c) => secularNames.has(c.name))) {
+  assert.ok(
+    [...allowed].some((r) => c.realm.includes(r)),
+    `${c.name} 的凡国境界越界: ${c.realm}`,
+  );
+}
+for (const k of local.data.countries)
+  assert.match(k[3], /庇护|负责|处理|维护|护海门|护持/);
+
+for (const bad of ["异人族", "圣银帝庭", "羽蛇圣阶", "巨人坟场", "蛮荒巫族"])
+  assert.doesNotMatch(source, new RegExp(bad));
+assert.doesNotMatch(source, /下一次天魔入侵.{0,12}(年|月|日|倒计时)/);
+for (const name of [
+  "天冠圣山",
+  "白垣台原",
+  "琴浪内海",
+  "月桂谕谷",
+  "丰穗丘原",
+  "赤陶火岭",
+  "苍角牧原",
+])
+  assert.match(source, new RegExp(name));
+
+console.log(
+  JSON.stringify(
+    {
+      ejsBlocks: blocks.length,
+      characters: chars.length,
+      women: chars.filter((c) => c.gender === "女").length,
+      men: chars.filter((c) => c.gender === "男").length,
+      femaleAppearance: Object.fromEntries(
+        ["御姐", "少女", "萝莉"].map((k) => [
+          k,
+          chars.filter((c) => c.appearance === k).length,
+        ]),
+      ),
+      secrets: local.data.secrets.length,
+      importantSecrets: local.data.secrets
+        .filter((s) => s.important)
+        .map((s) => s.name),
+      sects: local.data.sects.length,
+      countries: local.data.countries.length,
+      cities: local.data.cities.length,
+      localOutputChars: local.output.length,
+    },
+    null,
+    2,
+  ),
+);

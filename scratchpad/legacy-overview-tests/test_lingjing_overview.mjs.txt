@@ -1,0 +1,148 @@
+// ARCHIVE ONLY: pre-unification renderer and obsolete mock API; not executable verification.
+// 本地模拟酒馆变量与聊天 API，执行总览中的真实 EJS JavaScript 块及原文输出表达式。
+// 不声称替代 SillyTavern / ST-Prompt-Template 的浏览器端联调。
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import { build, data, targetPath } from './build_lingjing_overview.mjs';
+
+const source = readFileSync(targetPath, 'utf8').replace(/\r\n/g, '\n').trim();
+assert.equal(source, build().trim(), '总览必须与蓝图及构建逻辑一致');
+let program = 'let rendered = "";\n';
+const tag = /<%([_=\-]?)([\s\S]*?)([_\-]?)%>/g;
+let cursor = 0;
+for (const m of source.matchAll(tag)) {
+  assert(!source.slice(cursor, m.index).trim(), '仅允许本总览使用的块间空白');
+  program += (m[1] === '-' || m[1] === '=') ? `rendered += (${m[2]});\n` : m[2] + '\n';
+  cursor = m.index + m[0].length;
+}
+assert(!source.slice(cursor).trim());
+program += '\nrendered;';
+const compiled = new vm.Script(program, { filename: targetPath });
+function render(vars = {}, messages = [], historyMode = 'normal') {
+  const values = { '地点.世界': '灵界', '地点.地域': '灵境大陆', '地点.具体地点': '', ...vars };
+  const ctx = { getMessageVar: key => values[key.replace(/^stat_data\./, '')] };
+  if (historyMode !== 'missing') ctx.getChatMessages = () => {
+    if (historyMode === 'throw') throw new Error('模拟无聊天权限');
+    return messages;
+  };
+  return compiled.runInNewContext(ctx, { timeout: 3000 });
+}
+let tests = 0;
+function test(name, fn) { fn(); tests++; console.log('通过: ' + name); }
+
+test('配置已注册灵境总览', () => {
+  const config = readFileSync('本格修仙.yaml', 'utf8');
+  assert(config.includes('文件: 世界书\\灵界\\灵境大陆\\[mvu_plot]灵境大陆总览'));
+});
+test('凡界、冥界、空世界隐藏，即使聊天提及灵境', () => {
+  for (const world of ['凡界','冥界','']) assert.equal(render({'地点.世界':world}, ['留春旧苑、花照年']), '');
+});
+test('他大陆只保留生态、三大宗和两处重要秘境', () => {
+  const out = render({'地点.地域':'星坠大陆','地点.具体地点':'留春旧苑'}, ['织雨藏楼']);
+  for (const e of data.ecology) assert(out.includes(e.title));
+  for (const s of data.secrets) assert.equal(out.includes(s.name), s.important, s.name);
+  assert(out.includes('### 百卉仙宫'));
+  assert(out.includes('### 衡岳石庭'));
+  assert(out.includes('### 四时观'));
+  assert(!out.includes('### 素问山'));
+  assert(!out.includes('## 灵境大陆凡国与城市'));
+  assert(!out.includes('<region_map'));
+  assert(!out.includes('- 1. 停候花径'));
+});
+test('本地含全部生态、宗门、凡国、城市、秘境简报及地图', () => {
+  const out = render();
+  for (const e of data.ecology) assert(out.includes('### ' + e.title));
+  for (const s of data.sects) assert(out.includes('### ' + s.title));
+  for (const k of data.countries) assert(out.includes('### ' + k.title));
+  for (const c of data.cities) assert(out.includes('### ' + c.name));
+  for (const s of data.secrets) {
+    assert(out.includes(s.name));
+    assert(!out.includes(s.steps[0]), s.name + '意外展开');
+  }
+  assert(out.includes('<region_map realm="灵界" region="灵境大陆">'));
+});
+test('聊天提及24处秘境均不展开内部', () => {
+  const out = render({}, data.secrets.map(s => s.name));
+  for (const s of data.secrets) assert(!out.includes(s.steps[0]), s.name);
+});
+for (const secret of data.secrets) test('具体地点展开且仅展开: ' + secret.name, () => {
+  const out = render({'地点.具体地点': '灵境大陆-' + secret.name + '-入口'});
+  for (const s of data.secrets) for (const step of s.steps) assert.equal(out.includes(step), s.name === secret.name, s.name);
+});
+test('各凡国关键词展开真实行政与经济', () => {
+  const base = render();
+  for (const k of data.countries) {
+    assert(!base.includes(k.fields['行政']));
+    assert(render({}, [k.name]).includes(k.fields['行政']));
+    assert(render({}, [{message:k.roster[1]}]).includes(k.fields['行政']));
+  }
+});
+test('城市名字和地标命中展开防卫', () => {
+  const c = data.cities.find(c => c.name === '泊霞港');
+  assert(!render().includes('- 地标与防卫: ' + c.landmarks));
+  assert(render({}, [{content:'泊霞港'}]).includes('- 地标与防卫: ' + c.landmarks));
+  assert(render({'地点.具体地点':'诸乡客舍'}).includes('- 地标与防卫: ' + c.landmarks));
+});
+test('六宗全部门内四档含境界别名及身份数组', () => {
+  for (const s of data.sects.filter(s => s.internal)) {
+    for (const [realm, idx] of [['凡人',0],['练气后期',0],['元婴中期',0],['化神前期',1],['炼虚中期',2],['合体后期',3],['大乘前期',3],['渡劫',3]]) {
+      const out = render({'身份':['散修经历',s.name+'弟子'],'修炼进度.境界':realm});
+      for (let i=0;i<4;i++) assert.equal(out.includes(s.internal[i]), i===idx, s.name+realm);
+      assert.equal((out.match(/\[门内视角\]/g)||[]).length, 1);
+    }
+  }
+});
+test('无归属无门内；本宗弟子在他大陆不显示门内', () => {
+  assert(!render().includes('[门内视角]'));
+  assert(!render({'身份':['百卉仙宫弟子'],'地点.地域':'沧溟大陆'}).includes('[门内视角]'));
+});
+test('字符串身份、异常境界和缺失聊天可回退', () => {
+  const out = render({'身份':'四时观弟子','修炼进度.境界':123}, [], 'missing');
+  assert(out.includes(data.sects[2].internal[0]));
+  assert(render({}, [], 'throw').includes('## 灵境大陆生态'));
+  assert(render({'地点.世界':' 灵界 ','地点.地域':' 灵境大陆 '}).includes('<region_map'));
+});
+test('32个人物都可显式展开；出场后不覆盖初始境界、外貌和关系', () => {
+  for (const c of Object.values(data.characters)) {
+    const fresh = render({}, [c.name]);
+    assert(fresh.includes('### ' + c.name));
+    assert(fresh.includes(c.fields['性格与职责']));
+    const seen = render({'关系列表':{[c.name]:{境界:'变化后'}}}, [c.name]);
+    assert(seen.includes('### ' + c.name));
+    assert(!seen.includes(c.fields['形貌与衣饰']), c.name+'形貌重复');
+    assert(!seen.includes(c.fields['性格与职责']), c.name+'初始档案重复');
+    assert(!seen.includes(c.realm + '；' + c.role), c.name+'境界重复');
+    for (const line of data.relations) {
+      if (line.split('：')[0].includes(c.name)) assert(!seen.includes(line), c.name+'旧关系覆盖');
+    }
+  }
+});
+test('所有名册均挂载且世俗角色不高于金丹', () => {
+  const names = [...data.sects.flatMap(s=>s.roster), ...data.countries.flatMap(k=>k.roster), ...data.ecology.flatMap(e=>e.roster)];
+  assert.equal(new Set(names).size,32);
+  for (const n of data.countries.flatMap(k=>k.roster)) assert(/^(筑基|金丹)/.test(data.characters[n].realm));
+  assert.equal(Object.values(data.characters).filter(c=>c.gender==='女').length,28);
+});
+test('旧占位内容、创作灵感列表及阶段交付说明均未注入', () => {
+  for (const out of [render(),render({'地点.地域':'星坠大陆'})]) {
+    for (const text of ['五行长老会','万灵之母','五行五圈','灵识洁净','成功率翻倍','区域灵感：','阶段交付与待确认事项']) assert(!out.includes(text), text);
+  }
+});
+test('普通资源保持蓝图分类，不混入秘境奖励', () => {
+  for (const e of data.ecology) for (const key of ['动物','植物','矿产']) {
+    assert.equal(e.resources[key].length,3,e.name+key);
+    for (const item of e.resources[key]) assert(!data.secrets.some(s=>s.name===item));
+  }
+});
+test('地图确认后的归潮水系名称保持一致', () => {
+  assert(!source.includes('归澜'));
+  const serialized = JSON.stringify(data);
+  assert(!serialized.includes('归澜'));
+  for (const name of ['归潮水道', '归潮内湾', '归潮闸']) {
+    assert(source.includes(name), name + '总览缺失');
+    assert(serialized.includes(name), name + '蓝图缺失');
+  }
+});
+console.log(JSON.stringify({tests, sourceBytes:Buffer.byteLength(source), otherChars:render({'地点.地域':'星坠大陆'}).length,
+  localChars:render().length, secretChars:render({'地点.具体地点':'留春旧苑'}).length}, null, 2));

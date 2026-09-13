@@ -1,0 +1,262 @@
+// ARCHIVE ONLY: pre-unification renderer and obsolete mock API; not executable verification.
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
+import { build, data, targetPath } from "./build_cangming_overview.mjs";
+
+const source = readFileSync(targetPath, "utf8").replace(/\r\n/g, "\n");
+assert.equal(source, build(), "总览必须与蓝图构建完全一致");
+let program = 'let rendered="";\n',
+  cursor = 0;
+for (const m of source.matchAll(/<%([_=\-]?)([\s\S]*?)([_\-]?)%>/g)) {
+  assert(!source.slice(cursor, m.index).trim());
+  program +=
+    (["-", "="].includes(m[1]) ? "rendered+=(" + m[2] + ");" : m[2]) + "\n";
+  cursor = m.index + m[0].length;
+}
+assert(!source.slice(cursor).trim());
+program += "\nrendered;";
+const compiled = new vm.Script(program, { filename: targetPath });
+const calls = [];
+function render(vars = {}, messages = [], mode = "normal") {
+  const values = {
+    "地点.世界": "灵界",
+    "地点.地域": "沧溟大陆",
+    "地点.具体地点": "",
+    ...vars,
+  };
+  const ctx = { getMessageVar: (k) => values[k.replace(/^stat_data\./, "")] };
+  if (mode !== "missing")
+    ctx.getChatMessages = (range) => {
+      calls.push(range);
+      if (mode === "throw") throw Error("模拟消息API不可用");
+      const normalized = messages.map((m, i) =>
+        typeof m === "string"
+          ? { message: m, message_id: i }
+          : { ...m, message_id: i },
+      );
+      if (range === -1) return normalized.slice(-1);
+      const [start, end] = String(range).split("-").map(Number);
+      return normalized.filter(
+        (m) => m.message_id >= start && m.message_id <= end,
+      );
+    };
+  return compiled.runInNewContext(ctx, { timeout: 5000 });
+}
+let count = 0;
+function test(name, fn) {
+  fn();
+  count++;
+  console.log("通过：" + name);
+}
+test("配置继续使用更名后的唯一文件", () => {
+  const yaml = readFileSync("本格修仙.yaml", "utf8");
+  assert.equal(
+    yaml.split("文件: 世界书\\灵界\\沧溟大陆\\[mvu_plot]沧溟大陆总览").length -
+      1,
+    1,
+  );
+});
+test("非灵界隐藏且不读取消息", () => {
+  for (const world of ["凡界", "仙界", "冥界", "", null]) {
+    calls.length = 0;
+    assert.equal(render({ "地点.世界": world }, ["泉知白"]), "");
+    assert.equal(calls.length, 0);
+  }
+});
+test("他大陆只有九区名片、四大宗、两重要秘境", () => {
+  const out = render(
+    {
+      "地点.地域": "星坠大陆",
+      "地点.具体地点": "无源生海庭",
+      身份: ["听泉院弟子"],
+    },
+    data.people.map((p) => p.name),
+  );
+  for (const e of data.ecology) assert(out.includes(e.name));
+  for (const s of data.sects)
+    assert.equal(out.includes("### " + s.title), s.large);
+  for (const s of data.secrets) {
+    assert.equal(out.includes(s.name), s.important);
+    for (const step of s.steps) assert(!out.includes(step));
+  }
+  for (const heading of [
+    "[门内视角]",
+    "## 本轮涉及人物",
+    "## 凡国与城市",
+    "<region_map",
+  ])
+    assert(!out.includes(heading));
+});
+test("本地全量数据挂载且无流程元信息", () => {
+  const out = render();
+  for (const list of [
+    data.ecology,
+    data.sects,
+    data.countries,
+    data.cities,
+    data.people,
+    data.secrets,
+  ])
+    for (const x of list) assert(out.includes(x.name), x.name);
+  for (const s of data.secrets) assert(!out.includes(s.steps[0]));
+  for (const forbidden of [
+    "undefined",
+    "待用户确认",
+    "第九节",
+    "第二步",
+    "第三步",
+    "第四步",
+  ])
+    assert(!out.includes(forbidden), forbidden);
+  assert(out.includes('<region_map realm="灵界" region="沧溟大陆">'));
+});
+test("聊天提及秘境不展开阶段", () => {
+  const out = render({}, [data.secrets.map((s) => s.name).join("、")]);
+  for (const s of data.secrets)
+    for (const step of s.steps) assert(!out.includes(step));
+});
+for (const selected of data.secrets)
+  test("按地点独立展开 " + selected.name, () => {
+    const out = render({
+      "地点.具体地点": "沧溟大陆-" + selected.name + "-入口",
+    });
+    for (const s of data.secrets)
+      for (const step of s.steps)
+        assert.equal(out.includes(step), s === selected, s.name);
+  });
+test("八国可按名字、城市、人物和地标展开", () => {
+  const base = render();
+  for (const c of data.countries) {
+    assert(!base.includes(c.fields["行政与军事"]));
+    const site = data.cities.find((s) => s.country === c.name);
+    assert(site);
+    for (const key of [c.name, c.roster[0], site.name, site.landmarks.at(-1)])
+      assert(render({}, [key]).includes(c.fields["行政与军事"]), key);
+    assert(base.includes(c.fields["庇护交换"]));
+  }
+});
+test("九城按名字、人物、地标展开，双阙不拆成三城", () => {
+  assert.equal(data.cities.length, 9);
+  for (const c of data.cities) {
+    const key = "- 城市结构: " + c.structure;
+    assert(!render().includes(key));
+    for (const trigger of [c.name, c.roster[4], c.landmarks.at(-1)])
+      assert(render({}, [{ content: trigger }]).includes(key), trigger);
+  }
+});
+test("63人完整资料、真实年龄与外观分类可展开", () => {
+  for (const p of data.people) {
+    const out = render({}, [p.name]);
+    assert(out.includes("### " + p.name));
+    for (const value of Object.values(p.fields))
+      assert(out.includes(value), p.name);
+  }
+});
+test("已出场人物不覆盖外貌、年龄、境界、性格或初始关系", () => {
+  for (const p of data.people)
+    for (const state of [0, {}, { 境界: "剧情变化" }]) {
+      const out = render({ 关系列表: { [p.name]: state } }, [p.name]);
+      assert(out.includes(p.name + ": 已出场"));
+      assert(!out.includes(p.fields["外貌与着装"]));
+      assert(!out.includes(p.fields["矛盾与剧情用途"]));
+      assert(!out.includes(p.realm + "；" + p.role));
+      for (const r of data.relations.filter((r) => r.names.includes(p.name)))
+        assert(!out.includes(r.text));
+    }
+});
+test("九宗四档门内生活及境界别名", () => {
+  for (const s of data.sects)
+    for (const [r, i] of [
+      ["凡人", 0],
+      ["练气后期", 0],
+      ["元婴", 0],
+      ["化神", 1],
+      ["炼虚", 2],
+      ["返虚", 2],
+      ["合体", 3],
+      ["大乘", 3],
+      ["渡劫", 3],
+    ]) {
+      const out = render({
+        身份: ["散修经历", s.name + "弟子"],
+        "修炼进度.境界": r,
+      });
+      assert.equal((out.match(/\[门内视角\]/g) || []).length, 1);
+      s.internal.forEach((line, j) =>
+        assert.equal(out.includes(line), i === j),
+      );
+    }
+  assert(!render().includes("[门内视角]"));
+});
+test("近期消息正确读取最近十楼而非固定第十楼", () => {
+  const messages = Array(20).fill("无关内容");
+  messages[8] = "澜照珩";
+  messages[10] = "绯砚汐";
+  messages[19] = "珠听弦";
+  calls.length = 0;
+  const out = render({}, messages);
+  assert.deepEqual(calls, [-1, "10-19"]);
+  assert(!out.includes("### 澜照珩"));
+  assert(out.includes("### 绯砚汐"));
+  assert(out.includes("### 珠听弦"));
+  assert(
+    !render({}, [{ message: "澜照珩", is_hidden: true }]).includes(
+      "### 澜照珩",
+    ),
+  );
+});
+test("API缺失、抛错、短聊天、身份字符串与空白地点兜底", () => {
+  for (const mode of ["missing", "throw"])
+    assert(render({}, [], mode).includes("## 沧溟大陆生态"));
+  calls.length = 0;
+  assert(render({}, ["绫尾晴"]).includes("### 绫尾晴"));
+  assert.deepEqual(calls, [-1, "0-0"]);
+  assert(
+    render({ 身份: "澄珠宫弟子", "修炼进度.境界": 123 }).includes(
+      data.sects[0].internal[0],
+    ),
+  );
+  assert(
+    render({ "地点.世界": " 灵界 ", "地点.地域": " 沧溟大陆 " }).includes(
+      "<region_map",
+    ),
+  );
+});
+test("九区故事灵感局部出现且不预设已发生", () => {
+  for (const e of data.ecology) {
+    assert(!render().includes(e.stories[0]));
+    const out = render({ "地点.具体地点": e.name });
+    for (const story of e.stories) assert(out.includes(story));
+    assert(out.includes("不代表已经发生"));
+  }
+});
+test("人数、境界、原生人口和资源边界一致", () => {
+  assert.equal(data.people.filter((p) => p.gender === "女").length, 54);
+  for (const type of ["御姐", "少女", "萝莉"])
+    assert.equal(data.people.filter((p) => p.appearance === type).length, 18);
+  assert(
+    data.people
+      .filter((p) => p.system === "世俗")
+      .every((p) => p.realm.startsWith("金丹")),
+  );
+  assert.equal(data.people.filter((p) => p.race === "人族").length, 1);
+  assert.equal(data.secrets.flatMap((s) => s.steps).length, 108);
+  for (const e of data.ecology) {
+    assert(e.resources);
+    assert(!e.resources.includes("阶段"));
+  }
+  const out = render();
+  assert(out.includes("无原生人类"));
+  assert(out.includes("核心奖励、有主物品与智慧居民不进入普通资源池"));
+  for (const e of data.ecology)
+    for (const s of data.secrets)
+      assert(!e.resources.includes(s.name), "秘境不得混入普通资源池");
+});
+console.log("完成 " + count + " 项测试。");
+for (const [label, vars] of [
+  ["hidden", { "地点.世界": "凡界" }],
+  ["other", { "地点.地域": "星坠大陆" }],
+  ["in", {}],
+])
+  console.log(label + " 输出字符数: " + render(vars).length);
