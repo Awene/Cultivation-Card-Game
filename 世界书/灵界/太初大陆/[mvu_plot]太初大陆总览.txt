@@ -166,7 +166,7 @@ if (mode !== 'hidden') {
     "title": "负岳庭护具坊匠师，赤屏百索桥附近作坊；属于宗门，不任城官。",
     "realm": "元婴中期",
     "race": "人族",
-    "appearanceType": "年轻成年女性",
+    "appearanceType": "少女",
     "gender": "女",
     "moderate": [
       "外貌与着装: 乌发以竹针固定，眉梢留一道旧伤；灰麻工衣、皮围裙、装针线和铆钉的腰袋。"
@@ -211,7 +211,7 @@ if (mode !== 'hidden') {
     "title": "听澜宗护舟堂领航修士，白汀内海；不属于城盟军官。",
     "realm": "化神中期",
     "race": "妖族（白鹭化形）",
-    "appearanceType": "年轻成年女性",
+    "appearanceType": "少女",
     "gender": "女",
     "moderate": [
       "外貌与着装: 白发挽低髻，黑眸明亮；水青束袖衣、羽纹披肩，行动轻快。"
@@ -253,7 +253,7 @@ if (mode !== 'hidden') {
     "title": "濡生谷巡泉队成员，青井镇泉路；无世俗官职。",
     "realm": "元婴初期",
     "race": "灵族（泉水孕生的水行真灵）",
-    "appearanceType": "年轻成年女性外观",
+    "appearanceType": "少女外观",
     "gender": "女",
     "moderate": [
       "外貌与着装: 青黑发尾略透明，眸色淡碧；水纹短襦、轻薄长裙、陶珠发饰。"
@@ -283,7 +283,7 @@ if (mode !== 'hidden') {
     "title": "青井镇茶栈学徒兼寄信跑腿，普通地方居民。",
     "realm": "炼气后期",
     "race": "人族",
-    "appearanceType": "年轻成年女性",
+    "appearanceType": "少女",
     "gender": "女",
     "moderate": [
       "外貌与着装: 黑色长辫、圆眼；青布衣裙、油纸雨披、竹背篓。"
@@ -328,7 +328,7 @@ if (mode !== 'hidden') {
     "title": "养火宗共修廊契约合作者，本源为一座可移动陶炉。",
     "realm": "化神初期",
     "race": "物化生灵（陶炉器灵）",
-    "appearanceType": "年轻成年女性外观",
+    "appearanceType": "少女外观",
     "gender": "女",
     "moderate": [
       "外貌与着装: 浅褐发、眼角有细釉纹；乳白交领衣、青釉色裙、炉纹披帛。"
@@ -388,7 +388,7 @@ if (mode !== 'hidden') {
     "title": "百舟塾教师、苇编匠，浮穗城普通居民。",
     "realm": "筑基中期",
     "race": "巫族",
-    "appearanceType": "年轻成年女性",
+    "appearanceType": "少女",
     "gender": "女",
     "moderate": [
       "外貌与着装: 长辫、肩臂结实；深绿短衣、苇黄裙裤、铜铃发绳。"
@@ -403,7 +403,7 @@ if (mode !== 'hidden') {
     "title": "濡生谷协作育种者，归鸟汀附近的莲塘，无世俗官职。",
     "realm": "元婴中期",
     "race": "灵族（草木灵）",
-    "appearanceType": "年轻成年女性外观",
+    "appearanceType": "少女外观",
     "gender": "女",
     "moderate": [
       "外貌与着装: 深绿长发、瞳中淡金环纹；荷白短襦、层叠绿裙、细藤腰绳。"
@@ -463,7 +463,7 @@ if (mode !== 'hidden') {
     "title": "万程院勘路堂弟子，大风原沿线驿舍；非部盟官员。",
     "realm": "元婴初期",
     "race": "人族",
-    "appearanceType": "年轻成年男性",
+    "appearanceType": "少年",
     "gender": "男",
     "profile": {
       "性格与生活": "愿意尝试新路线，容易过于乐观；喜欢画驮兽，遇生人有点笨拙。",
@@ -490,7 +490,7 @@ if (mode !== 'hidden') {
     "title": "问源关山民议事代表兼仓务负责人，自治世俗人物。",
     "realm": "金丹初期",
     "race": "人族",
-    "appearanceType": "年轻成年女性",
+    "appearanceType": "少女",
     "gender": "女",
     "moderate": [
       "外貌与着装: 乌发两辫盘起、眼神明快；深蓝厚衣、羊毛披肩、手腕系钥匙绳。"
@@ -505,7 +505,7 @@ if (mode !== 'hidden') {
     "title": "源山别院协作观测者，问源关与悬泉栈附近活动。",
     "realm": "化神初期",
     "race": "灵族（气象灵）",
-    "appearanceType": "年轻成年女性外观",
+    "appearanceType": "少女外观",
     "gender": "女",
     "moderate": [
       "外貌与着装: 灰白卷发如薄云、浅灰眸；雾白罩衣、蓝灰长裙、绒线围巾。"

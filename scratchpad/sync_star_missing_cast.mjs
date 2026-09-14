@@ -41,7 +41,7 @@ for (const name of Object.keys(map)) {
       : b[2] === "少女"
         ? "少女"
         : b[2] === "少年"
-          ? "成年青年"
+          ? "青年"
           : b[2];
   chars[name] = {
     title: f["身份"],

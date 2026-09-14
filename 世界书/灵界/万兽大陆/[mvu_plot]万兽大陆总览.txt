@@ -125,7 +125,7 @@ if (mode !== 'hidden') {
     "title": "夜巡院首座，驻丹翎城上层。",
     "realm": "返虚中期",
     "race": "妖族（雕鸮）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，蓬松褐发、圆而明亮的金瞳，颈侧细羽；原身耳羽明显，落地无声。"
@@ -170,7 +170,7 @@ if (mode !== 'hidden') {
     "title": "访谱堂主持，驻九曲丘。",
     "realm": "返虚初期",
     "race": "妖族（紫貂）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，深紫黑发、短圆耳，手指灵巧；原身细长，尾尖浅灰。"
@@ -186,7 +186,7 @@ if (mode !== 'hidden') {
     "title": "客院接引弟子，驻问归桥。",
     "realm": "化神初期",
     "race": "妖族（沙狐）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，浅沙色短发、大耳、笑时露细犬齿；原身身量小，耳后有棕斑。"
@@ -218,7 +218,7 @@ if (mode !== 'hidden') {
     "title": "经脉比较院主事，驻温脉泉。",
     "realm": "返虚中期",
     "race": "妖族（青蛇）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，青黑长发、细鳞沿腕，瞳色浅碧；常以蛇身在温暖石台休息。"
@@ -279,7 +279,7 @@ if (mode !== 'hidden') {
     "title": "染衣院弟子，驻绮罗城雨廊。",
     "realm": "化神初期",
     "race": "妖族（夜蛾）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，烟紫短发、细羽状触角，背部可显粉灰翅纹；原身有一对圆眼斑。"
@@ -324,7 +324,7 @@ if (mode !== 'hidden') {
     "title": "营造院器具师，驻主巢。",
     "realm": "化神中期",
     "race": "妖族（金龟甲虫）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，短发呈铜绿光泽、肩背圆润甲片；原身鞘翅厚实，飞行笨重。"
@@ -414,7 +414,7 @@ if (mode !== 'hidden') {
     "title": "巡流院弟子，驻镜汀南汊。",
     "realm": "化神初期",
     "race": "妖族（黄鳝）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，褐金顺发、浅唇、体态柔韧；原身适应泥水细道，行动不靠化龙。"
@@ -462,7 +462,7 @@ if (mode !== 'hidden') {
     "title": "礁工院装配师，往来潮生港与珊屏工台。",
     "realm": "化神中期",
     "race": "妖族（章鱼）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，栗紫卷发、瞳色可随光变化；作业时可显部分腕足，原身为有浅斑的章鱼。"
@@ -494,7 +494,7 @@ if (mode !== 'hidden') {
     "title": "丹翎崖国俗务执政，驻丹翎城。",
     "realm": "金丹中期",
     "race": "妖族（灰雁）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，灰棕长发、鼻侧白纹，站立端正；原身翅侧浅白。"
@@ -510,7 +510,7 @@ if (mode !== 'hidden') {
     "title": "青萝山国轮值山君，驻萝阴城。",
     "realm": "金丹初期",
     "race": "妖族（狗獾）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，黑白发束、眼旁暗纹、短圆耳；原身厚实低伏。"
@@ -555,7 +555,7 @@ if (mode !== 'hidden') {
     "title": "绮罗国国主，驻绮罗城。",
     "realm": "金丹中期",
     "race": "妖族（凤蝶）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，乌发饰黄纹、触角细长，可显黑黄蝶翼；原身有修长尾突。"
@@ -603,7 +603,7 @@ if (mode !== 'hidden') {
     "title": "霜牙高原暖川集客舍经营者，无宗门职务。",
     "realm": "筑基后期",
     "race": "妖族（白鼬）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 尚未化形，冬毛白、尾尖黑，能近距离说话，使用低柜与足踏铃；不借此规定同族化形境界。"
@@ -619,7 +619,7 @@ if (mode !== 'hidden') {
     "title": "丹翎城独立风图学徒。",
     "realm": "筑基中期",
     "race": "妖族（白鹤）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 尚未化形，白羽、长腿，旧翼伤限制远飞；用喙与爪操作绘图夹，可当面说话。"
@@ -635,7 +635,7 @@ if (mode !== 'hidden') {
     "title": "萝阴城种苗商与小药园经营者。",
     "realm": "筑基初期",
     "race": "妖族（山兔）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 已化形，浅褐短发、长耳、前齿略明显；原身腹毛白，惯于在园中走熟路。"
@@ -651,7 +651,7 @@ if (mode !== 'hidden') {
     "title": "会川城仓行记账员，无官职。",
     "realm": "炼气后期",
     "race": "妖族（田鼠）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 尚未化形，毛色黄褐、前爪灵活；用刻板和近距离短句沟通，不能使用高阶神识。"
@@ -667,7 +667,7 @@ if (mode !== 'hidden') {
     "title": "赤砾长原冷灯驿旅舍经营者。",
     "realm": "筑基初期",
     "race": "妖族（壁虎）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 尚未化形，灰色细斑、足趾宽，能沿墙操作低灯架；以说话和铃号招呼来客。"
@@ -683,7 +683,7 @@ if (mode !== 'hidden') {
     "title": "绮罗城独立补衣匠。",
     "realm": "炼气后期",
     "race": "妖族（野蚕）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
       "外貌与着装: 尚未化形，体表青白、有细暗点；借桌架、滑梭与脚踏机构作业，不需人形才能工作。"
@@ -699,13 +699,13 @@ if (mode !== 'hidden') {
     "title": "镜汀城独立水陆接送者。",
     "realm": "筑基后期",
     "race": "妖族（河蟹）",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "女",
     "moderate": [
-      "外貌与着装: 已化形，褐红短发、腕部甲片，原身螯不等大；名字中的“幼”不表示未成年。"
+      "外貌与着装: 已化形，褐红短发、腕部甲片，原身螯不等大。"
     ],
     "profile": {
-      "形貌": "已化形，褐红短发、腕部甲片，原身螯不等大；名字中的“幼”不表示未成年。",
+      "形貌": "已化形，褐红短发、腕部甲片，原身螯不等大。",
       "着装与法宝": "耐水短衣、护膝、绳带；撑杆、救生索、浮板。",
       "性格与职责": "热情、胆大，吃过冒险救人的亏后开始认真做出行清单；接送异族旅客并协助急救转运。",
       "生活与用途": "练习把宴请座次写得漂亮；和蛇青缬合作过病患转运，可引出跨族婚宴与浅水救援。"

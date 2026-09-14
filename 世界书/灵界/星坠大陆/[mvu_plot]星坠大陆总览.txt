@@ -457,7 +457,7 @@ if (mode !== 'hidden') {
     "title": "玲珑城小工坊学徒，擅长以普通材料修复日用器具。",
     "realm": "金丹后期",
     "race": "人族",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "男",
     "profile": {
       "种族／境界": "人族，金丹后期。",
@@ -487,7 +487,7 @@ if (mode !== 'hidden') {
     "title": "白鹿泉附近的年轻牧人，兼做商队临时向导。",
     "realm": "筑基中期",
     "race": "人族",
-    "appearanceType": "成年青年",
+    "appearanceType": "青年",
     "gender": "男",
     "profile": {
       "种族／境界": "人族，筑基中期。",
