@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import vm from 'node:vm';
 const require=createRequire(resolve('../tavern_helper_template-main/package.json'));
 const ts=require('typescript');
-export const pluginSourcePath=process.env.EJS_PLUGIN_CHAT_SOURCE || 'D:/application/Tavern/SillyTavern-Launcher/SillyTavern/public/scripts/extensions/third-party/ST-Prompt-Template/src/function/chat.ts';
+export const pluginSourcePath=process.env.EJS_PLUGIN_CHAT_SOURCE || 'D:/application/Tavern/SillyTavern-1.16.0/data/default-user/extensions/ST-Prompt-Template/src/function/chat.ts';
 const source=readFileSync(pluginSourcePath,'utf8');
 const js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText
   .replace(/^import .*;\s*$/gm,'').replace(/\bexport /g,'');

@@ -17,7 +17,8 @@ for(const region of regions){
     ok(p.partner?.length===4,p.name+' 四段道侣日常');
     ok(p.traits[0].name!==p.traits[1].name,p.name+' 性格标签不同');
     ok(p.traits.every(t=>!/[A-Za-z]|待定|占位|性格特征[AB甲乙]/.test(t.name)),p.name+' 标签未完成');
-    const paragraphs=[p.core,...p.traits.flatMap(t=>t.scenes),p.confession,...p.partner];
+    // 底色是简明概括，不以 80 字下限鼓励填充；情境正文仍检查完整度。
+    const paragraphs=[...p.traits.flatMap(t=>t.scenes),p.confession,...p.partner];
     for(const [i,text] of paragraphs.entries()){
       ok(typeof text==='string'&&(text.match(/[\u3400-\u9fff]/g)||[]).length>=80,p.name+' 第 '+i+' 段不足 80 汉字');
       ok(!seen.has(text),p.name+' 与 '+seen.get(text)+' 整段重复');

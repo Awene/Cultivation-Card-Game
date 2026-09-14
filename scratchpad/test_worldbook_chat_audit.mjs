@@ -37,7 +37,8 @@ for(const path of walk('世界书').filter(p=>/\.(txt|ejs|ya?ml)$/.test(p))){
 }
 ok(errors.length===0,'EJS语法问题 '+JSON.stringify(errors));
 const entries=config.条目.filter(e=>e.文件?.includes('\\人物\\'));
-ok(entries.length===160,'160人物配置');
+const characterFiles=walk('世界书').filter(path=>path.includes('/人物/')&&path.endsWith('.txt'));
+ok(entries.length===characterFiles.length,characterFiles.length+'人物配置');
 const start=config.条目.find(e=>e.名称==='➤人物信息-start').插入位置.顺序;
 const end=config.条目.find(e=>e.名称==='➤人物信息-end').插入位置.顺序;
 for(const e of entries)ok(e.插入位置.顺序===200&&start<200&&200<end,e.名称+'顺序在151—250包装区间');

@@ -1,25 +1,38 @@
 <%_ { _%>
 <%_
-// 星坠大陆 / 观星司；人物蓝图为初始参考，不回写或重置 MVU。
+// ==================== 人物 · 星坠大陆 · 观星司 ====================
+// 收录: 沈星晷
+// ============================================================
+
+const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(-10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
+const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
+  const r = 人物关系[n];
+  if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
+  return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
+};
 const C = {
-  "沈星晷": {
-    "kws": ["沈星晷"],
-    "brief": "- 沈星晷（女；合体中期；御姐；人族）：观星司正监，负责星鸣预警、禁域封锁与危险材料登记。",
-    "knownBrief": "- 沈星晷：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
-    "initial": `- 初始身份：观星司正监，负责星鸣预警、禁域封锁与危险材料登记。
-- 初始境界：合体中期
-- 种族：人族
-- 性别与外观分类：女；御姐
-- 实际年龄：未设定具体岁数；成年
-- 形貌：御姐；束发整齐，目光精确克制；多枚计时星盘`,
-    "sourceProfile": `- 种族／境界：人族，合体中期。
-- 身份：观星司正监，负责星鸣预警、禁域封锁与危险材料登记。
-- 外在印象：精确克制，随身携带多枚计时星盘，对迟到和未经记录的实验极其敏感。
-- 底色：把规则视为保护研究者生命的底线，而非维护权威的工具。
-- 内在矛盾：她反对任何人因私人执念进入禁域，自己却一直在寻找失踪于星核的姐姐。
-- 剧情用途：发布调查、撤离、封锁与护送任务；承担陨星主线中的理性制动者。`,
-    "detail": `### 沈星晷 (御姐)
-角色魅力: 束发整齐，肩背笔直，精确目光扫过星盘时显得清醒冷静，嗓音沉稳而不拖句。她让同行者知道何时能回、哪里该停；可失去姐姐的旧痛使她格外怕含混，亲近之人的一句稍晚，也可能让她反复看向门口。
+
+  '沈星晷': {
+    kws: ['沈星晷'],
+    locationKws: [],
+    moderate: `### 沈星晷 (御姐)
+身份: 观星司正监，负责星鸣预警、禁域封锁与危险材料登记。
+外貌: 束发整齐，目光精确克制；多枚计时星盘
+着装: 深蓝束袖监测袍、窄披肩
+法宝: 计时星盘、登记册、封锁标具`,
+    detail: `### 沈星晷 (御姐)
+女性魅力: 束发整齐，肩背笔直，精确目光扫过星盘时显得清醒冷静，嗓音沉稳而不拖句。她让同行者知道何时能回、哪里该停；可失去姐姐的旧痛使她格外怕含混，亲近之人的一句稍晚，也可能让她反复看向门口。
 着装(外): 深蓝束袖监测袍配窄披肩，多枚计时星盘分侧系挂，袖边无长饰，便于抬手读数。
 着装(内): 浅灰柔棉中衣配便行衬裤，肩腰裁得舒展，贴身接缝细平，夜间值守另加薄暖衬层。
 法宝: 计时星盘、登记册、封锁标具。
@@ -34,65 +47,30 @@ const C = {
 ① 休息日朋友约她看灯，她提早到了，站在摊前等得太久，竟认真研究起不同灯影转一圈的时长。朋友来时笑她连玩也要计时，她抬头刚想解释，又自己笑了。买走的偏是转得最不匀那盏，理由是花样好看；原来没有谁需要依赖它报时，她也能喜欢一个很不精确的小东西。
 ② 她挑茶喜欢固定浓淡，泡久一点都能喝出，朋友故意问能差多少息，她端杯看人，淡淡答差一个少问话的人。那句冷幽默来得突然，逗得满桌笑，她才缓缓翘起嘴角。平时精确得像不留闲隙的人，私下也会拿自己的习惯开玩笑，只是声音太平，熟人才听得出。
 ③ 看闲书她总想在一章结束时停，偏偏故事恰好吊起悬念，翻过一页又多翻一页。等星盘提醒已晚，她盯着书不动，最后叹气承认明天再看。第二日一醒却先伸手找书，连头发都没束；别人很少见她被这么不实际的东西牵住，她自己也不大愿意讲，仿佛会有损准时的名声。`,
-    "表白": `[表白]
+    表白: `[表白]
 她把赴约时刻记得很清楚，真正走到心上人面前却难得忘了先看星盘。停了片刻，她直说：‘我喜欢你，想与你认真相处。今天没有任务要交接，只是想把这份心意当面告诉你。’说完手指在盘缘轻轻一碰，随即松开。她习惯知道一件事何时结束，这一次却肯让等待保持开放，不用计时替自己催促回应。`,
-    "道侣": `[道侣相处]
+    道侣: `[道侣相处]
 ① 道侣回家晚了些，她起初还频频看向门外，见到人便先松气，随后才想起自己板着脸。对方抱住她，她在肩头静了很久，说方才确实有些担心。两人把下次留讯说清，余下时候不再盘问，只靠着讲今日趣事；她不可能立刻不怕等待，却能够在熟悉的怀抱里让那根绷紧的线慢慢软下。
 ② 她与道侣看那盏转得不匀的灯，起初还忍不住指出又慢了，后来只顾猜下一片影子像什么。对方故意说像正监皱眉，她抬手轻碰一下人家额头，说这个倒测得不准。两人一齐笑，她自然靠近，星盘安安静静放在桌边；一个不必由她负责准确的晚上，可以很轻松，也可以很甜。
 ③ 道侣发现她为了闲书多看了许久，故意按约提醒时间，她先严肃应声，手却仍压着下一页。对方笑她也会舍不得，她终于笑着认了，把书合好挨过去问能不能猜个结尾。两人猜得离谱，反而笑到更晚；有些时刻被共同玩笑拖长，并不像工作失控那样令她难安。
 ④ 出行前她仍会核对归程，道侣便在最后添一句回来抱你。她听到时微微一顿，随后嘴角慢慢弯起，说这一项记住了。分别那几日确实惦记，重逢时也不必再提醒，对方刚走近她便自然靠过去。多年找寻留下的空处没有被新关系替代，但眼前这个真实拥抱，同样值得她认真珍惜。`
-  }
+  },
+
 };
-const groupKws = [
-  "观星司",
-  "观星司正监",
-  "星鸣预警"
-];
-const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
-const world = String(readVar('stat_data.地点.世界') || '');
-const relations = readVar('stat_data.关系列表') || {};
-const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
-const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
-const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
-let recentText = '';
-try {
-  if (typeof getChatMessages === 'function') {
-    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
-    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
-  }
-} catch(e) {}
-const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
-const mentioned = kws => kws.some(k => k && scanText.includes(k));
-const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
-const groupHit = mentioned(groupKws);
-const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
-const detailOf = ([n,c]) => {
-  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
-  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
-    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
-  let text = appeared(n)
-    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
-    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
-  if (appeared(n)) {
-    const rel=relations[n];
-    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
-    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
-    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
-    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
-  }
-  return text;
+
+const renderChar = (n, c) => {
+  const r = queryRel(n);
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
+  let out = c.detail;
+  if (r.关系 === '道侣') out += '\n\n' + c.道侣;
+  else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
+  return out;
 };
-let outputText = '';
-if (world === '灵界') {
-  if (hit.length) {
-    outputText = hit.map(detailOf).join('\n\n');
-    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
-    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
-  } else if (groupHit) outputText = '[观星司人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
-  if (outputText) outputText = '<spirit_characters region="星坠大陆" group="观星司">\n'
-    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
-    +outputText+'\n</spirit_characters>';
-}
+
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

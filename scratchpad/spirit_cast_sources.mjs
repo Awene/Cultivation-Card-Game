@@ -9,10 +9,27 @@ export const regions = [
   "万兽大陆",
   "沧溟大陆",
   "太初大陆",
+  "殒落大陆",
 ];
 export const read = (p) => readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 export function snapshot(region) {
   const source = read(target(region));
+  const metadata = JSON.parse(read('scratchpad/overview-cast-' + region + '.json'));
+  if (region === "殒落大陆") {
+    return {
+      region,
+      source,
+      normalized: undefined,
+      runtime: {
+        characters: metadata,
+        M: {},
+        ecoData: {},
+        sectsData: {},
+        kingsData: {},
+        重要秘境: new Set(),
+      },
+    };
+  }
   const instrumented = source.replace(
     "  // ========== 装配输出",
     "  globalThis.__data={characters,M,ecoData,sectsData,kingsData,重要秘境};\n  // ========== 装配输出",
@@ -30,7 +47,7 @@ export function snapshot(region) {
   return {
     region,
     source,
-    runtime: ctx.__data,
+    runtime: { ...ctx.__data, characters: metadata },
     normalized: normalized[region],
   };
 }

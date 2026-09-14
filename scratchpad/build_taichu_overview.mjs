@@ -107,8 +107,11 @@ const countries = blocks(section('六、凡国与庇护关系'), 3).map(b => ({ 
 const cityRoster = { 承都: ['姚令禾','陶素渠'], 赤阶城: ['石晚缃'], 照盐城: ['盐青蘅','许平潮'],
   青井镇: ['孟听雨'], 潮根埠: ['乔映帆'], 陶都: ['阮合釉','沈暖岫'],
   浮穗城: ['苇清晏','叶纫秋'], 归泉城: ['乌兰笙','俞铃纱'], 问源关: ['邢知岫','石望川'] };
-const cities = [...section('七、主要城市与地方聚落').matchAll(/^\| ([^|]+) \| ([^|]+) \| ([^|]+) \| ([^|]+) \|$/gm)]
-  .filter(m => cityRoster[m[1]]).map(m => ({ name: m[1], fields: { 位置与治理: m[2], 结构与经济: m[3], 文化与庇护: m[4] }, roster: cityRoster[m[1]] }));
+const cities = section('七、主要城市与地方聚落').split('\n')
+  .filter(line => line.startsWith('|'))
+  .map(line => line.split('|').slice(1, -1).map(cell => cell.trim()))
+  .filter(row => cityRoster[row[0]])
+  .map(row => ({ name: row[0], fields: { 位置与治理: row[1], 结构与经济: row[2], 文化与庇护: row[3] }, roster: cityRoster[row[0]] }));
 const relationships = [...section('十一、人物关系骨架').matchAll(/^\d+\. (.+)$/gm)].map(m => m[1]);
 const charter = section('八、大陆政治与经济联系').split('### 主要资源往来')[0].replace(/^## .+\n/, '').trim();
 const custody = blocks(section('七、主要城市与地方聚落'), 3).find(b => b.title === '自治地方的庇护供养').body;

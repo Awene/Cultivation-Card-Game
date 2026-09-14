@@ -12,7 +12,7 @@ const people = regions.flatMap(cast),
 let text = "# 灵界人物落地清单\n\n";
 text += "## 范围与数量\n\n";
 text +=
-  "覆盖星坠、圣银、灵境、万兽、沧溟、太初六个大陆正式蓝图与总览中的具名人物；不采用殒落占位。写作按大陆及组织分批，由指定 Astra 模型逐批扩写、主流程逐批核对并装配。\n\n";
+  "覆盖星坠、圣银、灵境、万兽、沧溟、太初六个大陆正式蓝图与总览中的具名人物，并纳入重写后的殒落大陆碎片总览具名人物；不采用旧版殒落占位。写作按大陆及组织分批扩写、核对并装配。\n\n";
 text += "| 大陆 | 人物 | 女性 | 男性 | 人物文件 |\n|---|---:|---:|---:|---:|\n";
 for (const r of regions) {
   const ps = people.filter((p) => p.region === r);
@@ -52,6 +52,8 @@ text +=
 text +=
   "- 星坠蓝图有 42 人，旧总览只载 34 人，本轮纳入另外 8 人：沈星晷、钟小铛、田穗穗、卓守拙、唐榫、姬逐风、阿牧、安澜。\n";
 text +=
+  "- 殒落大陆新版碎片总览有 2 名可接触的幸存者后裔：朔灯、绛苇；二人按各自驻地拆分人物文件，不扩写为常驻聚落或上古亲历者。\n";
+text +=
   "- 女性统一御姐、少女、萝莉，均为成年；原文无固定岁数的不反推年龄。男性一并建档。种族形态、鱼人称谓、沧溟无原生人类等原设定优先。\n";
 text +=
   "- 每人拥有独立生活细节与互动入口；扩写的初遇与故事是可选设计，不是已经发生的事实，不写天魔入侵具体日期，不预设恋爱、赠宝和职位。\n";
@@ -78,20 +80,20 @@ for (const r of regions) {
 }
 text += "## 加载与连续性\n\n";
 text +=
-  "`本格修仙.yaml` 中新增绿灯条目，顺序 200，角色定义之前，概率 100，黏性 5，禁止递归激活其他条目。名字命中输出本人详情，组织命中输出该组名册，二者同中附其他成员简报；在灵界可跨大陆按名触发。\n\n";
+  "`本格修仙.yaml` 中新增绿灯条目，顺序 200，角色定义之前，概率 100，黏性 5，禁止递归激活其他条目。外层激活后，未登记人物命中聊天姓名或明确配置的具体地点才输出 moderate；已登记人物直接输出 detail。宗门关键词不再使内部输出全组名册，人物文件与凡界一样不另设世界或大陆过滤。\n\n";
 text +=
-  "每份文件有独立 EJS 块作用域，使用本机 ST-Prompt-Template 的 getChatMessages(-10) 读取最近十条字符串；不可混用酒馆助手的字符串范围与对象参数，也不宣称此接口自动过滤隐藏楼层。关系列表已有的人物不重复输出初始境界、外貌档案；扩写只作可被当前剧情覆盖的参考，不回写变量。总览负责地理与组织名册，独立人物文件负责细写。\n\n";
+  "每份文件有独立 EJS 块作用域，使用本机 ST-Prompt-Template 的 getChatMessages(-10) 读取最近十条字符串；不可混用酒馆助手的字符串范围与对象参数，也不宣称此接口自动过滤隐藏楼层。人物文件采用 kws、locationKws、moderate、detail、表白、道侣 六字段，不输出 initial、sourceProfile、brief、knownBrief 和逐人声明。总览人物采用南疆式四字段与三行 moderate，已登记仅留名片；人物文件负责短简介与完整人设。locationKws 本轮保留空数组，不将组织名自动填作全员驻地。\n\n";
 text +=
   "正文以多行段落保存，避免把创作压成单行转义文本。表白和道侣分别保存：已出场且好感大于 80 才提供表白参考；已为道侣时提供四段相处参考，不同时堆叠表白。数值条件不代表自动发生事件。具体接口排查见 [世界书接口与顺序审计.md](世界书接口与顺序审计.md)。\n\n";
 text += "## 维护与核验\n\n";
 text +=
-  "创作源：各大陆蓝图、`scratchpad/cast-<大陆>.json` 的基础档案和 `scratchpad/deep-cast-<大陆>.json` 的完整深写。深写覆盖魅力、衣饰、法宝和人格正文，基础档案保留身份映射及辅助灵感；修改新正文应编辑 deep-cast，不能只改旧短稿。素材保留以支持逐人修订，勿用随机模板覆盖整批创作。\n\n";
+  "创作源：各大陆蓝图、`scratchpad/overview-cast-<大陆>.json` 的完整元数据、`scratchpad/cast-<大陆>.json` 的基础档案和 `scratchpad/deep-cast-<大陆>.json` 的完整深写。深写提供详情正文，基础档案的外貌、衣饰和法宝短稿提供 moderate；可用基础档案 moderate 字段保留审核后的完整短简介。修改详情应编辑 deep-cast，修改简介应编辑基础档案。生成模板位于 scratchpad/spirit_character_template.mjs。素材保留以支持逐人修订，勿用随机模板覆盖整批创作。\n\n";
 text +=
-  "正式构建要求名册全员有完整深写，缺人时应报错，不得静默退回旧版短提示；仅临时分批预览可显式使用 `--draft`。交付前须以不带该参数的全员检查通过为准。\n\n";
+  "正式构建要求名册全员有完整深写；底色可采用简短概括，性格情境、表白与道侣正文按结构检查。交付前运行全员生成一致性与关系分档检查。\n\n";
 text +=
-  "1. 编辑某人素材并对照大陆蓝图；已定事实以蓝图和最新确认修改为准。\n2. `node scratchpad/build_spirit_cast.mjs region <大陆>` 输出人物文件补丁，用 apply_patch 应用。\n3. `node scratchpad/build_spirit_cast.mjs integrate` 输出 CSV 与 YAML 补丁；`node scratchpad/sync_spirit_reference_lists.mjs --with-cast` 输出相关清单补丁；`node scratchpad/document_spirit_cast.mjs` 输出本清单补丁。三者均不直接写盘。\n4. `node scratchpad/test_spirit_cast.mjs` 检查全员覆盖、CSV 字段、YAML 引用、EJS 单人/组织/混合路由、跨大陆、出场保护、世界隔离、缺 API 回退及多文件联合编译。\n\n";
+  "1. 编辑某人素材并对照大陆蓝图；已定事实以蓝图和最新确认修改为准。\n2. `node scratchpad/build_spirit_cast.mjs region <大陆>` 输出人物文件补丁，用 apply_patch 应用。\n3. `node scratchpad/build_spirit_cast.mjs integrate` 输出 CSV 与 YAML 补丁；`node scratchpad/sync_spirit_reference_lists.mjs --with-cast` 输出相关清单补丁；`node scratchpad/document_spirit_cast.mjs` 输出本清单补丁。三者均不直接写盘。\n4. `node scratchpad/sync_spirit_rosters.mjs <大陆>` 只输出总览人物部分补丁；`node scratchpad/test_spirit_rosters.mjs` 检查七大陆短名册。\n5. `node scratchpad/test_spirit_cast.mjs` 检查全员覆盖、CSV 字段、YAML 引用、EJS 未登记简介、已登记详情、混合路由、关系阶段、关键词窗口、与凡界逻辑一致及多文件联合编译。\n\n";
 text +=
-  "核验命令：`node scratchpad/test_worldbook_chat_audit.mjs` 使用本机插件实现检查消息窗口、世界书语法和人物顺序；`node scratchpad/test_spirit_cast_depth.mjs` 检查全员深写结构与整段重复；`node scratchpad/test_spirit_cast.mjs` 检查 256 人、116 文件、CSV 与关系阶段路由，验证原有 101 行凡界字段保留。总览可用 `node scratchpad/test_spirit_overviews.mjs --ignore-table-spacing` 检查实际文件；圣银与沧溟已有表格空格排版与构建器不同，此开关仅忽略表格排版差异，默认严格模式仍保留。未为排版差异覆盖用户的总览。\n\n";
+  "核验命令：`node scratchpad/test_worldbook_chat_audit.mjs` 使用本机插件实现检查消息窗口、世界书语法和人物顺序；`node scratchpad/test_spirit_cast_depth.mjs` 检查全员深写结构与整段重复；`node scratchpad/test_spirit_cast.mjs` 检查 " + people.length + " 人、" + groups.length + " 文件、CSV 与关系阶段路由，验证原有 101 行凡界字段保留。总览可用 `node scratchpad/test_spirit_overviews.mjs --ignore-table-spacing` 检查实际文件；圣银与沧溟已有表格空格排版与构建器不同，此开关仅忽略表格排版差异，默认严格模式仍保留。未为排版差异覆盖用户的总览。\n\n";
 text +=
   "交付范围为本地源文件及 YAML 配置；本轮不推送酒馆、不发布远程仓库、不覆盖已有 PNG 角色卡，也未进行实际酒馆聊天联调。需要导入酒馆时应另行打包，旧 PNG 不含这批独立人物条目。地图 PNG 未改动。\n";
 process.stdout.write(

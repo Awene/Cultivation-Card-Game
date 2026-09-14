@@ -15,7 +15,8 @@ function compile(text){
 }
 const library=source.match(/const fragments = (\[[\s\S]*?\n  \]);/);
 check(!!library,'可读取分层碎片库');
-const fragments=new vm.Script('('+library[1]+')').runInNewContext({});
+const rosterSetup=source.slice(source.indexOf('  const appearedCharacters'),source.indexOf('  const fragments ='));
+const fragments=new vm.Script(rosterSetup+'\n('+library[1]+')').runInNewContext({getMessageVar:()=>({})});
 const slots=Array.from(fragments,f=>f.name);
 check(slots.length===24&&new Set(slots).size===24,'24个唯一正式碎片');
 check(!source.includes('占用内容')&&!source.includes('框架阶段'),'无占用内容残留');

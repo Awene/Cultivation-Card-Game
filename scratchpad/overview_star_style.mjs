@@ -1,6 +1,7 @@
 // 只负责生成可读的星坠式单文件 EJS；本模块不写磁盘。
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
+import {rosterDictionary} from './spirit_roster_template.mjs';
 
 const textFields = f => Object.entries(f || {}).filter(([,v]) => v != null && v !== '').map(([k,v]) => '- '+k+': '+v).join('\n');
 const clean = s => String(s ?? '').replace(/玄黄大陆/g,'沧溟大陆').replace(/玄黄(?=[、/])/g,'沧溟');
@@ -80,8 +81,7 @@ export function emit(d){
   const star=readFileSync('世界书/灵界/星坠大陆/[mvu_plot]星坠大陆总览.txt','utf8').replace(/\r\n/g,'\n');
   // 直接沿用基准的模式判定、取样、人物显示与门内档位。
   let out=star.slice(0,star.indexOf('  const characters = {')).replaceAll('星坠大陆',r);
-  out=out.replace("if (!appeared && c.moderate)","if (!appeared && c.age) lines.push(pad + '  实际年龄: ' + c.age);\n    if (!appeared && c.moderate)");
-  out+='  const characters = '+j(d.characters)+';\n\n';
+  out+=rosterDictionary(r)+'\n\n';
   out+='  // ========== 秘境 brief / detail ==========\n  const 重要秘境 = new Set('+j(d.secrets.filter(s=>s.important).map(s=>s.name))+');\n  const M = {};\n';
   for(const s of d.secrets){
     const brief='  - '+s.name+': '+s.stages[0].scene.replace(/^\d+\. /,'')+' ('+s.realm+')\n    入口: '+s.entry;

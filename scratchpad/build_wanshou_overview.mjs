@@ -27,9 +27,9 @@ const people = blocks(section('十、人物设计'),4).map(b => {
   return {name:b.title, gender:id[0].split('，')[0], appearance:id[0].split('，')[1],race:id[1],realm:id[2],role:id[3],fields:Object.fromEntries(Object.entries(f).filter(([k])=>k!=='身份'))};
 });
 const secretSection=section('十二、秘境设计');
-const indexRows=secretSection.split('\n').filter(l=>/^\| \d{2} \|/.test(l)).map(l=>l.split('|').slice(1,-1).map(x=>x.trim()));
+const indexRows=secretSection.split('\n').filter(l=>/^\| \d{2}\s*\|/.test(l)).map(l=>l.split('|').slice(1,-1).map(x=>x.trim()));
 const secrets=blocks(secretSection,4).map((b,i)=>{
-  const steps=b.body.split('\n').filter(l=>/^\| [1-4] \|/.test(l));
+  const steps=b.body.split('\n').filter(l=>/^\| [1-4]\s*\|/.test(l));
   assert.equal(steps.length,4,b.title);
   const f=fields(b.body);
   return {name:nameOf(b.title),important:b.title.includes('重要秘境'),realm:indexRows[i][3],theme:indexRows[i][4],fields:f,steps,detail:b.body};

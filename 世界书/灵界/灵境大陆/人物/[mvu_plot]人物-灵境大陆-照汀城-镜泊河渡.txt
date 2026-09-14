@@ -1,22 +1,38 @@
 <%_ { _%>
 <%_
-// 灵境大陆 / 照汀城-镜泊河渡；人物蓝图为初始参考，不回写或重置 MVU。
+// ==================== 人物 · 灵境大陆 · 照汀城-镜泊河渡 ====================
+// 收录: 舟晚汐
+// ============================================================
+
+const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
+let recentText = '';
+try {
+  recentText = (getChatMessages(-10) || []).join('\n');
+} catch(e) {}
+const secondaryKeywordHit = (c) =>
+  c.kws.some(kw => kw && recentText.includes(kw)) ||
+  (c.locationKws || []).some(kw => kw && 具体地点.includes(kw));
+
+const queryRel = (n) => {
+  if (!Object.prototype.hasOwnProperty.call(人物关系, n)) return null;
+  const r = 人物关系[n];
+  if (typeof r === 'number') return { 好感度: r, 关系: '' };
+  if (!r || typeof r !== 'object') return { 好感度: 0, 关系: '' };
+  return { 好感度: r.好感度 ?? 0, 关系: r.道侣 ? '道侣' : (r.关系 || r.关系类型 || '') };
+};
 const C = {
-  "舟晚汐": {
-    "kws": ["舟晚汐"],
-    "brief": "- 舟晚汐（女；金丹后期；御姐；物化生灵·器灵（河渡舟））：镜泊烟汀独立渡舟经营者。",
-    "knownBrief": "- 舟晚汐：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
-    "initial": `- 初始身份：镜泊烟汀独立渡舟经营者。
-- 初始境界：金丹后期
-- 种族：物化生灵·器灵（河渡舟）
-- 性别与外观分类：女；御姐
-- 实际年龄：未设定具体岁数；成年
-- 形貌：深蓝发辫，掌心木纹，神情爽朗。；本源依存渡舟龙骨，显形限船上与近岸系泊处。`,
-    "sourceProfile": `- 性格与职责：健谈、守时，承担一处固定河渡，接送普通村民与客商。
-- 本源与生活：本源依存渡舟龙骨，显形限船上及近岸系泊范围；想去看海，但需安排替船、检修并走安全内河至归潮内湾，不等于能横渡虚海。
-- 剧情用途：远行愿望、社区关系与交接安排，渡运营业不赋予王国高阶军力。`,
-    "detail": `### 舟晚汐 (御姐)
-角色魅力: 深蓝发辫衬着绛色束腰长衣，掌心木纹随招呼轻轻显露，爽朗眉眼让熟客一上船便想说两句。她报渡次守得准，提起内湾的海色却会越讲越快；愿照顾来往的人，也不忘替自己向往的远方留一页空白，明快而动人。
+
+  '舟晚汐': {
+    kws: ['舟晚汐'],
+    locationKws: [],
+    moderate: `### 舟晚汐 (御姐)
+身份: 镜泊烟汀独立渡舟经营者。
+外貌: 深蓝发辫，掌心木纹，神情爽朗。；本源依存渡舟龙骨，显形限船上与近岸系泊处。
+着装: 短披、绛色束腰长衣。
+法宝: 篙钩、渡账；渡舟龙骨为本人本源依存处，不是可转让法宝。`,
+    detail: `### 舟晚汐 (御姐)
+女性魅力: 深蓝发辫衬着绛色束腰长衣，掌心木纹随招呼轻轻显露，爽朗眉眼让熟客一上船便想说两句。她报渡次守得准，提起内湾的海色却会越讲越快；愿照顾来往的人，也不忘替自己向往的远方留一页空白，明快而动人。
 着装(外): 短披搭绛色束腰长衣，发辫束好不垂到篙绳间，船上行动收稳下摆，篙钩固定在顺手安全处。
 着装(内): 快干棉衫配便行长裤，化形身依舒适穿着，停泊休息换去潮衣，衣物不代替龙骨与船体检修。
 法宝: 撑渡篙钩、渡务账册、系泊护具；渡舟龙骨承载本人本源，非转让法宝，河渡船体不能横渡虚海。
@@ -31,65 +47,30 @@ const C = {
 ① 熟客抱来一篮菜，她一眼瞧见藏在底下的点心，笑问今日是不是又说只去买青菜。对方忙示意别讲，她偏把话说得绕，惹得同船人都猜起来。笑闹只在航行平稳、无需分神时，她手上动作没乱，话却接得巧。等靠岸，那人留一小块封她的嘴，她接过先道谢，随后又笑，说这可只能封到下回，再带什么好吃的，她照样看得见。
 ② 她爱问南来客人海是什么颜色，听见不同答案不急着分对错，而是逐个追问天气、岸边和看见时的心情。渡账后页记出一长列颜色，朋友说像卖布，她笑着解释自己只想都看一眼。后来在静水见到一抹相近光色，她在船上看了很久，没有说这就是海，只悄悄在清单旁点一笔。这点相似已够她高兴，再招呼客人时声音都更亮。
 ③ 近岸系泊休息时她整理常客带来的小礼物，果核、普通贝壳和小画各有来历，一边摆一边讲，像替整条河重走了一遍。朋友说这船迟早放不下，她看了看，挑几样收进匣，最歪的小船泥塑却仍留在眼前。那东西底不平，立一次倒一次，她垫了片木，笑说看来它比自己更想躺着歇，伸手拨正后仍舍不得挪远，连丑也丑得很熟悉。`,
-    "表白": `[表白]
+    表白: `[表白]
 她在渡舟泊稳后的船上约心仪之人坐片刻，平日满船的闲话这次竟一时找不到开头。她摸着掌心木纹，笑说：‘我天天送许多人去对岸，最近最盼的却是你上船。我喜欢你，想与你相伴，也想让你知道我那些还没去成的地方。’话落她望着对方，深蓝发辫随风轻动，又补一句，海可以安排，今天想说这句话，不想再留到下一渡了。`,
-    "道侣": `[道侣相处]
+    道侣: `[道侣相处]
 ① 渡舟泊稳后，道侣带热饭上船，她将篙钩收妥，再拉人坐到安全不碍事处。对方笑她连吃饭也报安排，她靠过去说那就再报一项，现在想抱你。两人依偎片刻才打开饭盒，她边吃边讲船上趣事，讲得道侣忍笑险些洒汤，便伸手扶稳。水纹拍着船侧，她把头靠到熟悉肩上，最后那点菜吃得极慢，没人赶渡时，她也想赖住好时刻。
 ② 两人在允许的近岸系泊范围看晚色，她拿清单对照云边光，说今日这抹或许接近内湾的某种蓝。道侣偏说像她发辫，她抬眼笑，将辫子拨到对方手里让人比。说着说着便靠近，掌心木纹轻贴着那只熟悉的手，水面颜色变了也没急着再记。那张清单被压在船沿安全干处，远方仍在页上，人却在身旁，两种喜欢都能安稳留着。
 ③ 她谈远行太兴奋，听道侣提醒现实便觉得被泼冷水，话也硬起来。对方说并非不想同行，她沉默片刻，承认自己太怕每次刚说起就被收回。两人在泊稳的船上将检修、替船和安全水路分开看，没定下的仍留白。她情绪不算转好，后来却主动挪近，说先别把愿望整页翻过去，道侣握住她的手，她才松口气，再讲最想看的一处水色。
 ④ 道侣外出归来，她远远看见便笑，仍先按当次渡运稳妥靠岸，交接清楚才在船上迎去拥住。对方笑等得心急，她将脸贴在肩侧，说也是，只是人已经回来了，可以多抱片刻。晚间两人看带回的小礼，她最爱一块形状笨拙的贝壳，问它原先躺在怎样的岸边。听完把贝壳收好，她把道侣的手留在掌中，最想等的归来不必再记账后。`
-  }
+  },
+
 };
-const groupKws = [
-  "照汀城-镜泊河渡",
-  "镜泊河渡",
-  "独立渡舟"
-];
-const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
-const world = String(readVar('stat_data.地点.世界') || '');
-const relations = readVar('stat_data.关系列表') || {};
-const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
-const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
-const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
-let recentText = '';
-try {
-  if (typeof getChatMessages === 'function') {
-    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
-    recentText = asArray(getChatMessages(-10)).map(textOf).join('\n');
-  }
-} catch(e) {}
-const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\n'+recentText;
-const mentioned = kws => kws.some(k => k && scanText.includes(k));
-const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
-const groupHit = mentioned(groupKws);
-const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
-const detailOf = ([n,c]) => {
-  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
-  const knownDetail = c.detail.split('\n').filter(line => !/^角色魅力:|^着装\(|^法宝:/.test(line))
-    .map(line => line.startsWith('### ') ? '### '+n : line).join('\n');
-  let text = appeared(n)
-    ? knownDetail+'\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
-    : c.detail+'\n'+c.initial+(c.sourceProfile?'\n[已确定蓝图档案]\n'+c.sourceProfile:'');
-  if (appeared(n)) {
-    const rel=relations[n];
-    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
-    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
-    if (partner && c.道侣) text += '\n\n'+c.道侣+'\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
-    else if (affection>80 && c.表白) text += '\n\n'+c.表白+'\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
-  }
-  return text;
+
+const renderChar = (n, c) => {
+  const r = queryRel(n);
+  if (!r) return secondaryKeywordHit(c) ? c.moderate : '';
+  let out = c.detail;
+  if (r.关系 === '道侣') out += '\n\n' + c.道侣;
+  else if ((r.好感度 || 0) > 80) out += '\n\n' + c.表白;
+  return out;
 };
-let outputText = '';
-if (world === '灵界') {
-  if (hit.length) {
-    outputText = hit.map(detailOf).join('\n\n');
-    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
-    if (groupHit && others.length) outputText += '\n\n[同组其他人物]\n'+others.map(briefOf).join('\n');
-  } else if (groupHit) outputText = '[照汀城-镜泊河渡人物名册]\n'+Object.entries(C).map(briefOf).join('\n');
-  if (outputText) outputText = '<spirit_characters region="灵境大陆" group="照汀城-镜泊河渡">\n'
-    +'写作边界：初遇与故事均为可选方案，不是已发生事件\n'
-    +outputText+'\n</spirit_characters>';
-}
+
+const outputText = Object.entries(C)
+  .map(([n, c]) => renderChar(n, c))
+  .filter(Boolean)
+  .join('\n\n');
 _%>
 <%- outputText %>
 <%_ } _%>

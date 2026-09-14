@@ -32,7 +32,7 @@ for(const r of regions){
     const important=d.重要秘境.has(name);
     secretRows.push([r,ecology,name,perLevel,max,squash(entry),squash(secret.brief.split('\n')[0].replace(/^\s*- /,''))+'；'+stages.join(' → '),important?'TRUE':'FALSE',important?'正式总览明确列入重要秘境':'区域秘境；未列为大陆重要秘境']);
   }
-  const countries=s.normalized?.countries||['九河皇朝','烟水十二城盟','长风牧国','南溟商国'].map(name=>({name,fields:fieldText(d.kingsData[name].detail)}));
+  const countries=s.normalized?.countries||(r==='星坠大陆'?['九河皇朝','烟水十二城盟','长风牧国','南溟商国'].map(name=>({name,fields:fieldText(d.kingsData[name].detail)})):[]);
   for(const country of countries){
     const f=country.fields,detail=d.kingsData[country.name]?.detail||'';
     const rulers=people.filter(p=>p.region===r&&p.group===country.name);

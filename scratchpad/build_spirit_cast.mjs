@@ -2,8 +2,9 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { appearance, read, regions, sources } from "./spirit_cast_sources.mjs";
+import { renderGroup } from "./spirit_character_template.mjs";
+export { renderGroup };
 const mode = process.argv[2];
-const j = (x) => JSON.stringify(x, null, 2);
 export function parseCSV(s) {
   const rows = [];
   let row = [],
@@ -87,42 +88,6 @@ export function patch(path, next) {
     "\n"
   );
 }
-const fields = (f) =>
-  Object.entries(f || {})
-    .map(([k, v]) => "- " + k + "：" + v)
-    .join("\n");
-const strip = (s) =>
-  String(s || "")
-    .replace(/\s+/g, " ")
-    .trim();
-const first = (f, keys) => keys.map((k) => f?.[k]).find(Boolean) || "";
-const tpl = (s) =>
-  "`" +
-  s.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${") +
-  "`";
-const readableCast = (C) =>
-  "{\n" +
-  Object.entries(C)
-    .map(
-      ([name, c]) =>
-        "  " +
-        JSON.stringify(name) +
-        ": {\n" +
-        Object.entries(c)
-          .map(
-            ([k, v]) =>
-              "    " +
-              JSON.stringify(k) +
-              ": " +
-              (typeof v === "string" && v.includes("\n")
-                ? tpl(v)
-                : JSON.stringify(v)),
-          )
-          .join(",\n") +
-        "\n  }",
-    )
-    .join(",\n\n") +
-  "\n}";
 export function cast(region, { partial = false } = {}) {
   const file = "scratchpad/cast-" + region + ".json";
   assert(existsSync(file), "待完成创作素材：" + region);
@@ -193,7 +158,6 @@ export function cast(region, { partial = false } = {}) {
         p.name + "深写结构",
       );
       for (const text of [
-        deep.core,
         ...deep.traits.flatMap((t) => t.scenes),
         deep.confession,
         ...deep.partner,
@@ -272,173 +236,17 @@ export function cast(region, { partial = false } = {}) {
       ...p,
       deep,
       features: physical,
+      shortOuter: original.outer,
+      shortArtifact: original.artifact,
       c,
       region,
       gender,
       category,
       age,
       path,
-      keywords: [...new Set([p.name, ...(p.keywords || []), p.group])],
+      keywords: [...new Set([p.name, ...(p.kws || []), ...(p.locationKws || []), ...(p.keywords || []), p.group])],
     };
   });
-}
-export function renderGroup(region, group, people) {
-  const C = Object.fromEntries(
-    people.map((p) => {
-      const brief =
-        "- " +
-        p.name +
-        "（" +
-        p.gender +
-        "；" +
-        p.c.realm +
-        "；" +
-        p.category +
-        "；" +
-        p.c.race +
-        "）：" +
-        p.c.title;
-      const initial = [
-        "- 初始身份：" + p.c.title,
-        "- 初始境界：" + p.c.realm,
-        "- 种族：" + p.c.race,
-        "- 性别与外观分类：" + p.gender + "；" + p.category,
-        "- 实际年龄：" + p.age,
-        "- 形貌：" + p.features,
-        ...(p.deep
-          ? []
-          : [
-              "- 气质与魅力：" + p.charm,
-              "- 外衣：" + p.outer,
-              "- 内搭：" + p.inner,
-              "- 常用法宝／工具类型：" + p.artifact,
-            ]),
-      ].join("\n");
-      const numerals = ["①", "②", "③", "④"];
-      const traitBody = p.deep
-        ? p.deep.traits
-            .map(
-              (t) =>
-                "[" +
-                t.name +
-                "]\n" +
-                t.scenes.map((s, i) => numerals[i] + " " + s).join("\n"),
-            )
-            .join("\n\n")
-        : "";
-      const deepDetail = p.deep
-        ? [
-            "### " + p.name + " (" + p.category + ")",
-            "角色魅力: " + p.deep.charm,
-            "着装(外): " + p.deep.outer,
-            "着装(内): " + p.deep.inner,
-            "法宝: " + p.deep.artifact,
-            "底色: " + p.deep.core,
-            "",
-            traitBody,
-          ].join("\n")
-        : "";
-      const detail = p.deep
-        ? deepDetail
-        : [
-            "### " + p.name,
-            "- 性格层次：" + p.personality,
-            "- 说话方式：" + p.voice,
-            "- 生活习惯：" + p.habit,
-            "- 初遇建议：" + p.encounter,
-            "- 初始关系与交往：" + p.relationship,
-            "- 可选故事：" + p.hook,
-          ].join("\n");
-      // 正式蓝图事实完整保留，新增写作建议独立标记，不预置已经发生的剧情。
-      const sourceProfile = fields(p.c.profile);
-      return [
-        p.name,
-        {
-          kws: [p.name],
-          brief,
-          knownBrief:
-            "- " +
-            p.name +
-            "：既有人物，当前身份、境界、形貌与关系依关系列表及实际剧情。",
-          initial,
-          sourceProfile,
-          detail,
-          ...(p.deep
-            ? {
-                表白: "[表白]\n" + p.deep.confession,
-                道侣:
-                  "[道侣相处]\n" +
-                  p.deep.partner
-                    .map((s, i) => numerals[i] + " " + s)
-                    .join("\n"),
-              }
-            : {}),
-        },
-      ];
-    }),
-  );
-  const groupKws = [
-    ...new Set([
-      group,
-      ...people
-        .flatMap((p) => p.keywords)
-        .filter((k) => !people.some((p) => p.name === k)),
-    ]),
-  ];
-  return `<%_ { _%>
-<%_
-// ${region} / ${group}；人物蓝图为初始参考，不回写或重置 MVU。
-const C = ${readableCast(C)};
-const groupKws = ${j(groupKws)};
-const readVar = k => { try { return typeof getMessageVar === 'function' ? getMessageVar(k) : undefined; } catch(e) { return undefined; } };
-const world = String(readVar('stat_data.地点.世界') || '');
-const relations = readVar('stat_data.关系列表') || {};
-const appeared = name => Object.prototype.hasOwnProperty.call(relations, name);
-const textOf = m => typeof m === 'string' ? m : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '';
-const asArray = x => Array.isArray(x) ? x : x ? [x] : [];
-let recentText = '';
-try {
-  if (typeof getChatMessages === 'function') {
-    // 本机 EJS 插件的负数表示从末尾取消息，返回字符串数组。
-    recentText = asArray(getChatMessages(-10)).map(textOf).join('\\n');
-  }
-} catch(e) {}
-const scanText = String(readVar('stat_data.地点.具体地点') || '')+'\\n'+recentText;
-const mentioned = kws => kws.some(k => k && scanText.includes(k));
-const hit = Object.entries(C).filter(([n,c]) => mentioned(c.kws));
-const groupHit = mentioned(groupKws);
-const briefOf = ([n,c]) => appeared(n) ? c.knownBrief : c.brief;
-const detailOf = ([n,c]) => {
-  // 同一份正文只保存一次；既有人物运行时剔除初始外貌、衣着和装备字段。
-  const knownDetail = c.detail.split('\\n').filter(line => !/^角色魅力:|^着装\\(|^法宝:/.test(line))
-    .map(line => line.startsWith('### ') ? '### '+n : line).join('\\n');
-  let text = appeared(n)
-    ? knownDetail+'\\n- 连续性：此人已经出场；上文情境来自初始人设阶段，仅作人格参考。当前境界、年龄、身份、性格、外貌、衣着、装备和关系以变量及已有剧情为准，不恢复旧状态；不可把情境中的旧职务或修为重新当作当前值。'
-    : c.detail+'\\n'+c.initial+(c.sourceProfile?'\\n[已确定蓝图档案]\\n'+c.sourceProfile:'');
-  if (appeared(n)) {
-    const rel=relations[n];
-    const partner=rel && typeof rel==='object' && (rel.道侣===true || rel.关系==='道侣' || rel.关系类型==='道侣');
-    const affection=Number(typeof rel==='number'?rel:rel?.好感度 || 0);
-    if (partner && c.道侣) text += '\\n\\n'+c.道侣+'\\n关系片段仅供既有自愿成年伴侣演绎；不是必须发生的行为。';
-    else if (affection>80 && c.表白) text += '\\n\\n'+c.表白+'\\n这是可能的主动表达方式，不是好感达到阈值便自动执行的事件；尊重拒绝与既有关系。';
-  }
-  return text;
-};
-let outputText = '';
-if (world === '灵界') {
-  if (hit.length) {
-    outputText = hit.map(detailOf).join('\\n\\n');
-    const others = Object.entries(C).filter(([n]) => !hit.some(([h]) => h===n));
-    if (groupHit && others.length) outputText += '\\n\\n[同组其他人物]\\n'+others.map(briefOf).join('\\n');
-  } else if (groupHit) outputText = '[${group}人物名册]\\n'+Object.entries(C).map(briefOf).join('\\n');
-  if (outputText) outputText = '<spirit_characters region="${region}" group="${group}">\\n'
-    +'写作边界：初遇与故事均为可选方案，不是已发生事件\\n'
-    +outputText+'\\n</spirit_characters>';
-}
-_%>
-<%- outputText %>
-<%_ } _%>
-`;
 }
 export function groupBy(people) {
   const groups = new Map();
@@ -578,12 +386,13 @@ function yamlEntries(people) {
   assert(old.includes(marker));
   return patch(path, old.replace(marker, entries + marker));
 }
-if (mode === "region") {
+if (mode === "region" || mode === "group") {
   const r = process.argv[3],
     people = cast(r);
   let out = "";
   for (const [g, ps] of groupBy(people))
-    out += patch(ps[0].path, renderGroup(r, g, ps));
+    if (mode === "region" || g === process.argv[4])
+      out += patch(ps[0].path, renderGroup(r, g, ps));
   process.stdout.write("*** Begin Patch\n" + out + "*** End Patch\n");
 } else if (mode === "csv-region") {
   const region = process.argv[3];
