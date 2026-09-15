@@ -127,15 +127,23 @@ for (const r of ["星坠大陆", ...Object.keys(sources)]) {
   for (const [n, s] of Object.entries(data.sectsData))
     if (s.门内) {
       ok(!run({'地点.地域':'其他大陆',身份:[n+'弟子']}).output.includes(s.门内.外门),r+' 跨大陆无门内 '+n);
-      for (const [realm, tier] of [
+      const cases = n === '养真院' ? [
+        ['凡人', '外门', n + '新学员'],
+        ['合体后期', '外门', n + '新学员'],
+        ['凡人', '内门', n + '熟习学员'],
+        ['凡人', '管事', n + '教习'],
+        ['元婴后期', '长老', n + '资深教习'],
+        ['化神初期', '长老', n + '院正'],
+      ] : [
         ["凡人", "外门"],
         ["元婴后期", "外门"],
         ["化神初期", "内门"],
         ["炼虚后期", "管事"],
         ["合体中期", "长老"],
-      ]) {
+      ];
+      for (const [realm, tier, identity = n + '弟子'] of cases) {
         ok(
-          run({ 身份: [n + "弟子"], "修炼进度.境界": realm }).output.includes(
+          run({ 身份: [identity], "修炼进度.境界": realm }).output.includes(
             s.门内[tier],
           ),
           r + " 门内 " + n + " " + tier,

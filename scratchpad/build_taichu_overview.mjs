@@ -46,7 +46,7 @@ const secrets = [];
 for (const b of blocks(section('十二、秘境设计'), 4)) {
   const f = fields(b.body);
   const stages = [...b.body.matchAll(/^\| ([1-4]\. .+) \| (.+) \| (.+) \| (.+) \|$/gm)]
-    .map(m => ({ scene: m[1], danger: m[2], solution: m[3], reward: m[4] }));
+    .map(m => ({ scene: m[1].trim(), danger: m[2].trim(), solution: m[3].trim(), reward: m[4].trim() }));
   assert.equal(stages.length, 4, b.title);
   const name = shortName(b.title);
   secrets.push({ name, important: b.title.includes('重要秘境'), entrance: f['位置／入口'],

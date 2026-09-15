@@ -2,6 +2,7 @@
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {rosterDictionary} from './spirit_roster_template.mjs';
+import {sectInternal} from './sect_internal_source.mjs';
 
 const textFields = f => Object.entries(f || {}).filter(([,v]) => v != null && v !== '').map(([k,v]) => '- '+k+': '+v).join('\n');
 const clean = s => String(s ?? '').replace(/玄黄大陆/g,'沧溟大陆').replace(/玄黄(?=[、/])/g,'沧溟');
@@ -112,9 +113,8 @@ export function emit(d){
   };
   out+='  // ========== 宗门 brief / detail / 门内 ==========\n  const sectsData = {\n';
   out+=d.sects.map(s=>{
-    const practice=first(s.fields,['修行','修行方向','修行与技艺','传承与技艺','技艺']);
-    const inner=s.internal?Object.fromEntries(['外门','内门','管事','长老'].map((k,i)=>[k,'[门内视角]\n- 叙事指导: '+(s.fields['生活'] || s.fields['理念'] || s.fields['简介与理念'] || s.fields['简介'] || '')+(i===0?'\n- 入门: 核验来历与适合的传承方向，从基础课程、生活技艺和安全规程开始。':'')+'\n- 日常: '+s.internal[i]+'\n- 传承方向: '+practice+'\n- 技艺书: 依本宗已确认传承选择'+practice+'相关课程与记录，不凭本段自动生成可领取秘笈。\n- 取用: 按实际境界、职务与门规；不自动授予职位、功法或资源，凡人不执行需要灵力的操作。'])):null;
-    return '    '+j(s.name)+': {\n      type: '+j(s.type)+',\n      brief: '+orgBody(s,true)+',\n      detail: '+orgBody(s,false)+',\n      门内kws: '+j([s.name])+',\n      门内: '+j(inner)+'\n    }';
+    const source=sectInternal(r,s.name);
+    return '    '+j(s.name)+': {\n      type: '+j(s.type)+',\n      brief: '+orgBody(s,true)+',\n      detail: '+orgBody(s,false)+',\n      门内kws: '+j(source.kws)+',\n      门内: '+j(source.inner)+(source.identityTiers?',\n      门内身份档: '+j(source.identityTiers):'')+'\n    }';
   }).join(',\n')+'\n  };\n\n';
   out+='  // ========== 凡国与城市：默认brief，名称、地标或组织人物被提及时detail ==========\n  const kingsData = {\n';
   out+=[...d.countries,...d.cities].map(s=>{
