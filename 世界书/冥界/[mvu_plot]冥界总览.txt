@@ -1,32 +1,54 @@
 <%_ { _%>
 <%_
-// 冥界总览：非冥界隐藏；冥界内显示全域，城市按关键词、秘境按具体地点展开。
-const world = getMessageVar('stat_data.地点.世界') || '凡界';
-const region = getMessageVar('stat_data.地点.地域') || '';
-const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
-let outputText = '';
-if (world === '冥界') {
-  const recentText = (getChatMessages(-10) || []).join('\n');
+// ==================== 冥界总览 · 单文件自包含 ====================
+  // hidden: 非冥界输出空；in: 全生态、全宗门detail、城市brief(关键词命中后detail)、地图。
+  // 秘境仅按当前具体地点展开，聊天提及不展开内部；人物以关系列表中的键判定出场。
+  const world = String(getMessageVar('stat_data.地点.世界') || '凡界').trim();
+  const 具体地点 = String(getMessageVar('stat_data.地点.具体地点') || '');
+  const mode = world === '冥界' ? 'in' : 'hidden';
+  let outputText = '';
+
+if (mode !== 'hidden') {
+// ========== 工具与人物显示 ==========
+  let recentText = '';
+  try {
+    const recent = getChatMessages(-10) || [];
+    const messages = Array.isArray(recent) ? recent : [recent];
+    recentText = messages.map(m => typeof m === 'string' ? m
+      : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '').join('\n');
+  } catch(e) {}
   const scanText = 具体地点 + '\n' + recentText;
-  const mentioned = kws => kws.some(kw => scanText.includes(kw));
-  const appeared = getMessageVar('stat_data.关系列表') || {};
-  const roster = names => names.map(name => {
+  const mentioned = kws => kws.some(kw => kw && scanText.includes(kw));
+  const inLoc = name => 具体地点.includes(name);
+  const pick3 = arr => {
+    const pool = [...arr];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 3).join('、');
+  };
+  const appearedCharacters = getMessageVar('stat_data.关系列表') || {};
+  const hasCharacterAppeared = name =>
+    Object.prototype.hasOwnProperty.call(appearedCharacters, name);
+  const renderRosterCharacter = (name, indent = 2) => {
     const c = characters[name];
-    const known = Object.prototype.hasOwnProperty.call(appeared, name);
-    return '  - ' + c.title + ': ' + (known ? '' : c.realm + ' ') + name + '(' + c.appearanceType + ')' +
-      (known ? '' : '\n' + c.moderate.map(line => '    ' + line).join('\n'));
-  }).join('\n');
+    const appeared = hasCharacterAppeared(name);
+    const pad = ' '.repeat(indent);
+    const realmText = !appeared && c.realm ? c.realm + ' ' : '';
+    const lines = [`${pad}- ${c.title}: ${realmText}${name}(${c.appearanceType})`];
+    if (!appeared) lines.push(...c.moderate.map(line => `${pad}  ${line}`));
+    return lines.join('\n');
+  };
+  const roster = names => names.map(name => renderRosterCharacter(name)).join('\n');
+
   const 身份原值 = getMessageVar('stat_data.身份') || [];
-  const 身份列表 = Array.isArray(身份原值) ? 身份原值 : [身份原值];
-  const 境界 = String(getMessageVar('stat_data.修炼进度.境界') || '凡人').replace('练气','炼气').replace('炼虚','返虚');
-  const L = ['凡人','炼气','筑基','金丹','元婴','化神','返虚','合体','大乘','渡劫'].findIndex(n => 境界.includes(n));
+  const 身份列表 = Array.isArray(身份原值) ? 身份原值 : [String(身份原值)];
+  const 境界 = String(getMessageVar('stat_data.修炼进度.境界') || '凡人').replace('练气', '炼气').replace('炼虚', '返虚');
+  const 境界序 = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神', '返虚', '合体', '大乘', '渡劫'];
+  const L = Math.max(0, 境界序.findIndex(name => 境界.includes(name)));
   const 门内档 = L <= 4 ? '外门' : L === 5 ? '内门' : L === 6 ? '管事' : '长老';
   const 本宗弟子 = kws => 身份列表.some(id => kws.some(kw => id.includes(kw)));
-  const pick3 = pool => {
-    const copy = [...pool];
-    for (let i=copy.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [copy[i],copy[j]]=[copy[j],copy[i]]; }
-    return copy.slice(0,3).join('、');
-  };
 
   // ========== 人物 ==========
   const characters = {
@@ -570,7 +592,7 @@ if (world === '冥界') {
     获: 恢复可信联系及检修所得`,
     },
   };
-  const 秘境显示 = names => names.map(n => 具体地点.includes(n) ? M[n].detail : M[n].brief).join("\n");
+  const 秘境显示 = names => names.map(n => inLoc(n) ? M[n].detail : M[n].brief).join("\n");
 
   // ========== 普通资源 ==========
   const RES = {
@@ -886,74 +908,82 @@ ${秘境显示(["无声谷驿井", "沉灯旧城内街", "断照镜窟"])}`,
   // ========== 地图 ==========
   const mapText = `<region_map realm="冥界">
 \`\`\`mermaid
-flowchart LR
-  subgraph WEST[西部·黄泉驿野]
-    G[鬼门关] --> H[黄泉路]
-    H --- X[歇灯镇]
-  end
-  subgraph NORTH[中北部·阴都盆地]
-    W[枉死城] --- Y[阴都·玄津宫]
-    Y -.地下.-> P[阴狱·炼魂院]
-  end
-  subgraph RIVER[中部·忘川两岸：水流向东]
-    U[上游渡镇] --> V[苇汀城]
-    V --> E[下游苇荡]
-    B[奈何桥]
-  end
-  H --> Y
-  Y --- B
-  Y --> J[东部北岸·轮回井]
-  B --> J
-  X --- U
-  subgraph SOUTH[中南部·南岸诸境]
-    C[百坊城·百骸山]
-    M[青苔镇·苔庭院]
-    D[续灯观]
-    C --- M
-    M --- D
-  end
-  V --- C
-  B --- C
-  E --- D
-  subgraph FAR[南部与东南·远冥边地]
-    A[归灯集] --- T[归尘台·寄身渡]
-  end
-  C --- A
-  D --- A
+graph TD
+    subgraph WEST[西部·黄泉驿野]
+        G["西端·鬼门关"] === H["黄泉路"]
+        H --- X["歇灯镇"]
+    end
+    subgraph NORTH[中北部·阴都盆地]
+        W["西北支谷·枉死城"] --- Y["中游北岸·阴都<br/>玄津宫"]
+        Y -.地下.- P["阴狱<br/>炼魂院"]
+    end
+    subgraph RIVER[中部·忘川两岸]
+        U["上游渡镇"] -->|忘川东流| V["苇汀城"]
+        V -->|忘川东流| E["下游苇荡"]
+        B["阴都东南·奈何桥"]
+    end
+    H === Y
+    Y === B
+    Y ===|北岸官道| J["东部下游北岸台地·轮回井"]
+    B ===|北岸官道| J
+    X --- U
+    subgraph SOUTH[中南部·南岸诸境]
+        C["百坊城<br/>百骸山"] --- M["青苔镇<br/>苔庭院"]
+        M --- D["续灯观"]
+    end
+    V --- C
+    B === C
+    E --- D
+    subgraph FAR[南部与东南·远冥边地]
+        A["归灯集"] --- T["归尘台<br/>寄身渡"]
+    end
+    C --- A
+    D --- A
 \`\`\`
-忘川西高东低，阴都位于中游北岸，奈何桥位于阴都东南。轮回井处于东部下游北侧台地，桥北官道通往井区。枉死城位于阴都西北的盆地支谷，阴狱位于阴都地下。鬼门关位于驿野西端，黄泉路贯穿驿野通往阴都。
-
-奈何桥是轮回官道的固定桥梁；其他河段有供居民与货物往来的渡船。南岸去轮回井，经奈何桥接入北岸官道；自阴都赴井则沿北岸通行。
-交通：驿车、渡船与商队连接聚落；寄身渡联系特定阳间肉体。
+地图阅读:
+- 实线 ---: 区域相邻或常用通路；虚线 -.-: 特殊通路，方式见线标。
+- 粗线 ===: 轮回官道；箭头 -->: 忘川水流方向。
+- 忘川西高东低；南岸赴轮回井经奈何桥，阴都赴井沿北岸官道；其他河段以渡船通行。
 </region_map>`;
   const societyText = `## 津岸秩序
-玄津宫、澄川宗、续灯观、百骸山和归尘台共同守约，苔庭院与地方政权据约参与相关事务。
+玄津宫、澄川宗、续灯观、百骸山、归尘台共守《津岸约》，苔庭院与地方政权参与相关事务。
+- 普通亡魂自愿轮回，留居者可加入各宗，包括玄津宫。
+- 玄津宫主持轮回沿线接引、审判与轮回井；各宗治本辖地，城邦自治，地方处理争产、欠薪和邻里纠纷。
+- 罪魂拘押炼用须有案据；涉及他宗或城邦居民，由所属方参与会勘。
+- 各宗协商护送、用水、供灵与招徒，重大争议在奈何桥南会津亭议定。
+世俗主官、将领及行会代表最高金丹，元婴以上威胁由宗门应对。化神为中坚，返虚常任管事长老，合体主持大宗，大乘极少，渡劫为境界上限。
 
-1. 普通亡魂不被强迫轮回；拒绝轮回者是各宗共同的招收来源，玄津宫也可招收，不得扣留新魂强令入宗。
-2. 轮回沿线的接引、审判与轮回井由玄津宫主持；南岸城邦自行管理居民与生产，各宗驻地按各自辖地行事。
-3. 罪魂的拘押与炼用须有案据。涉及其他宗门、城邦居民时，由所属一方派员会勘；无主亡魂也不等同于罪魂。
-4. 冥族可以迁居、谋生与拜师，普通争产、欠薪、邻里纠纷由当地政权处理。
-5. 宗门之间以护送、用水、灵气供给和弟子招收协议结算利益；重大争议在奈何桥南侧的会津亭议定。
-
-世俗主官、将领、行会代表最高金丹（L≤3）。元婴及以上威胁由庇护宗门介入。宗门中化神为中坚、返虚承担管事与长老职务、合体主持大宗事务；大乘仅留极少数，渡劫作为世界上限，人物数量与归属在第三步确定。
 ## 寄身渡
-寄身渡是一套联系阳间肉体、附身或夺舍、导引神魂过界的技艺，由少数宗门掌握。归尘台是公开受理此事的主要宗门，在远冥边缘经营渡台。
+少数宗门掌握联系阳间肉体、附身或夺舍并导魂过界的技艺。归尘台在远冥边缘设渡台，经营寻身、宿主联络与施术；暗中也有肉体贩卖和强夺交易。
+须先取得特定肉体与地点的联系：附身可与宿主约定，夺舍依原有神通要求。还阳后的修炼及飞升依所在界域规则。`;
 
-- 附身可以通过与阳间宿主约定合作实现；夺舍按已有神通设定处理，寄身渡不替代夺舍本身的能力要求。
-- 渡台必须先联系到阳间承接肉体，再施行过界。各处渡台通向特定联系对象与地点，不是任意选择目的地的公共传送阵。
-- 归尘台经营寻身、宿主联络与渡界施术，也与阳间少数修士有往来；隐秘势力则贩卖掳来的肉体和强夺机会。
-- 还阳所得修炼环境取决于抵达的世界和地点；在阳间谋求飞升仍循该界修行规则。`;
+  // ========== 装配输出（与灵界总览一致） ==========
+  let geoOut, sectsOut, kingsOut, mapOut;
+  geoOut = Object.values(ecoData).map(e => e.detail()).join('\n\n');
+  sectsOut = Object.values(sectsData).map(s => {
+    let out = s.detail;
+    if (s.门内 && 本宗弟子(s.门内kws)) out += '\n\n' + s.门内[门内档];
+    return out;
+  }).join('\n\n');
+  kingsOut = Object.values(kingsData).map(k =>
+    mentioned(k.kws) ? k.detail : k.brief).join('\n\n');
+  mapOut = '\n\n' + mapText;
 
-  // ========== 装配输出 ==========
-  const geoOut = Object.values(ecoData).map(e => e.detail()).join('\n\n');
-  const sectsOut = Object.values(sectsData).map(s => s.detail +
-    (本宗弟子(s.门内kws) ? '\n\n' + s.门内[门内档] : '')).join('\n\n');
-  const kingsOut = Object.values(kingsData).map(k => mentioned(k.kws) ? k.detail : k.brief).join('\n\n');
-  outputText = '<region_information realm="冥界">\n地点层级: 冥界-生态-宗门/秘境/城市(可选)-具体位置\n' +
-    '地域沿用当前地点记录，生态写入具体地点；鬼域荒野为忘川南岸留居地域的旧称。\n' +
-    '## 冥界概述\n永夜中的亡者社会：轮回沿线之外，田庄、渡镇、工坊与城邦各有生活。\n' +
-    societyText + '\n\n## 冥界生态\n' + geoOut + '\n\n## 冥界宗门\n' + sectsOut +
-    '\n\n## 冥界世俗政权与城市\n' + kingsOut + '\n</region_information>\n' + mapText;
+  outputText = `<region_information realm="冥界">
+地点层级: 冥界-生态-宗门/秘境/城市(可选)-具体位置
+## 冥界概述
+永夜中的亡者社会，轮回沿线之外，田庄、渡镇、工坊与城邦自有烟火。
+${societyText}
+
+## 冥界生态
+${geoOut}
+
+## 冥界宗门
+${sectsOut}
+
+## 冥界世俗政权与城市
+${kingsOut}
+</region_information>${mapOut}`;
 }
 _%>
 <%- outputText %>

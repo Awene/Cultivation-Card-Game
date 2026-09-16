@@ -69,35 +69,57 @@ const inner = name => Object.fromEntries(['外门','内门','管事','长老'].m
   `### ${name}·${tier}视角\n- 门内日常: ${innerWork[name][i]}`]));
 
 export function overview() {
-  let out=String.raw`<%_ { _%>
+  let out=`<%_ { _%>
 <%_
-// 冥界总览：非冥界隐藏；冥界内显示全域，城市按关键词、秘境按具体地点展开。
-const world = getMessageVar('stat_data.地点.世界') || '凡界';
-const region = getMessageVar('stat_data.地点.地域') || '';
-const 具体地点 = getMessageVar('stat_data.地点.具体地点') || '';
-let outputText = '';
-if (world === '冥界') {
-  const recentText = (getChatMessages(-10) || []).join('\n');
-  const scanText = 具体地点 + '\n' + recentText;
-  const mentioned = kws => kws.some(kw => scanText.includes(kw));
-  const appeared = getMessageVar('stat_data.关系列表') || {};
-  const roster = names => names.map(name => {
+// ==================== 冥界总览 · 单文件自包含 ====================
+  // hidden: 非冥界输出空；in: 全生态、全宗门detail、城市brief(关键词命中后detail)、地图。
+  // 秘境仅按当前具体地点展开，聊天提及不展开内部；人物以关系列表中的键判定出场。
+  const world = String(getMessageVar('stat_data.地点.世界') || '凡界').trim();
+  const 具体地点 = String(getMessageVar('stat_data.地点.具体地点') || '');
+  const mode = world === '冥界' ? 'in' : 'hidden';
+  let outputText = '';
+
+if (mode !== 'hidden') {
+// ========== 工具与人物显示 ==========
+  let recentText = '';
+  try {
+    const recent = getChatMessages(-10) || [];
+    const messages = Array.isArray(recent) ? recent : [recent];
+    recentText = messages.map(m => typeof m === 'string' ? m
+      : m && typeof m === 'object' ? String(m.message ?? m.content ?? '') : '').join('\\n');
+  } catch(e) {}
+  const scanText = 具体地点 + '\\n' + recentText;
+  const mentioned = kws => kws.some(kw => kw && scanText.includes(kw));
+  const inLoc = name => 具体地点.includes(name);
+  const pick3 = arr => {
+    const pool = [...arr];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 3).join('、');
+  };
+  const appearedCharacters = getMessageVar('stat_data.关系列表') || {};
+  const hasCharacterAppeared = name =>
+    Object.prototype.hasOwnProperty.call(appearedCharacters, name);
+  const renderRosterCharacter = (name, indent = 2) => {
     const c = characters[name];
-    const known = Object.prototype.hasOwnProperty.call(appeared, name);
-    return '  - ' + c.title + ': ' + (known ? '' : c.realm + ' ') + name + '(' + c.appearanceType + ')' +
-      (known ? '' : '\n' + c.moderate.map(line => '    ' + line).join('\n'));
-  }).join('\n');
+    const appeared = hasCharacterAppeared(name);
+    const pad = ' '.repeat(indent);
+    const realmText = !appeared && c.realm ? c.realm + ' ' : '';
+    const lines = [\`\${pad}- \${c.title}: \${realmText}\${name}(\${c.appearanceType})\`];
+    if (!appeared) lines.push(...c.moderate.map(line => \`\${pad}  \${line}\`));
+    return lines.join('\\n');
+  };
+  const roster = names => names.map(name => renderRosterCharacter(name)).join('\\n');
+
   const 身份原值 = getMessageVar('stat_data.身份') || [];
-  const 身份列表 = Array.isArray(身份原值) ? 身份原值 : [身份原值];
-  const 境界 = String(getMessageVar('stat_data.修炼进度.境界') || '凡人').replace('练气','炼气').replace('炼虚','返虚');
-  const L = ['凡人','炼气','筑基','金丹','元婴','化神','返虚','合体','大乘','渡劫'].findIndex(n => 境界.includes(n));
+  const 身份列表 = Array.isArray(身份原值) ? 身份原值 : [String(身份原值)];
+  const 境界 = String(getMessageVar('stat_data.修炼进度.境界') || '凡人').replace('练气', '炼气').replace('炼虚', '返虚');
+  const 境界序 = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神', '返虚', '合体', '大乘', '渡劫'];
+  const L = Math.max(0, 境界序.findIndex(name => 境界.includes(name)));
   const 门内档 = L <= 4 ? '外门' : L === 5 ? '内门' : L === 6 ? '管事' : '长老';
   const 本宗弟子 = kws => 身份列表.some(id => kws.some(kw => id.includes(kw)));
-  const pick3 = pool => {
-    const copy = [...pool];
-    for (let i=copy.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [copy[i],copy[j]]=[copy[j],copy[i]]; }
-    return copy.slice(0,3).join('、');
-  };
 
   // ========== 人物 ==========
   const characters = {
@@ -109,7 +131,7 @@ if (world === '冥界') {
     const detail=`### ${m.name}\n`+m.body.split('\n').filter(l=>l.startsWith('- ')).join('\n')+'\n'+m.stages.map(([n,scene,danger,solution,reward])=>`  ${n}. ${scene}\n    险: ${danger}\n    解: ${solution}\n    获: ${reward}`).join('\n');
     out+=`    ${q(m.name)}: {\n      brief: ${tpl(brief)},\n      detail: ${tpl(detail)},\n    },\n`;
   }
-  out+='  };\n  const 秘境显示 = names => names.map(n => 具体地点.includes(n) ? M[n].detail : M[n].brief).join("\\n");\n\n  // ========== 普通资源 ==========\n  const RES = {\n';
+  out+='  };\n  const 秘境显示 = names => names.map(n => inLoc(n) ? M[n].detail : M[n].brief).join("\\n");\n\n  // ========== 普通资源 ==========\n  const RES = {\n';
   for(const e of ecologies)out+=`    ${q(e.name)}: ${arr(field(e.body,'普通资源').split('。')[0].split('、'))},\n`;
   out+='  };\n\n  // ========== 生态 ==========\n  const ecoData = {\n';
   for(const e of ecologies){
@@ -132,23 +154,39 @@ if (world === '冥界') {
     out+=`    ${q(k.name)}: {\n      kws: ${arr([k.name,...keys[i],...charsByKing[i].map(n=>people[n-1].name)])},\n      brief: ${tpl('### '+k.name+'\n'+field(k.body,'简介、疆域与政体'))},\n      detail: ${tpl('### '+k.name+'\n'+k.body)},\n    },\n`;
   });
   out+='  };\n\n  // ========== 地图 ==========\n';
-  const map=blueprint.match(/```mermaid\n([\s\S]*?)```/)[1];
-  const geography=blueprint.split('忘川西高东低，')[1].split('```')[0].trim();
-  out+=`  const mapText = ${tpl('<region_map realm="冥界">\n```mermaid\n'+map+'```\n忘川西高东低，'+geography+'\n交通：驿车、渡船与商队连接聚落；寄身渡联系特定阳间肉体。\n</region_map>')};\n`;
-  const accord=blueprint.split('### 3. 《津岸约》与权力尺度\n')[1].split('### 4.')[0].trim();
-  const crossing=blueprint.split('### 4. 寄身渡\n')[1].split('## 二、')[0].trim();
-  out+=`  const societyText = ${tpl('## 津岸秩序\n'+accord+'\n## 寄身渡\n'+crossing)};\n`;
-  out+=String.raw`
-  // ========== 装配输出 ==========
-  const geoOut = Object.values(ecoData).map(e => e.detail()).join('\n\n');
-  const sectsOut = Object.values(sectsData).map(s => s.detail +
-    (本宗弟子(s.门内kws) ? '\n\n' + s.门内[门内档] : '')).join('\n\n');
-  const kingsOut = Object.values(kingsData).map(k => mentioned(k.kws) ? k.detail : k.brief).join('\n\n');
-  outputText = '<region_information realm="冥界">\n地点层级: 冥界-生态-宗门/秘境/城市(可选)-具体位置\n' +
-    '地域沿用当前地点记录，生态写入具体地点；鬼域荒野为忘川南岸留居地域的旧称。\n' +
-    '## 冥界概述\n永夜中的亡者社会：轮回沿线之外，田庄、渡镇、工坊与城邦各有生活。\n' +
-    societyText + '\n\n## 冥界生态\n' + geoOut + '\n\n## 冥界宗门\n' + sectsOut +
-    '\n\n## 冥界世俗政权与城市\n' + kingsOut + '\n</region_information>\n' + mapText;
+  const map = "<region_map realm=\"冥界\">\n```mermaid\ngraph TD\n    subgraph WEST[西部·黄泉驿野]\n        G[\"西端·鬼门关\"] === H[\"黄泉路\"]\n        H --- X[\"歇灯镇\"]\n    end\n    subgraph NORTH[中北部·阴都盆地]\n        W[\"西北支谷·枉死城\"] --- Y[\"中游北岸·阴都<br/>玄津宫\"]\n        Y -.地下.- P[\"阴狱<br/>炼魂院\"]\n    end\n    subgraph RIVER[中部·忘川两岸]\n        U[\"上游渡镇\"] -->|忘川东流| V[\"苇汀城\"]\n        V -->|忘川东流| E[\"下游苇荡\"]\n        B[\"阴都东南·奈何桥\"]\n    end\n    H === Y\n    Y === B\n    Y ===|北岸官道| J[\"东部下游北岸台地·轮回井\"]\n    B ===|北岸官道| J\n    X --- U\n    subgraph SOUTH[中南部·南岸诸境]\n        C[\"百坊城<br/>百骸山\"] --- M[\"青苔镇<br/>苔庭院\"]\n        M --- D[\"续灯观\"]\n    end\n    V --- C\n    B === C\n    E --- D\n    subgraph FAR[南部与东南·远冥边地]\n        A[\"归灯集\"] --- T[\"归尘台<br/>寄身渡\"]\n    end\n    C --- A\n    D --- A\n```\n地图阅读:\n- 实线 ---: 区域相邻或常用通路；虚线 -.-: 特殊通路，方式见线标。\n- 粗线 ===: 轮回官道；箭头 -->: 忘川水流方向。\n- 忘川西高东低；南岸赴轮回井经奈何桥，阴都赴井沿北岸官道；其他河段以渡船通行。\n</region_map>";
+  out+=`  const mapText = ${tpl(map)};\n`;
+  const societyText = "## 津岸秩序\n玄津宫、澄川宗、续灯观、百骸山、归尘台共守《津岸约》，苔庭院与地方政权参与相关事务。\n- 普通亡魂自愿轮回，留居者可加入各宗，包括玄津宫。\n- 玄津宫主持轮回沿线接引、审判与轮回井；各宗治本辖地，城邦自治，地方处理争产、欠薪和邻里纠纷。\n- 罪魂拘押炼用须有案据；涉及他宗或城邦居民，由所属方参与会勘。\n- 各宗协商护送、用水、供灵与招徒，重大争议在奈何桥南会津亭议定。\n世俗主官、将领及行会代表最高金丹，元婴以上威胁由宗门应对。化神为中坚，返虚常任管事长老，合体主持大宗，大乘极少，渡劫为境界上限。\n\n## 寄身渡\n少数宗门掌握联系阳间肉体、附身或夺舍并导魂过界的技艺。归尘台在远冥边缘设渡台，经营寻身、宿主联络与施术；暗中也有肉体贩卖和强夺交易。\n须先取得特定肉体与地点的联系：附身可与宿主约定，夺舍依原有神通要求。还阳后的修炼及飞升依所在界域规则。";
+  out+=`  const societyText = ${tpl(societyText)};\n`;
+  out+=`
+  // ========== 装配输出（与灵界总览一致） ==========
+  let geoOut, sectsOut, kingsOut, mapOut;
+  geoOut = Object.values(ecoData).map(e => e.detail()).join('\\n\\n');
+  sectsOut = Object.values(sectsData).map(s => {
+    let out = s.detail;
+    if (s.门内 && 本宗弟子(s.门内kws)) out += '\\n\\n' + s.门内[门内档];
+    return out;
+  }).join('\\n\\n');
+  kingsOut = Object.values(kingsData).map(k =>
+    mentioned(k.kws) ? k.detail : k.brief).join('\\n\\n');
+  mapOut = '\\n\\n' + mapText;
+
+  outputText = \`<region_information realm="冥界">
+地点层级: 冥界-生态-宗门/秘境/城市(可选)-具体位置
+地域沿用当前地点记录，生态写入具体地点；鬼域荒野为忘川南岸留居地域的旧称。
+## 冥界概述
+永夜中的亡者社会，轮回沿线之外，田庄、渡镇、工坊与城邦自有烟火。
+\${societyText}
+
+## 冥界生态
+\${geoOut}
+
+## 冥界宗门
+\${sectsOut}
+
+## 冥界世俗政权与城市
+\${kingsOut}
+</region_information>\${mapOut}\`;
 }
 _%>
 <%- outputText %>
@@ -201,14 +239,14 @@ const csvLine=a=>a.map(csvCell).join(',');
 export function artifacts(){
   const files=new Map([[overviewPath,overview()],...characterFiles()]);
   files.set('本格修仙.yaml',registerYaml(fs.readFileSync('本格修仙.yaml','utf8').replace(/\r\n/g,'\n')));
-  const charPath='Doc/角色蓝图.csv';
+  const charPath='Doc/世界书设定相关/角色蓝图.csv';
   const charCsv=fs.readFileSync(charPath,'utf8').replace(/\r\n/g,'\n');
   const newPeople=people.filter(p=>!charCsv.split('\n').some(l=>l.startsWith(p.name+',')));
   files.set(charPath,charCsv.trimEnd()+'\n'+newPeople.map(p=>csvLine([
     p.name,p.gender,[p.name,p.group,p.eco].join('、'),'冥界-'+p.eco,p.appearanceType,'',p.look,p.clothes,'',p.personality,p.artifact,
     '冥界',p.eco,p.race,p.realm,p.age,p.group,p.role,p.file,'',p.personality,'',p.story,p.story,p.personality,'','','','','','',
   ])).join('\n')+(newPeople.length?'\n':''));
-  const secretPath='Doc/秘境清单.csv';
+  const secretPath='Doc/世界书设定相关/秘境清单.csv';
   const secretCsv=fs.readFileSync(secretPath,'utf8').replace(/\r\n/g,'\n');
   const newSecrets=secrets.filter(m=>!secretCsv.includes(','+m.name+','));
   files.set(secretPath,secretCsv.trimEnd()+'\n'+newSecrets.map(m=>{

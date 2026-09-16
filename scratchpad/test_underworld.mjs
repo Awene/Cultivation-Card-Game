@@ -66,6 +66,7 @@ for(const k of governments){
   const marker=k.body.split('\n').find(l=>l.startsWith('- 庇护交换'));
   check(!base.includes(marker),k.name+'默认简报');
   for(const kw of data.kws){check(run({'stat_data.地点.具体地点':'荒野'},[kw]).includes(marker),k.name+'关键词'+kw);}
+  for(const key of ['message','content'])check(run({'stat_data.地点.具体地点':'荒野'},[{[key]:k.name}]).includes(marker),k.name+'聊天对象'+key);
 }
 for(const e of ecologies){
   const pool=captured.__res[e.name];
@@ -105,9 +106,9 @@ function csv(text){
   if(cell||row.length)rows.push([...row,cell]);
   return rows;
 }
-const castRows=csv(read('Doc/角色蓝图.csv'));
+const castRows=csv(read('Doc/世界书设定相关/角色蓝图.csv'));
 for(const p of people){const rows=castRows.filter(r=>r[0]===p.name);check(rows.length===1,p.name+'唯一CSV');check(rows[0].length===castRows[0].length,p.name+'CSV列数');check(rows[0][14]===p.realm&&rows[0][15]===String(p.age),p.name+'CSV境界年龄');}
-const secretRows=csv(read('Doc/秘境清单.csv'));
+const secretRows=csv(read('Doc/世界书设定相关/秘境清单.csv'));
 for(const m of secrets){const rows=secretRows.filter(r=>r[2]===m.name);check(rows.length===1,m.name+'唯一CSV');check(rows[0].length===secretRows[0].length,m.name+'CSV列数');}
 for(const[file,generated]of artifacts())check(read(file)===generated,'生成器无漂移'+file);
 
