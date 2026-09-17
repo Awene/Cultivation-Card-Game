@@ -1,4 +1,4 @@
-// 自包含 EJS 的轻量采样器：支持本试稿使用的代码、插值、空白裁剪。
+// 自包含 EJS 的轻量采样器：支持代码、插值、空白裁剪。
 // 不模拟酒馆变量/API/include；只运行受信任的本地模板，vm 不是安全沙箱。
 import fs from 'node:fs';
 import vm from 'node:vm';

@@ -1,7 +1,7 @@
 """UTF-8 文本 token 计数；--render 对自包含 EJS 试稿做固定种子采样。
 
 依赖：python -m pip install tiktoken；渲染另需 Node.js。
-默认比较正式角色生成规则与伪代码试稿；可传入任意文本路径。
+默认统计正式角色生成规则；可传入任意文本路径，传入两个文件时比较消耗。
 """
 import argparse
 import json
@@ -24,7 +24,7 @@ def main():
     args = parser.parse_args()
     if args.samples < 1:
         parser.error("--samples 必须大于 0")
-    files = args.files or [base.parent / "世界书/[角色生成规则].txt", base / "[角色生成规则]-伪代码试稿.txt"]
+    files = args.files or [base.parent / "世界书/[角色生成规则].txt"]
     encoding = tiktoken.get_encoding(args.encoding)
     count = lambda text: len(encoding.encode(text, disallowed_special=()))
     rows = []

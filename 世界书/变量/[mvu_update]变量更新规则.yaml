@@ -68,7 +68,7 @@ types:
       {
         *RealmName
         当前进度: number;
-        进度上限: number; #进阶下一级所需的修为
+        进度上限: number; #进阶所需修为
         天谴: number;
         丹毒: number;
       }
@@ -93,21 +93,20 @@ types:
         };
       }
     check:
-      - 技艺为持续累积的非负数值
       - 仅在对应规则明确结算技艺增长时更新;不得随普通叙事增减
   资源池: &resource_pool
     气血.现值:
       type: number
       check:
-        - 归零判定:气血归零→死亡
-        - 任何恢复不可超过上限
+        - 气血归零→死亡
+        - 不可超过上限
     气血.上限:
       type: number
     灵气.现值:
       type: number
       check:
-        - 归零判定:灵气归零→无法施法
-        - 任何恢复不可超过上限
+        - 灵气归零→无法施法
+        - 不可超过上限
     灵气.上限:
       type: number
     遁速:
