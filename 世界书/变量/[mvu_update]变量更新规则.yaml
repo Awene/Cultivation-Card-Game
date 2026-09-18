@@ -4,7 +4,7 @@ types:
   RealmName: &RealmName "境界: string; #大境界+小境界,如:练气初期"
   elements: &elements "五行: '金'|'木'|'水'|'火'|'土'|'阴'|'阳'|'混沌';"
   quality: &quality "品质: '凡'|'黄'|'玄'|'地'|'天';"
-  label: &label "标签: string[]; #参考*RULE_标签加值指导"
+  label: &label '标签: string[]; #如 ["命中:4", "攻击力:450000"]；参考*RULE_标签映射规则'
   utility: &utility "效果?: { [效果名: string]: string }; #参考*RULE_效果加值指导"
   cost: &cost "消耗?: string; #'灵气|气血|精血: num',如 '灵气: 5';无消耗则省略此字段"
   location: &location |-
@@ -230,7 +230,7 @@ types:
           类型: '法宝'|'护甲'|'饰品';
           *cost
           *elements
-          *label  # 法宝→[攻击力:N]、护甲→[防御力:N]
+          *label  # 法宝含"攻击力:N"、护甲含"防御力:N"
           *utility
           描述: string;
           位置: string; #装备位于身体上的位置,如:上装、下装、饰品、手部、储物袋等
