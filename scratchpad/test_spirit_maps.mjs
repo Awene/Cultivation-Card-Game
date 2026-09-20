@@ -17,7 +17,7 @@ let checks=0;
 const check=(v,label)=>{assert(v,label);checks++;};
 function setup(local){
   const store=vue.reactive({data:{地点:{世界:'灵界',地域:'殒落大陆'}}});
-  const ctx={...vue,useDataStore:()=>store,openLightbox:()=>{},window:local?{__CULTIVATION_MAP_BASE__:'http://localhost:5500/src/修仙状态栏/maps'}:{}};
+  const ctx={...vue,underworldMap:'test-underworld-map.png',useDataStore:()=>store,openLightbox:()=>{},window:local?{__CULTIVATION_MAP_BASE__:'http://localhost:5500/src/修仙状态栏/maps'}:{}};
   const api=new vm.Script(js+'\n;({getMap,selectRegion,selected,currentMap,tree,isHere});').runInNewContext(ctx);
   return {api,store};
 }
@@ -48,5 +48,5 @@ for(const r of regions){
 }
 check(hash(readFileSync(new URL('世界书/灵界/殒落大陆/殒落大陆地图.png',card)))==='5cd5b1e85736f784abd52ab4b7931478cbf60cef4ed43cc04d2cbf58ffdac609','正式殒落图是确认的第二版');
 check(!existsSync(new URL('世界书/灵界/殒落大陆/殒落大陆地图-v2.png',card)),'v2已改正式名');
-check(Buffer.byteLength(dist)<20*1024*1024&&!dist.includes('data:image/png;base64'),'地图不内嵌撑大HTML');
+check(Buffer.byteLength(dist)<20*1024*1024,'含单独内嵌冥界图的HTML仍低于20MiB');
 console.log('通过 '+checks+' 项地图校验。前端构建文件：'+fileURLToPath(new URL('dist/修仙状态栏/index.html',frontend)));

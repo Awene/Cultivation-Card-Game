@@ -20,7 +20,7 @@ for(const e of entries){
  const src=fs.readFileSync(file,'utf8'),p=compile(src),region=e.文件.split('\\')[2];
  assert.equal(run(p,'凡界',region),'',e.名称+' world gate');
  if(e.文件.includes('\\人物\\')){
-  const C=JSON.parse(src.match(/const C = (\{[\s\S]*?\n\});/)[1]);
+  const C=vm.runInNewContext('('+src.match(/const C = (\{[\s\S]*?\n\});/)[1]+')',{}, {timeout:1000});
   for(const name of Object.keys(C)){
    assert(e.激活策略.关键字.includes(name),name+' keyword index');
    assert(run(p,'灵界',region,'',[name]).includes('### '+name),name+' EJS detail'); people++;
