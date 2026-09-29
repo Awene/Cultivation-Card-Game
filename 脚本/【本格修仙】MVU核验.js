@@ -320,6 +320,7 @@ function normalizeCalendarState(input) {
   const legacyTime = /^(?:公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)/i.test(String(rawYear ?? '').trim())
     || (world === '地球' && cultivationYear(rawYear, world) !== cultivationYear(rawYear) && Number.isFinite(cultivationYear(rawYear, world)));
   const normalize = value => cultivationDate(value, world, fallback);
+  const normalizeOptional = value => Object.keys(calendarParts(value)).length ? normalize(value) : value;
   const mapRecords = (records, fn) => Array.isArray(records) ? records.map(fn) : Object.fromEntries(Object.entries(records).map(([key, value]) => [key, fn(value)]));
   const result = { ...input, 时间: normalize(input.时间) };
   const characterYears = character => {
@@ -336,18 +337,18 @@ function normalizeCalendarState(input) {
   if (input.关系列表) result.关系列表 = Object.fromEntries(Object.entries(input.关系列表).map(([name, c]) => [name, characterYears(c)]));
   if (input.传闻 && !Array.isArray(input.传闻)) {
     result.传闻 = { ...input.传闻 };
-    if (input.传闻.上次世界推进时间点 != null) result.传闻.上次世界推进时间点 = normalize(input.传闻.上次世界推进时间点);
+    if (input.传闻.上次世界推进时间点 != null) result.传闻.上次世界推进时间点 = normalizeOptional(input.传闻.上次世界推进时间点);
   }
   if (input.任务) result.任务 = mapRecords(input.任务, raw => {
     const task = { ...raw };
-    if (task.截止时间 != null) task.截止时间 = normalize(task.截止时间);
+    if (task.截止时间 != null) task.截止时间 = normalizeOptional(task.截止时间);
     return task;
   });
   if (input.固定资产) result.固定资产 = mapRecords(input.固定资产, raw => {
     const asset = { ...raw };
     if (asset.设施) asset.设施 = mapRecords(asset.设施, rawFacility => {
       const facility = { ...rawFacility };
-      if (facility.上次收取日期 != null) facility.上次收取日期 = normalize(facility.上次收取日期);
+      if (facility.上次收取日期 != null) facility.上次收取日期 = normalizeOptional(facility.上次收取日期);
       return facility;
     });
     return asset;

@@ -307,7 +307,7 @@ ${renderRosterCharacter('绛苇')}
   ).join('\n');
 
   outputText = `<region_information realm="灵界" region="殒落大陆">
-地点层级: 殒落大陆-大陆碎片名称-具体位置
+地点层级: 灵界-殒落大陆-\${大陆碎片名称}-\${具体位置}
 <narrator_background player_knowledge="not_granted">
 - 此处原为魔族故土，上古超大陆战争使其重创，后来一次天魔袭击将其击碎，残片漂浮虚海；袭击年份及未来入侵日期未定。
 - 魔族为天生人形的独立种族，古魔、魅魔、翼魔等残脉可随修为忆起血脉传承；与域外天魔无关。原住民有日常社会与个体差异，残存天魔侵蚀须与原文化、血脉和设施区分。

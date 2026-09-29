@@ -970,9 +970,7 @@ graph TD
   mapOut = '\n\n' + mapText;
 
   outputText = `<region_information realm="冥界">
-地点层级: 冥界-生态-宗门/秘境/城市(可选)-具体位置
-## 冥界概述
-永夜中的亡者社会，轮回沿线之外，田庄、渡镇、工坊与城邦自有烟火。
+地点层级: 冥界-\${生态}-\${?宗门|秘境|城市}-\${具体位置}
 ${societyText}
 
 ## 冥界生态

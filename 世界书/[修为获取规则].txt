@@ -20,65 +20,7 @@ const _xw_世界 = getMessageVar('stat_data.地点.世界') || '凡界';
 const _xw_D = { 凡界: 2, 灵界: 6, 仙界: 10, 冥界: 0.5 }[_xw_世界];
 let _xw_环境公式 = `( ${_xw_D} / L)^2`;
 if (_xw_世界 === '地球') {
-  // BEGIN CULTIVATION_CALENDAR (源: 前端 util/cultivation-calendar.js)
-// 修仙历兼容层：仅代码识别旧历输入；提示词和界面始终使用修仙历。
-/** @param {unknown} value */
-function calendarNumber(value) {
-  if (typeof value === 'number') return Number.isInteger(value) ? value : NaN;
-  let text = String(value ?? '').normalize('NFKC').trim().replace(/[年月日号]$/, '').replace(/^初/, '');
-  text = ({ 正: '一', 冬: '十一', 腊: '十二', 臘: '十二' })[text] ?? text;
-  if (/^\d+$/.test(text)) return Number(text);
-  text = text.replace(/〇/g, '零').replace(/两/g, '二').replace(/廿/g, '二十').replace(/卅/g, '三十');
-  const digits = '零一二三四五六七八九';
-  if (!/^[零一二三四五六七八九十百千万]+$/.test(text)) return NaN;
-  if (!/[十百千万]/.test(text)) return Number([...text].map(c => digits.indexOf(c)).join(''));
-  let total = 0, section = 0, n = 0;
-  for (const c of text) {
-    const digit = digits.indexOf(c);
-    if (digit >= 0) n = digit;
-    else if (c === '万') { total += (section + n) * 10000; section = 0; n = 0; }
-    else { section += (n || 1) * ({ 十: 10, 百: 100, 千: 1000 })[c]; n = 0; }
-  }
-  return total + section + n;
-}
-
-/** @param {unknown} value @param {string} world */
-function cultivationYear(value, world = '') {
-  const text = String(value ?? '').normalize('NFKC').trim();
-  const explicitCultivation = /^修仙[历曆]/.test(text);
-  const explicitOld = /^(?:公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)/i.test(text);
-  let year = calendarNumber(text.replace(/^(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*/i, ''));
-  // 无前缀的现代年份仅在地球纠正，避免改动其他世界的古代年份。
-  if (explicitOld || (!explicitCultivation && world === '地球' && year >= 1900 && year <= 2999)) year += 5000;
-  return Number.isSafeInteger(year) && year >= 1 && year <= 275000 ? year : NaN;
-}
-
-/** @param {unknown} input @returns {any} */
-function calendarParts(input) {
-  if (input && typeof input === 'object' && !Array.isArray(input)) return { ...input };
-  if (typeof input !== 'string') return {};
-  const text = input.normalize('NFKC').trim();
-  const match = text.match(/^((?:(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*)?[\d零〇一二两三四五六七八九十百千万]+)(?:年|[-/.])([\d正冬腊臘一二三四五六七八九十]+)(?:月|[-/.])([\d初廿卅一二三四五六七八九十]+)(?:日|号)?(?:\s*(.*))?$/i);
-  return match ? { 年: match[1], 月: match[2], 日: match[3], ...(match[4] ? { 时辰: match[4] } : {}) } : {};
-}
-
-/** @param {unknown} input @param {string} world @param {any} fallback */
-function cultivationDate(input, world = '', fallback = { 年: 7026, 月: 1, 日: 1 }) {
-  const value = calendarParts(input);
-  const year = cultivationYear(value.年 ?? value.year, world);
-  const month = calendarNumber(value.月 ?? value.month);
-  const day = calendarNumber(value.日 ?? value.day);
-  return {
-    ...value,
-    年: Number.isFinite(year) ? year : fallback.年,
-    月: month >= 1 && month <= 12 ? month : fallback.月,
-    日: day >= 1 && day <= 30 ? day : fallback.日,
-  };
-}
-// END CULTIVATION_CALENDAR
-let 原时间;
-try { 原时间 = getMessageVar('stat_data.时间'); } catch (_) { /* 读取失败沿用开局基准 */ }
-const 时间 = cultivationDate(原时间, '地球');
+  const 时间 = getMessageVar('stat_data.时间');
   const t = Date.UTC(Number(时间.年), Number(时间.月)-1, Number(时间.日));
   const a = Date.UTC(7026,0,1), b = Date.UTC(7030,0,1), c = Date.UTC(7050,0,1);
   const r = t < b ? 0.25 + 0.75 * (t-a)/(b-a) : t < c ? 1 + 9.8 * (t-b)/(c-b) : 10.8;
