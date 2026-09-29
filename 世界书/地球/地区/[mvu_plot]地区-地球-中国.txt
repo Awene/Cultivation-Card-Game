@@ -1,0 +1,225 @@
+<%_ {
+const 世界 = getMessageVar('stat_data.地点.世界');
+const 地域 = String(getMessageVar('stat_data.地点.地域') || '');
+if (世界 === '地球' && [
+  "中国",
+  "北京",
+  "洛阳",
+  "东风修仙基地",
+  "仙改委",
+  "华修院"
+].some(k => 地域.includes(k))) {
+const 具体地点 = String(getMessageVar('stat_data.地点.具体地点') || '');
+const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 探索记录 = getMessageVar('stat_data.事件.进度.地球名胜') || {};
+// BEGIN CULTIVATION_CALENDAR (源: 前端 util/cultivation-calendar.js)
+// 修仙历兼容层：仅代码识别旧历输入；提示词和界面始终使用修仙历。
+/** @param {unknown} value */
+function calendarNumber(value) {
+  if (typeof value === 'number') return Number.isInteger(value) ? value : NaN;
+  let text = String(value ?? '').normalize('NFKC').trim().replace(/[年月日号]$/, '').replace(/^初/, '');
+  text = ({ 正: '一', 冬: '十一', 腊: '十二', 臘: '十二' })[text] ?? text;
+  if (/^\d+$/.test(text)) return Number(text);
+  text = text.replace(/〇/g, '零').replace(/两/g, '二').replace(/廿/g, '二十').replace(/卅/g, '三十');
+  const digits = '零一二三四五六七八九';
+  if (!/^[零一二三四五六七八九十百千万]+$/.test(text)) return NaN;
+  if (!/[十百千万]/.test(text)) return Number([...text].map(c => digits.indexOf(c)).join(''));
+  let total = 0, section = 0, n = 0;
+  for (const c of text) {
+    const digit = digits.indexOf(c);
+    if (digit >= 0) n = digit;
+    else if (c === '万') { total += (section + n) * 10000; section = 0; n = 0; }
+    else { section += (n || 1) * ({ 十: 10, 百: 100, 千: 1000 })[c]; n = 0; }
+  }
+  return total + section + n;
+}
+
+/** @param {unknown} value @param {string} world */
+function cultivationYear(value, world = '') {
+  const text = String(value ?? '').normalize('NFKC').trim();
+  const explicitCultivation = /^修仙[历曆]/.test(text);
+  const explicitOld = /^(?:公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)/i.test(text);
+  let year = calendarNumber(text.replace(/^(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*/i, ''));
+  // 无前缀的现代年份仅在地球纠正，避免改动其他世界的古代年份。
+  if (explicitOld || (!explicitCultivation && world === '地球' && year >= 1900 && year <= 2999)) year += 5000;
+  return Number.isSafeInteger(year) && year >= 1 && year <= 275000 ? year : NaN;
+}
+
+/** @param {unknown} input @returns {any} */
+function calendarParts(input) {
+  if (input && typeof input === 'object' && !Array.isArray(input)) return { ...input };
+  if (typeof input !== 'string') return {};
+  const text = input.normalize('NFKC').trim();
+  const match = text.match(/^((?:(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*)?[\d零〇一二两三四五六七八九十百千万]+)(?:年|[-/.])([\d正冬腊臘一二三四五六七八九十]+)(?:月|[-/.])([\d初廿卅一二三四五六七八九十]+)(?:日|号)?(?:\s*(.*))?$/i);
+  return match ? { 年: match[1], 月: match[2], 日: match[3], ...(match[4] ? { 时辰: match[4] } : {}) } : {};
+}
+
+/** @param {unknown} input @param {string} world @param {any} fallback */
+function cultivationDate(input, world = '', fallback = { 年: 7026, 月: 1, 日: 1 }) {
+  const value = calendarParts(input);
+  const year = cultivationYear(value.年 ?? value.year, world);
+  const month = calendarNumber(value.月 ?? value.month);
+  const day = calendarNumber(value.日 ?? value.day);
+  return {
+    ...value,
+    年: Number.isFinite(year) ? year : fallback.年,
+    月: month >= 1 && month <= 12 ? month : fallback.月,
+    日: day >= 1 && day <= 30 ? day : fallback.日,
+  };
+}
+// END CULTIVATION_CALENDAR
+let 原时间;
+try { 原时间 = getMessageVar('stat_data.时间'); } catch (_) { /* 读取失败沿用开局基准 */ }
+const 时间 = cultivationDate(原时间, '地球');
+const 今日 = Date.UTC(Number(时间.年), Number(时间.月)-1, Number(时间.日));
+const 日期值 = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y,m-1,d); };
+const localSetting = `# 中国
+佛道与隐世世家保存传承，现代公共教育、科研与工业协同发展。凡人的组织、工程和生产能力参与决定修士行动的成败。
+## 管理与培养
+- 国家仙道发展与改革委员会（仙改委）：受中共直接领导，统筹登记、公共灵石、培养与跨界事务。全体修士登记，必要时接受征召；入学自愿。
+- 华夏修真科学院（华修院）：研究经典、制石、动力与修真工业，协作培养。
+- 东风修仙基地：北京，全国统一公共培养学府，按境界分级；讲师按专长任用，凡人工程师与文献学者同样授课。
+- 六方向：功法术法、丹药医理、炼器工学、阵法工程、灵植生态、驯兽异类。佛道与世家导师参与共同课程和专业教学。
+- 公共资源按用途与需要配置；资助附带任务、用途核查、行动留档及纪律监督。培养包含马列主义课程与学习强国积分要求。
+- 已登记的非在校修士可购石、接公开任务、申请资助；学员另有导师、设施与培养配额。
+## 城市生活
+北京基地有教学庭院、阅览楼、工学楼、药圃、食堂与宿舍，日常围绕选课、实验、同伴和导师展开。事务大厅办理登记、项目与资源核查；装备库负责借还，华修院合作实验室进行制石与动力试验。
+洛阳市区灵务联络窗口承接登记和地方调查，伊河沿岸集合点组织龙门考察。居民报告异变，商户备货，学员参与调查；往返北京须安排交通。
+## 参与线索
+教学配额被紧急行动挤占；家传阵理与公开实验记录发生冲突；制石样品异常需要工程复现；洛阳植物异变连接地方调查与北京求学。`;
+const characters = {
+  "梁知衡": {
+    "title": "仙改委委员、培养与公共资源事务负责人，常驻北京，联系东风修仙基地。",
+    "realm": "凡人",
+    "appearanceType": "御姐",
+    "age": 48,
+    "root": "无灵根、凡体",
+    "moderate": "外貌: 齐耳短发夹着少量银丝，深色套装，随身带写满批注的纸质日程本。"
+  },
+  "顾清霄": {
+    "title": "东风修仙基地修行教学负责人，道门传承者，常驻北京。",
+    "realm": "元婴初期",
+    "appearanceType": "御姐",
+    "age": 68,
+    "root": "水木双灵根、凡体",
+    "moderate": "外貌: 长发以木簪束起，鬓边微白，穿素色长衫与布鞋，冬日加旧呢外套。"
+  },
+  "明澄": {
+    "title": "比丘尼，称明澄法师，受聘于基地丹药与医理方向，常驻北京。",
+    "realm": "金丹中期",
+    "appearanceType": "御姐",
+    "age": 61,
+    "root": "木水土三灵根、凡体",
+    "moderate": "外貌: 剃发，灰色僧衣，工作时加洁净罩衣，手边常放记有病情的薄册。"
+  },
+  "唐砚秋": {
+    "title": "华修院灵石动力工程研究员、基地工学讲师，常驻北京实验区。",
+    "realm": "凡人",
+    "appearanceType": "御姐",
+    "age": 39,
+    "root": "无灵根、凡体",
+    "moderate": "外貌: 短马尾，细框眼镜，实验服口袋里插着笔和量尺，指节有修设备留下的旧痕。"
+  },
+  "程雁回": {
+    "title": "基地实践教学负责人兼异常行动队带队人员，常驻北京，按任务出差。",
+    "realm": "筑基中期",
+    "appearanceType": "御姐",
+    "age": 34,
+    "root": "金水木火四灵根、凡体",
+    "moderate": "外貌: 利落短发，深色便装与耐磨外套，腕表表带磨旧，出任务时背急救包。"
+  },
+  "许闻溪": {
+    "title": "仙改委监督事务工作人员，承担基地资源核查联络，常驻北京。",
+    "realm": "炼气中期",
+    "appearanceType": "御姐",
+    "age": 27,
+    "root": "金木水土四灵根、凡体",
+    "moderate": "外貌: 低束发，素净衬衣与外套，文件夹按颜色分门别类。"
+  },
+  "陆知微": {
+    "title": "隐世修行世家子弟，自愿进入东风修仙基地，主修阵法与工程。",
+    "realm": "炼气后期",
+    "appearanceType": "少女",
+    "age": 22,
+    "root": "木火土三灵根、凡体",
+    "moderate": "外貌: 乌黑长发，便装外搭浅色针织衫，随身携带家传的小册与现代计算器。"
+  },
+  "周小满": {
+    "title": "来自洛阳的基地新生，主修灵植与生态，兼修基础救护。",
+    "realm": "炼气初期",
+    "appearanceType": "少女",
+    "age": 20,
+    "root": "木水火土四灵根、凡体",
+    "moderate": "外貌: 齐肩发，帆布包上别着植物徽章，常穿运动鞋，随手记下药圃发芽日期。"
+  },
+  "沈伯谦": {
+    "title": "古典文献学者，基地经典研读讲师，常驻北京。",
+    "realm": "凡人",
+    "appearanceType": "白发老教授",
+    "age": 67,
+    "root": "无灵根、凡体",
+    "moderate": "外貌: 旧式眼镜，灰色夹克，书页夹满便签，板书工整。"
+  },
+  "韩越川": {
+    "title": "基地器材与后勤负责人，原家传修习者，常驻北京。",
+    "realm": "筑基初期",
+    "appearanceType": "结实中年男子",
+    "age": 45,
+    "root": "金火土水四灵根、凡体",
+    "moderate": "外貌: 平头，工装，腰间挂设备钥匙，指甲总修得很短。"
+  }
+};
+const sites = [{
+    "region": "中国",
+    "name": "白云观·清息道场",
+    "kws": ["白云观", "清息道场"],
+    "open": "7025-04-12",
+    "brief": "北京白云观，稳定调息与经典研习地。",
+    "body": "气流沿院落石缝循环。顾清霄定期讲调息，沈伯谦研读经典，陆知微测绘气流；登记修士可预约，凡人可旁听或参与工程。设备安装改变气流时，测绘与修行经验共同修复环境。教学、个人修炼与场所维护共享有限时段。"
+  }, {
+    "region": "中国",
+    "name": "龙门·回澜石窟",
+    "kws": ["龙门", "回澜石窟"],
+    "open": "7025-12-18",
+    "brief": "洛阳伊河岸，水光岩壁通向导流遗迹；炼气协作、筑基深入。",
+    "body": `程雁回组织考察，明澄救护，周小满记录生态。入口窗口依现场灵潮测量。
+1. 岸边勘测：用绳索、测量与水属感知分辨倒影，记录入口。
+2. 分流石室：疏通灵泉旁路，救出困在高处的先遣人员，取得导流残图。
+3. 回声长廊：诵读残响扰乱判断，强施术放大回声；辨读、调息与分组传讯取得阵纹拓录。
+4. 水脉中枢：修复泄流或封闭岔道，回收可拆卸损坏阵件与观察记录。
+收获：炼气至筑基水属材料、导流阵理、救援与研究报酬。修复后的外围可预约调查。`
+  }, {
+    "region": "中国",
+    "name": "嵩山·中岳星台",
+    "kws": ["嵩山", "太室山", "中岳星台"],
+    "warning": "7026-03-14",
+    "open": "7026-03-21",
+    "notice": "7026-03-23",
+    "sign": "河南登封太室山测绘出现稳定方位偏差。",
+    "brief": "登封太室山的折叠观测空间；炼气测绘、筑基探索核心。",
+    "body": `顾清霄指导，陆知微与唐砚秋协作；旧传承经验与仪器结果初看相悖。
+1. 山径定向：转身后道路变化，用实地标记与连续测量建坐标。
+2. 错位石阶：队员所见阶梯不同，统一观测时序和联络点，取得星位刻图。
+3. 三座辅台：工程人员调结构，修士分点输灵，同时稳定阵位。
+4. 主台复位：旋转阵盘挤压出口，可恢复观测功能或保退路封存主台，取观测阵理与损坏样件。
+收获：同阶材料、阵理与实践评价；外围可转为测绘教学地。`
+  }];
+const profileOut = Object.entries(characters).map(([name,c]) => {
+  if (Object.prototype.hasOwnProperty.call(人物关系,name)) return c.title + ': ' + name;
+  const age = c.age + Math.max(0,Number(时间.年)-7026);
+  return c.realm + ' ' + name + '(' + c.appearanceType + ')｜人族，' + age + '岁，' + c.root + '\n身份: ' + c.title + '\n' + c.moderate;
+}).join('\n');
+const siteOut = sites.map(s => {
+  if (今日 < 日期值(s.open)) return s.warning && 今日 >= 日期值(s.warning) ? '- 异常报告：' + s.sign : '';
+  const notice = s.notice && 今日 >= 日期值(s.notice) ? ' 已发布调查与协作招募。' : '';
+  const record = 探索记录[s.name] ? '\n当前记录: ' + 探索记录[s.name] : '';
+  return 具体地点 && s.kws.some(k => 具体地点.includes(k)) ? '### ' + s.name + '\n' + s.brief + notice + record + '\n场景与探索参考:\n' + s.body : '- ' + s.name + '：' + s.brief + notice + record;
+}).filter(Boolean).join('\n');
+_%>
+<%- localSetting %>
+## 地区人物
+<%- profileOut %>
+## 当前复苏名胜
+<%- siteOut %>
+<%_ }
+} _%>

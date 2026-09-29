@@ -1,5 +1,106 @@
 import { registerMvuSchema } from "https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js";
 
+// BEGIN CULTIVATION_CALENDAR (源: 前端 util/cultivation-calendar.js)
+// 修仙历兼容层：仅代码识别旧历输入；提示词和界面始终使用修仙历。
+/** @param {unknown} value */
+function calendarNumber(value) {
+  if (typeof value === 'number') return Number.isInteger(value) ? value : NaN;
+  let text = String(value ?? '').normalize('NFKC').trim().replace(/[年月日号]$/, '').replace(/^初/, '');
+  text = ({ 正: '一', 冬: '十一', 腊: '十二', 臘: '十二' })[text] ?? text;
+  if (/^\d+$/.test(text)) return Number(text);
+  text = text.replace(/〇/g, '零').replace(/两/g, '二').replace(/廿/g, '二十').replace(/卅/g, '三十');
+  const digits = '零一二三四五六七八九';
+  if (!/^[零一二三四五六七八九十百千万]+$/.test(text)) return NaN;
+  if (!/[十百千万]/.test(text)) return Number([...text].map(c => digits.indexOf(c)).join(''));
+  let total = 0, section = 0, n = 0;
+  for (const c of text) {
+    const digit = digits.indexOf(c);
+    if (digit >= 0) n = digit;
+    else if (c === '万') { total += (section + n) * 10000; section = 0; n = 0; }
+    else { section += (n || 1) * ({ 十: 10, 百: 100, 千: 1000 })[c]; n = 0; }
+  }
+  return total + section + n;
+}
+
+/** @param {unknown} value @param {string} world */
+function cultivationYear(value, world = '') {
+  const text = String(value ?? '').normalize('NFKC').trim();
+  const explicitCultivation = /^修仙[历曆]/.test(text);
+  const explicitOld = /^(?:公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)/i.test(text);
+  let year = calendarNumber(text.replace(/^(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*/i, ''));
+  // 无前缀的现代年份仅在地球纠正，避免改动其他世界的古代年份。
+  if (explicitOld || (!explicitCultivation && world === '地球' && year >= 1900 && year <= 2999)) year += 5000;
+  return Number.isSafeInteger(year) && year >= 1 && year <= 275000 ? year : NaN;
+}
+
+/** @param {unknown} input @returns {any} */
+function calendarParts(input) {
+  if (input && typeof input === 'object' && !Array.isArray(input)) return { ...input };
+  if (typeof input !== 'string') return {};
+  const text = input.normalize('NFKC').trim();
+  const match = text.match(/^((?:(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*)?[\d零〇一二两三四五六七八九十百千万]+)(?:年|[-/.])([\d正冬腊臘一二三四五六七八九十]+)(?:月|[-/.])([\d初廿卅一二三四五六七八九十]+)(?:日|号)?(?:\s*(.*))?$/i);
+  return match ? { 年: match[1], 月: match[2], 日: match[3], ...(match[4] ? { 时辰: match[4] } : {}) } : {};
+}
+
+/** @param {unknown} input @param {string} world @param {any} fallback */
+function cultivationDate(input, world = '', fallback = { 年: 7026, 月: 1, 日: 1 }) {
+  const value = calendarParts(input);
+  const year = cultivationYear(value.年 ?? value.year, world);
+  const month = calendarNumber(value.月 ?? value.month);
+  const day = calendarNumber(value.日 ?? value.day);
+  return {
+    ...value,
+    年: Number.isFinite(year) ? year : fallback.年,
+    月: month >= 1 && month <= 12 ? month : fallback.月,
+    日: day >= 1 && day <= 30 ? day : fallback.日,
+  };
+}
+
+/** 只处理时间字段，不把年龄、耗时或现实元数据误当年份。 @param {any} input @returns {any} */
+function normalizeCalendarState(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return input;
+  const world = input.地点?.世界 ?? '';
+  const fallback = { 年: world === '地球' ? 7026 : 1, 月: 1, 日: 1 };
+  const rawYear = calendarParts(input.时间).年 ?? calendarParts(input.时间).year;
+  const legacyTime = /^(?:公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)/i.test(String(rawYear ?? '').trim())
+    || (world === '地球' && cultivationYear(rawYear, world) !== cultivationYear(rawYear) && Number.isFinite(cultivationYear(rawYear, world)));
+  const normalize = value => cultivationDate(value, world, fallback);
+  const mapRecords = (records, fn) => Array.isArray(records) ? records.map(fn) : Object.fromEntries(Object.entries(records).map(([key, value]) => [key, fn(value)]));
+  const result = { ...input, 时间: normalize(input.时间) };
+  const characterYears = character => {
+    const copy = { ...character };
+    for (const [section, field] of [['寿元', '生日'], ['修炼进度', '上次突破时间点']]) {
+      const value = character?.[section]?.[field];
+      if (value == null) continue;
+      const year = cultivationYear(value, legacyTime ? '地球' : '');
+      if (Number.isFinite(year)) copy[section] = { ...character[section], [field]: year };
+    }
+    return copy;
+  };
+  Object.assign(result, characterYears(result));
+  if (input.关系列表) result.关系列表 = Object.fromEntries(Object.entries(input.关系列表).map(([name, c]) => [name, characterYears(c)]));
+  if (input.传闻 && !Array.isArray(input.传闻)) {
+    result.传闻 = { ...input.传闻 };
+    if (input.传闻.上次世界推进时间点 != null) result.传闻.上次世界推进时间点 = normalize(input.传闻.上次世界推进时间点);
+  }
+  if (input.任务) result.任务 = mapRecords(input.任务, raw => {
+    const task = { ...raw };
+    if (task.截止时间 != null) task.截止时间 = normalize(task.截止时间);
+    return task;
+  });
+  if (input.固定资产) result.固定资产 = mapRecords(input.固定资产, raw => {
+    const asset = { ...raw };
+    if (asset.设施) asset.设施 = mapRecords(asset.设施, rawFacility => {
+      const facility = { ...rawFacility };
+      if (facility.上次收取日期 != null) facility.上次收取日期 = normalize(facility.上次收取日期);
+      return facility;
+    });
+    return asset;
+  });
+  return result;
+}
+// END CULTIVATION_CALENDAR
+
 // ===== 公用枚举 =====
 const FiveElementValues = ["金", "木", "水", "火", "土", "阴", "阳", "混沌"];
 
@@ -580,7 +681,7 @@ const RelationEntrySchema = z.preprocess(
 // ===== 地点 Schema =====
 const LocationSchema = z
   .object({
-    世界: z.enum(["凡界", "灵界", "仙界"]).prefault("凡界"),
+    世界: z.enum(["凡界", "灵界", "仙界", "冥界", "地球"]).prefault("凡界"),
     地域: z.string().prefault("中原"),
     具体地点: z.string().prefault("荒野"),
   })
@@ -650,7 +751,7 @@ function parseCalendarNumber(input) {
 
 const TimeSchema = z
   .object({
-    年: z.preprocess(parseCalendarNumber, z.number().min(1).catch(1)).prefault(1),
+    年: z.preprocess(value => cultivationYear(value), z.number().min(1).catch(1)).prefault(1),
     月: z.preprocess(parseCalendarNumber, z.number().transform(n=>_.clamp(n,1,12)).catch(1)).prefault(1),
     日: z.preprocess(parseCalendarNumber, z.number().transform(n=>_.clamp(n,1,30)).catch(1)).prefault(1),
     // “子时中 / 子时三刻 / 子初 / 子正”等可理解写法统一收敛到所属时辰。
@@ -682,7 +783,7 @@ function normalizeAssetType(input) {
 function normalizeAssetLocation(input) {
   if (typeof input === "string") {
     const parts = input.split(/\s*(?:[·•>＞/／|]|\s+-\s+)\s*/).filter(Boolean);
-    const hasWorld = !!parts[0] && /[凡灵仙]界/.test(parts[0]);
+    const hasWorld = !!parts[0] && /^(?:[凡灵仙冥]界|地球)$/.test(parts[0]);
     return {
       世界: hasWorld ? parts[0] : "凡界",
       地域: hasWorld ? parts[1] || "中原" : parts.length >= 2 ? parts[0] : "中原",
@@ -701,7 +802,7 @@ function normalizeAssetLocation(input) {
 
 function normalizeAssetWorld(input) {
   const text = String(input ?? "");
-  return /仙/.test(text) ? "仙界" : /灵/.test(text) ? "灵界" : "凡界";
+  return /地球/.test(text) ? "地球" : /冥/.test(text) ? "冥界" : /仙/.test(text) ? "仙界" : /灵/.test(text) ? "灵界" : "凡界";
 }
 
 function normalizeAssetTime(input) {
@@ -761,7 +862,7 @@ function normalizeFixedAsset(input) {
 const AssetLocationSchema = z.preprocess(
   normalizeAssetLocation,
   z.object({
-    世界: z.preprocess(normalizeAssetWorld, z.enum(["凡界", "灵界", "仙界"])),
+    世界: z.preprocess(normalizeAssetWorld, z.enum(["凡界", "灵界", "仙界", "冥界", "地球"])),
     地域: z.preprocess((input) => normalizeLooseString(input, "中原"), z.string()),
     具体地点: z.preprocess((input) => normalizeLooseString(input, "荒野"), z.string()),
   }),
@@ -846,7 +947,7 @@ const RumorEntrySchema = z.object({
 });
 
 // ===== 主 Schema (扁平化:基本信息/修炼功法/储物空间 三大类拆掉) =====
-export const Schema = z.object({
+export const Schema = z.preprocess(normalizeCalendarState, z.looseObject({
   // —— 原 基本信息.* ——
   姓名: z.string().prefault("User"),
   寿元: LifespanSchema,
@@ -883,7 +984,7 @@ export const Schema = z.object({
       条目: z.preprocess(migrateRumorEntries, z.record(z.string(), RumorEntrySchema)).prefault({}),
     }).prefault({}),
   ),
-});
+}));
 
 // ============================================================
 // JSONPatch 预处理器
@@ -1377,12 +1478,16 @@ function normalizeTimeCommand(command, variables) {
   const parts = splitPath(command.args[0]);
   if (command.type === 'insert') parts.push(String(tryParseValue(command.args[1])));
   const index = command.args.length - 1;
-  const value = tryParseValue(command.args[index]);
+  let value = tryParseValue(command.args[index]);
   const isTime = path => path.join('.') === '时间' || path.join('.') === '传闻.上次世界推进时间点'
     || (path[0] === '固定资产' && path.length === 5 && path[2] === '设施' && path[4] === '上次收取日期');
+  if (isTime(parts) && typeof value === 'string' && Object.keys(calendarParts(value)).length) {
+    value = calendarParts(value);
+    command.args[index] = value;
+  }
   if (isTime(parts.slice(0,-1)) && ['年','月','日','时辰'].includes(parts.at(-1))) {
     const field = parts.at(-1);
-    const parsed = field === '时辰' ? normalizeTimePeriod(value) : parseCalendarNumber(value);
+    const parsed = field === '时辰' ? normalizeTimePeriod(value) : field === '年' ? cultivationYear(value, variables?.stat_data?.地点?.世界) : parseCalendarNumber(value);
     if (parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))) {
       console.warn('[JSONPatch preprocessor] 无法识别时间，保留原值:', parts, value);
       return false;
@@ -1399,7 +1504,7 @@ function normalizeTimeCommand(command, variables) {
       if (isTime(path)) {
         const old = _.get(variables?.stat_data, path) ?? {};
         for (const field of ['年','月','日','时辰']) {
-          const parsed = field === '时辰' ? normalizeTimePeriod(node[field]) : parseCalendarNumber(node[field]);
+          const parsed = field === '时辰' ? normalizeTimePeriod(node[field]) : field === '年' ? cultivationYear(node[field], value.地点?.世界 ?? variables?.stat_data?.地点?.世界) : parseCalendarNumber(node[field]);
           if (node[field] !== undefined && (parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))))
             console.warn('[JSONPatch preprocessor] 时间对象字段无法识别，使用旧值:', [...path,field], node[field]);
           node[field] = parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))

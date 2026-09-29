@@ -9,7 +9,7 @@ types:
   cost: &cost "消耗?: string; #'灵气|气血|精血: num',如 '灵气: 5';无消耗则省略此字段"
   location: &location |-
     {
-      世界: '凡界'|'灵界'|'仙界'; #realm
+      世界: '凡界'|'灵界'|'仙界'|'冥界'|'地球'; #realm
       地域: string; #region
       具体地点: string; #格式:${生态}-${?宗门|秘境|城市}-${具体位置}
     }

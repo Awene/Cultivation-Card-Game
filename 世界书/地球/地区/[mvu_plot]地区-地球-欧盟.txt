@@ -1,0 +1,196 @@
+<%_ {
+const 世界 = getMessageVar('stat_data.地点.世界');
+const 地域 = String(getMessageVar('stat_data.地点.地域') || '');
+if (世界 === '地球' && [
+  "欧盟",
+  "意大利",
+  "罗马",
+  "法国",
+  "德国",
+  "西班牙",
+  "葡萄牙",
+  "圣约神学院",
+  "奥瑞安"
+].some(k => 地域.includes(k))) {
+const 具体地点 = String(getMessageVar('stat_data.地点.具体地点') || '');
+const 人物关系 = getMessageVar('stat_data.关系列表') || {};
+const 探索记录 = getMessageVar('stat_data.事件.进度.地球名胜') || {};
+// BEGIN CULTIVATION_CALENDAR (源: 前端 util/cultivation-calendar.js)
+// 修仙历兼容层：仅代码识别旧历输入；提示词和界面始终使用修仙历。
+/** @param {unknown} value */
+function calendarNumber(value) {
+  if (typeof value === 'number') return Number.isInteger(value) ? value : NaN;
+  let text = String(value ?? '').normalize('NFKC').trim().replace(/[年月日号]$/, '').replace(/^初/, '');
+  text = ({ 正: '一', 冬: '十一', 腊: '十二', 臘: '十二' })[text] ?? text;
+  if (/^\d+$/.test(text)) return Number(text);
+  text = text.replace(/〇/g, '零').replace(/两/g, '二').replace(/廿/g, '二十').replace(/卅/g, '三十');
+  const digits = '零一二三四五六七八九';
+  if (!/^[零一二三四五六七八九十百千万]+$/.test(text)) return NaN;
+  if (!/[十百千万]/.test(text)) return Number([...text].map(c => digits.indexOf(c)).join(''));
+  let total = 0, section = 0, n = 0;
+  for (const c of text) {
+    const digit = digits.indexOf(c);
+    if (digit >= 0) n = digit;
+    else if (c === '万') { total += (section + n) * 10000; section = 0; n = 0; }
+    else { section += (n || 1) * ({ 十: 10, 百: 100, 千: 1000 })[c]; n = 0; }
+  }
+  return total + section + n;
+}
+
+/** @param {unknown} value @param {string} world */
+function cultivationYear(value, world = '') {
+  const text = String(value ?? '').normalize('NFKC').trim();
+  const explicitCultivation = /^修仙[历曆]/.test(text);
+  const explicitOld = /^(?:公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)/i.test(text);
+  let year = calendarNumber(text.replace(/^(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*/i, ''));
+  // 无前缀的现代年份仅在地球纠正，避免改动其他世界的古代年份。
+  if (explicitOld || (!explicitCultivation && world === '地球' && year >= 1900 && year <= 2999)) year += 5000;
+  return Number.isSafeInteger(year) && year >= 1 && year <= 275000 ? year : NaN;
+}
+
+/** @param {unknown} input @returns {any} */
+function calendarParts(input) {
+  if (input && typeof input === 'object' && !Array.isArray(input)) return { ...input };
+  if (typeof input !== 'string') return {};
+  const text = input.normalize('NFKC').trim();
+  const match = text.match(/^((?:(?:修仙[历曆]|公元|公[历曆]|西[历曆]|阳历|AD\b|CE\b)\s*)?[\d零〇一二两三四五六七八九十百千万]+)(?:年|[-/.])([\d正冬腊臘一二三四五六七八九十]+)(?:月|[-/.])([\d初廿卅一二三四五六七八九十]+)(?:日|号)?(?:\s*(.*))?$/i);
+  return match ? { 年: match[1], 月: match[2], 日: match[3], ...(match[4] ? { 时辰: match[4] } : {}) } : {};
+}
+
+/** @param {unknown} input @param {string} world @param {any} fallback */
+function cultivationDate(input, world = '', fallback = { 年: 7026, 月: 1, 日: 1 }) {
+  const value = calendarParts(input);
+  const year = cultivationYear(value.年 ?? value.year, world);
+  const month = calendarNumber(value.月 ?? value.month);
+  const day = calendarNumber(value.日 ?? value.day);
+  return {
+    ...value,
+    年: Number.isFinite(year) ? year : fallback.年,
+    月: month >= 1 && month <= 12 ? month : fallback.月,
+    日: day >= 1 && day <= 30 ? day : fallback.日,
+  };
+}
+// END CULTIVATION_CALENDAR
+let 原时间;
+try { 原时间 = getMessageVar('stat_data.时间'); } catch (_) { /* 读取失败沿用开局基准 */ }
+const 时间 = cultivationDate(原时间, '地球');
+const 今日 = Date.UTC(Number(时间.年), Number(时间.月)-1, Number(时间.日));
+const 日期值 = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y,m-1,d); };
+const localSetting = `# 欧盟
+以罗马为首批舞台。天主教传承网络、各国公共机构与资本共同培养修士，各国保留本地管理和执法权。
+## 组织与培养
+- 欧洲灵务协作理事会：协调资格互认、跨国考察与联合救援。
+- 圣约神学院：罗马的修行学院，传承教师、研究者及资助代表参与院务；神父讲授传承，修女承担医理等专长，凡人修复师、工程师和语言学者同样任教。
+- 按修为分组、能力组队；共同课程含引气、经典、术法控制、现代科学、救护与法律。特色为圣物修复、医理净化、仪式阵法、古文与遗迹解读。
+- 基础与技术课程向非信教者开放，宗教职务与内部传承另有条件。
+- 公共奖助对应救援、医疗和公共研究；教会资助对应传承整理、修复或约定宗教职责；企业资助对应考察服务、成果授权和保密合同。
+- 奥瑞安资源集团经营天然灵石矿业、工程与运输，资助材料实验室和考察，争取勘矿技术及成果权益。
+## 罗马生活
+圣约神学院的庭院连接文献室、修复工坊、食堂与考察办公室。学生带样品上课，在咖啡馆讨论名单；奥瑞安项目办公室协商合同，装备间交接样品与筹备跨国行程。
+毕业可进入公共行动、研究、教会传承或企业项目。研究署名、资料开放与资助席位构成长线矛盾。
+## 参与线索
+旧器物的导水阵既可改善居民供水，也被企业争取独家开发；抄本保管者要求先归还器物；完成关键译读的非信教学生希望取得合作研究资格。`;
+const characters = {
+  "玛尔塔·里纳尔迪": {
+    "title": "意大利籍，圣约神学院行政院长，世俗教育管理者，常驻罗马。",
+    "realm": "凡人",
+    "appearanceType": "御姐",
+    "age": 44,
+    "root": "无灵根、凡体",
+    "moderate": "外貌: 深棕短卷发，合身西装，常提装满项目文件的皮包。"
+  },
+  "马泰奥·贝利尼": {
+    "title": "意大利籍，天主教神父、圣约神学院传承教学负责人，常驻罗马。",
+    "realm": "元婴初期",
+    "appearanceType": "灰白发老者",
+    "age": 72,
+    "root": "金水双灵根、凡体",
+    "moderate": "外貌: 黑色教士服，白色领口，身形瘦长，阅读时戴老花镜。"
+  },
+  "阿涅丝·莫罗": {
+    "title": "法国籍，天主教修女、圣约神学院医理与净化导师，常驻罗马。",
+    "realm": "金丹初期",
+    "appearanceType": "御姐",
+    "age": 64,
+    "root": "木水土三灵根、凡体",
+    "moderate": "外貌: 简朴修女服与头巾，眼角纹路明显，工作时袖口收紧。"
+  },
+  "伊内斯·杜阿尔特": {
+    "title": "葡萄牙籍，古代文献与器物修复讲师，圣约神学院世俗研究人员，常驻罗马。",
+    "realm": "凡人",
+    "appearanceType": "御姐",
+    "age": 36,
+    "root": "无灵根、凡体",
+    "moderate": "外貌: 卷发盘起，亚麻衬衣、工作围裙，指尖常有清洗材料的气味。"
+  },
+  "克拉拉·福格尔": {
+    "title": "德国籍，奥瑞安资源集团考察项目负责人、学院资助方联络代表，常驻罗马，往返项目现场。",
+    "realm": "筑基初期",
+    "appearanceType": "御姐",
+    "age": 32,
+    "root": "金木水土四灵根、凡体",
+    "moderate": "外貌: 金棕短发，商务外套与便于行走的鞋，考察时更换耐磨装备。"
+  },
+  "索菲娅·马丁": {
+    "title": "西班牙籍，圣约神学院公共奖助生，主修器物修复与遗迹解读，常驻罗马。",
+    "realm": "炼气中期",
+    "appearanceType": "少女",
+    "age": 23,
+    "root": "木水火土四灵根、凡体",
+    "moderate": "外貌: 深色长发，宽松衬衣，背包里塞着速写本与封装样品袋。"
+  }
+};
+const sites = [{
+    "region": "欧盟",
+    "name": "蒂沃利·百泉调息庭",
+    "kws": ["蒂沃利", "埃斯特别墅", "百泉调息庭"],
+    "open": "7025-06-08",
+    "brief": "意大利蒂沃利埃斯特别墅水道，稳定恢复与观测场所。",
+    "body": "阿涅丝指导恢复，伊内斯研究旧水道，索菲娅记录节律；研习与日常维护、参观协调排程。资源为修习条件和数据。奥瑞安出资换管，要求优先获取实验成果；改造是否影响灵气循环需实测。"
+  }, {
+    "region": "欧盟",
+    "name": "奥斯蒂亚·回潮水廊",
+    "kws": ["奥斯蒂亚", "回潮水廊"],
+    "open": "7025-11-22",
+    "brief": "意大利奥斯蒂亚古城调查点通向地下水廊，潮水来自秘境内部；炼气协作、筑基深入。",
+    "body": `伊内斯与索菲娅辨读，克拉拉供装备，玛尔塔协调合同。
+1. 干井测绘：以高差、绳索、风向排除误导水声，取得断面图。
+2. 旧库清障：防盐雾侵蚀，识别结构或制服误判人员的搬运傀儡，取得货运标记。
+3. 分水闸室：开闸会淹没另一通道，先安排人员与仪器上高处，再分步操作取得水路图。
+4. 蓄灵池：分段卸压、修管或封存损坏池段，取失效控制件与少量凝结材料。
+收获：水工阵理、炼气至筑基材料与项目报酬；公共供水用途与商业开发权存在争议。`
+  }, {
+    "region": "欧盟",
+    "name": "圣米歇尔·潮钟回廊",
+    "kws": ["圣米歇尔", "潮钟回廊"],
+    "warning": "7026-06-07",
+    "open": "7026-06-14",
+    "notice": "7026-06-16",
+    "sign": "法国圣米歇尔山海湾出现无声源低鸣与异常灵力节律。",
+    "brief": "法国圣米歇尔山海湾折叠回廊；炼气岸上支援、筑基组队深入。",
+    "body": `罗马团队须跨国赴法。阿涅丝救护，马泰奥提供远程意见，玛尔塔协调；入口依灵潮监测。
+1. 岸边接应：建观察点、追踪信号，分辨雾中错位路径。
+2. 潮音回廊：声学测量、阵法与分段标记打破回返，寻找被困人员。
+3. 断裂钟架：强施术加剧共振，以工程支撑和低强度分点镇定取共振与阵纹资料。
+4. 回流中庭：分配稳流、撤离和取件时间，未取深处器件可留待回访。
+收获：防护消振阵理、同阶材料与救援评价；修复外围可作跨国教学点。`
+  }];
+const profileOut = Object.entries(characters).map(([name,c]) => {
+  if (Object.prototype.hasOwnProperty.call(人物关系,name)) return c.title + ': ' + name;
+  const age = c.age + Math.max(0,Number(时间.年)-7026);
+  return c.realm + ' ' + name + '(' + c.appearanceType + ')｜人族，' + age + '岁，' + c.root + '\n身份: ' + c.title + '\n' + c.moderate;
+}).join('\n');
+const siteOut = sites.map(s => {
+  if (今日 < 日期值(s.open)) return s.warning && 今日 >= 日期值(s.warning) ? '- 异常报告：' + s.sign : '';
+  const notice = s.notice && 今日 >= 日期值(s.notice) ? ' 已发布调查与协作招募。' : '';
+  const record = 探索记录[s.name] ? '\n当前记录: ' + 探索记录[s.name] : '';
+  return 具体地点 && s.kws.some(k => 具体地点.includes(k)) ? '### ' + s.name + '\n' + s.brief + notice + record + '\n场景与探索参考:\n' + s.body : '- ' + s.name + '：' + s.brief + notice + record;
+}).filter(Boolean).join('\n');
+_%>
+<%- localSetting %>
+## 地区人物
+<%- profileOut %>
+## 当前复苏名胜
+<%- siteOut %>
+<%_ }
+} _%>
