@@ -16,12 +16,12 @@ if(mode==='cdn'){
  await Promise.all((process.argv.includes('--maps-only')?maps:[...paths,...maps]).filter(p=>p.includes(filter)).map(async path=>{
   const expected=execFileSync('git',['show',tag+':'+path],{cwd:frontend,maxBuffer:32*1024*1024});
   const url='https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@'+tag+'/'+path;
-  let response;
+  let response,bytes;
   for(let attempt=0;attempt<3;attempt++){
-   try {response=await fetch(url,{signal:AbortSignal.timeout(45000)});break;}
+   try {response=await fetch(url,{signal:AbortSignal.timeout(180000)});bytes=Buffer.from(await response.arrayBuffer());break;}
    catch(error){if(attempt===2)throw error;}
   }
-  assert.equal(response.status,200,path);const bytes=Buffer.from(await response.arrayBuffer());
+  assert.equal(response.status,200,path);
   assert.equal(hash(bytes),hash(expected),path+' exact bytes');
   if(path.endsWith('html'))assert(bytes.includes(Buffer.from('<'))&&bytes.length<20*1024*1024,path+' HTML/size');
   console.log(JSON.stringify({path,status:200,bytes:bytes.length,sha256:hash(bytes)}));
