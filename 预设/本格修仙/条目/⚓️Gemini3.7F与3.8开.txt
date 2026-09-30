@@ -3,7 +3,4 @@
 - 起始序列：若模型先产生<think>，其中仅输出Complete.并闭合，再输出`<!-- Start the ECoT -->`与<thinking>；否则直接以`<!-- Start the ECoT -->`与<thinking>开始。
 - 按<think_format>完成Step 1至Step 7；闭合</thinking>后按“预输出格式标签顺序”输出。思考区不生成正文、局部思考、面板或变量更新。
 </think_rules>
-<% if (lastMessageId === 1) { %>
-本次为开局，须按"variables_update_rules"在`<UpdateVariable>`中完整记录主角初始信息。
-<% } %>
 现在按上述起始序列开始补全。

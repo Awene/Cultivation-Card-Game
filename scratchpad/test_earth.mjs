@@ -18,12 +18,12 @@ function render(src,vars={},messages=[]){
 }
 const config=YAML.parse(read('本格修仙.yaml'));
 const entries=config.条目.filter(e=>e.文件?.startsWith('世界书\\地球\\'));
-ok(entries.length===10,'总览与九个人物条目登记');
+ok(entries.length===11,'总览、凡界简述与九个人物条目登记');
 for(const e of entries){
   const src=read(e.文件.replaceAll('\\','/')+'.txt');
   for(const world of ['凡界','灵界','冥界','仙界'])ok(render(src,{'stat_data.地点.世界':world}).trim()==='',e.名称+'不串界');
   ok(!render(src).includes('\\n'),e.名称+'真实换行');
-  ok(e.插入位置.顺序===(e.名称.includes('人物-')?200:e.名称.includes('地区-')?53:52),'正确顺序');
+  ok(e.插入位置.顺序===(e.名称.includes('人物-')?200:e.名称.includes('地区-')||e.名称.includes('地球版凡界简述')?53:52),'正确顺序');
   ok(e.递归.不可激活其他条目,'禁止名册递归激活所有人物');
 }
 const region=()=>read('世界书/地球/[mvu_plot]地球总览.txt');
@@ -46,7 +46,8 @@ const siteData=vm.runInNewContext(overview.slice(overview.indexOf('  const M =')
 const rosterData=vm.runInNewContext(overview.slice(overview.indexOf('  const characters ='),overview.indexOf('  const countriesData ='))+'\ncharacters;');
 const countries=vm.runInNewContext(overview.slice(overview.indexOf('  const countriesData ='),overview.indexOf('  const citiesData ='))+'\ncountriesData;');
 const cities=vm.runInNewContext(overview.slice(overview.indexOf('  const citiesData ='),overview.indexOf('  const M ='))+'\ncitiesData;');
-ok(Object.keys(countries).length===9&&Object.keys(cities).length===11,'九地区、十一城市');
+ok(Object.keys(countries).length===9&&Object.keys(cities).length===10,'九地区、十城市');
+ok(!cities['洛阳']&&!cities['海法']&&!!cities['耶路撒冷'],'移除洛阳城市、以色列改为耶路撒冷');
 const assigned=Object.values(countries).flatMap(c=>c.roster);
 ok(assigned.length===49&&new Set(assigned).size===49,'每名人物只属于一组名册');
 for(const [name,country] of Object.entries(countries)){

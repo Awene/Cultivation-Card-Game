@@ -66,16 +66,41 @@ const formatErrorMessage = (error) => {
   return baseMsg;
 };
 
-function errorCatched(fn) {
+function errorCatched(fn, rethrow = false) {
   return async (...args) => {
     try {
       return await fn(...args);
     } catch (error) {
+      if (rethrow) throw error;
       console.error('[SummaryAssist] Catched error:', error);
       const formattedMsg = formatErrorMessage(error);
       toastr.error(`[总结助手] 操作失败: ${formattedMsg}`);
     }
   };
+}
+
+let summaryChatEpoch = 0;
+function captureSummaryContext() {
+  const epoch = summaryChatEpoch;
+  const chatId = SillyTavern.getCurrentChatId();
+  const worldbook = getActiveWorldbookName();
+  return () => {
+    if (epoch !== summaryChatEpoch || chatId !== SillyTavern.getCurrentChatId() ||
+        (worldbook && worldbook !== getActiveWorldbookName())) {
+      throw new Error('聊天或总结世界书已切换，本次操作已中止，请回原聊天重试');
+    }
+  };
+}
+
+function validateSummaryContent(value) {
+  const text = typeof value === 'string' ? value.trim() : '';
+  if (!text) throw new Error('总结内容为空，未保存');
+  // 只识别明确的服务错误响应，不对剧情内容作语义猜测。
+  if (/^(?:```(?:json|html|text)?\s*)?(?:API\s*(?:Error|错误|请求失败)|HTTP\s*[45]\d{2}\b|Error:\s*(?:[45]\d{2}\b|Internal Server Error|Bad Gateway|Gateway Timeout)|<!doctype\s+html|<html\b)/i.test(text) ||
+      /^\{\s*"error"\s*:/i.test(text)) {
+    throw new Error('总结接口返回错误内容，原总结保持不变');
+  }
+  return text;
 }
 
 
@@ -738,17 +763,20 @@ const saveMegaSummaryMap = errorCatched(async (map) => {
     { [CONFIG.MEGA_SUMMARY_VAR_KEY]: map || {} },
     { type: 'chat' }
   );
-});
+}, true);
 
 const getMegaSummaryMap = errorCatched(async () => {
   return await loadMegaSummaryMap();
 });
 
 const setMegaSummaryMapping = errorCatched(async (megaSummaryName, summaryNames) => {
+  const checkContext = captureSummaryContext();
   const map = await loadMegaSummaryMap();
+  checkContext();
   map[megaSummaryName] = Array.isArray(summaryNames) ? [...summaryNames] : [];
   await saveMegaSummaryMap(map);
-});
+  checkContext();
+}, true);
 
 const getMegaSummaryMapping = errorCatched(async (megaSummaryName) => {
   const map = await loadMegaSummaryMap();
@@ -946,6 +974,7 @@ const buildCustomApiConfig = (settings) => {
 
 const callSummaryApi = errorCatched(
   async ({ promptBlocks, oldSummaryContent, mergedChatText, scanText }) => {
+    const checkContext = captureSummaryContext();
     const settings = getSettings();
     const customApi = buildCustomApiConfig(settings);
     const useNoTrans = settings.noTransTag !== false;
@@ -1019,6 +1048,7 @@ const callSummaryApi = errorCatched(
     if (generateRawFn) {
       try {
         const result = await generateRawFn(config);
+        checkContext();
         return result ? String(result).trim() : '';
       } catch (e) {
         const status = extractHttpStatus(e);
@@ -1050,12 +1080,15 @@ const callSummaryApi = errorCatched(
         keepalive: true, // 启用保活机制
         signal: controller.signal,
       });
+      checkContext();
       clearTimeout(timeoutId);
       if (!response.ok) {
         const errText = await response.text();
+        checkContext();
         throw new Error(`Generation failed (${response.status}): ${errText}`);
       }
       const resultData = await response.json();
+      checkContext();
       if (
         resultData &&
         Array.isArray(resultData.results) &&
@@ -1071,11 +1104,13 @@ const callSummaryApi = errorCatched(
       }
       throw error;
     }
-  }
+  },
+  true,
 );
 
 const callMegaSummaryApi = errorCatched(
   async ({ promptBlocks, oldMegaSummaryContent, mergedSummaryText }) => {
+    const checkContext = captureSummaryContext();
     const settings = getSettings();
     const customApi = buildCustomApiConfig(settings);
     const useNoTrans = settings.noTransTag !== false;
@@ -1139,6 +1174,7 @@ const callMegaSummaryApi = errorCatched(
     if (generateRawFn) {
       try {
         const result = await generateRawFn(config);
+        checkContext();
         return result ? String(result).trim() : '';
       } catch (e) {
         const status = extractHttpStatus(e);
@@ -1170,12 +1206,15 @@ const callMegaSummaryApi = errorCatched(
         keepalive: true, // 启用保活机制
         signal: controller.signal,
       });
+      checkContext();
       clearTimeout(timeoutId);
       if (!response.ok) {
         const errText = await response.text();
+        checkContext();
         throw new Error(`Generation failed (${response.status}): ${errText}`);
       }
       const resultData = await response.json();
+      checkContext();
       if (
         resultData &&
         Array.isArray(resultData.results) &&
@@ -1191,7 +1230,8 @@ const callMegaSummaryApi = errorCatched(
       }
       throw error;
     }
-  }
+  },
+  true,
 );
 
 const fetchModelList = errorCatched(async (apiUrl, apiKey) => {
@@ -1313,10 +1353,13 @@ const isChatWorldbookBound = () => {
 // ---- 世界书绑定/解绑 ----
 
 const bindWorldbookToChat = errorCatched(async (name) => {
+  const checkContext = captureSummaryContext();
   if (!name) return;
   const names = await getWorldbookNames();
+  checkContext();
   if (!names.includes(name)) {
     await createWorldbook(name, []);
+    checkContext();
     toastr.info(`已创建新世界书: "${name}"`, '', { positionClass: 'toast-top-right' });
   }
   if (
@@ -1326,10 +1369,11 @@ const bindWorldbookToChat = errorCatched(async (name) => {
     const globalNames = getGlobalWorldbookNames() || [];
     if (!globalNames.includes(name)) {
       await rebindGlobalWorldbooks([...new Set([...globalNames, name])]);
+      checkContext();
     }
   }
   writeChatWorldbookBinding(name);
-});
+}, true);
 
 const unbindWorldbookFromChat = errorCatched(async () => {
   const name = getActiveWorldbookName();
@@ -1462,27 +1506,34 @@ const migrateWorldbookEntries = errorCatched(async (oldName, newName) => {
 // ---- 条目读写 ----
 
 const getWorldbookEntriesSafe = errorCatched(async () => {
+  const checkContext = captureSummaryContext();
   const wbName = getActiveWorldbookName();
   if (!wbName) return [];
   const names = await getWorldbookNames();
+  checkContext();
   if (!names.includes(wbName)) return [];
   const wb = await getWorldbook(wbName);
+  checkContext();
   return normalizeWorldbookEntries(wb);
-});
+}, true);
 
 const ensureWorldbookExists = errorCatched(async () => {
+  const checkContext = captureSummaryContext();
   let wbName = getActiveWorldbookName();
   if (!wbName) {
     wbName = generateDefaultWorldbookName();
     await bindWorldbookToChat(wbName);
+    checkContext();
     toastr.info(`已自动创建并绑定世界书: "${wbName}"`, '', {
       positionClass: 'toast-top-right',
     });
     return;
   }
   const names = await getWorldbookNames();
+  checkContext();
   if (!names.includes(wbName)) {
     await createWorldbook(wbName, []);
+    checkContext();
     toastr.info(`已创建新世界书: "${wbName}"`);
   }
   if (
@@ -1493,10 +1544,11 @@ const ensureWorldbookExists = errorCatched(async () => {
     if (!globalNames.includes(wbName)) {
       const next = [...new Set([...globalNames, wbName])];
       await rebindGlobalWorldbooks(next);
+      checkContext();
       toastr.info(`已将世界书加入全局启用: "${wbName}"`);
     }
   }
-});
+}, true);
 
 // ---- 楼层可见性 ----
 
@@ -1547,11 +1599,13 @@ const buildSummarizedFloorSet = (entries, lastId) => {
 };
 
 const applySummarizedFloorsVisibility = errorCatched(async () => {
+  const checkContext = captureSummaryContext();
   const settings = getSettings();
   const shouldAutoHide = settings.autoHideSummarizedFloors !== false;
   const lastId = getLastMessageId();
   if (lastId < 0) return false;
   const entries = await getWorldbookEntriesSafe();
+  checkContext();
   const summarizedSet = buildSummarizedFloorSet(entries, lastId);
   let maxSummarizedFloor = -1;
   for (const id of summarizedSet) {
@@ -1591,9 +1645,10 @@ const applySummarizedFloorsVisibility = errorCatched(async () => {
     await setChatMessages(updates.slice(i, i + VISIBILITY_CHUNK_SIZE), {
       refresh: isLast ? 'all' : 'none',
     });
+    checkContext();
   }
   return true;
-});
+}, true);
 
 // ---- 条目排序与写入 ----
 
@@ -1616,12 +1671,15 @@ const buildSummaryOrderMap = (worldbookEntries, extraNameToInclude = null) => {
 };
 
 const reorderAllSummaryEntries = errorCatched(async () => {
+  const checkContext = captureSummaryContext();
   const wbName = getActiveWorldbookName();
   if (!wbName) return;
   const entries = await getWorldbookEntriesSafe();
+  checkContext();
   const orderMap = buildSummaryOrderMap(entries);
   if (orderMap.size === 0) return;
   await updateWorldbookWith(wbName, (wb) => {
+    checkContext();
     const arr = normalizeWorldbookEntries(wb);
     for (const e of arr) {
       if (!e || typeof e.name !== 'string') continue;
@@ -1631,17 +1689,23 @@ const reorderAllSummaryEntries = errorCatched(async () => {
     }
     return Array.isArray(wb) ? arr : { ...wb, entries: arr };
   });
-});
+  checkContext();
+}, true);
 
 const upsertSummaryEntryByName = errorCatched(async (entryName, content) => {
+  content = validateSummaryContent(content);
+  const checkContext = captureSummaryContext();
   await ensureWorldbookExists();
+  checkContext();
   const wbName = getActiveWorldbookName();
   const entries = await getWorldbookEntriesSafe();
+  checkContext();
   const orderMap = buildSummaryOrderMap(entries, entryName);
   const order = orderMap.get(entryName) ?? CONFIG.ENTRY_START_ORDER;
   const existing = entries.find((e) => e && e.name === entryName);
   if (existing) {
     await updateWorldbookWith(wbName, (wb) => {
+      checkContext();
       const arr = normalizeWorldbookEntries(wb);
       const target = arr.find((e) => e && e.name === entryName);
       if (target) {
@@ -1653,6 +1717,7 @@ const upsertSummaryEntryByName = errorCatched(async (entryName, content) => {
       }
       return Array.isArray(wb) ? arr : { ...wb, entries: arr };
     });
+    checkContext();
   } else {
     await createWorldbookEntries(wbName, [
       {
@@ -1676,13 +1741,16 @@ const upsertSummaryEntryByName = errorCatched(async (entryName, content) => {
         effect: { sticky: null, cooldown: null, delay: null },
       },
     ]);
+    checkContext();
   }
   await reorderAllSummaryEntries();
+  checkContext();
   const settings = getSettings();
   if (settings.autoHideSummarizedFloors !== false) {
     await applySummarizedFloorsVisibility();
+    checkContext();
   }
-});
+}, true);
 
 const deleteSummaryEntry = errorCatched(async (entryName) => {
   const wbName = getActiveWorldbookName();
@@ -1751,9 +1819,13 @@ const getSummaryContentsBefore = errorCatched(async (entryName) => {
 // ---- 大总结条目管理 ----
 
 const upsertMegaSummaryEntry = errorCatched(async (entryName, content, summaryNames) => {
+  content = validateSummaryContent(content);
+  const checkContext = captureSummaryContext();
   await ensureWorldbookExists();
+  checkContext();
   const wbName = getActiveWorldbookName();
   const entries = await getWorldbookEntriesSafe();
+  checkContext();
   
   // 计算大总结条目的 order（从1开始）
   const megaEntries = entries
@@ -1786,6 +1858,7 @@ const upsertMegaSummaryEntry = errorCatched(async (entryName, content, summaryNa
   const existing = entries.find((e) => e && e.name === entryName);
   if (existing) {
     await updateWorldbookWith(wbName, (wb) => {
+      checkContext();
       const arr = normalizeWorldbookEntries(wb);
       const target = arr.find((e) => e && e.name === entryName);
       if (target) {
@@ -1809,6 +1882,7 @@ const upsertMegaSummaryEntry = errorCatched(async (entryName, content, summaryNa
       }
       return Array.isArray(wb) ? arr : { ...wb, entries: arr };
     });
+    checkContext();
   } else {
     await createWorldbookEntries(wbName, [
       {
@@ -1832,24 +1906,30 @@ const upsertMegaSummaryEntry = errorCatched(async (entryName, content, summaryNa
         effect: { sticky: null, cooldown: null, delay: null },
       },
     ]);
+    checkContext();
   }
   
   // 保存大总结映射
   await setMegaSummaryMapping(entryName, summaryNames);
+  checkContext();
   
   // 重新排序所有大总结条目
   await reorderAllMegaSummaryEntries();
+  checkContext();
   
   const settings = getSettings();
   if (settings.autoHideSummarizedFloors !== false) {
     await applySummarizedFloorsVisibility();
+    checkContext();
   }
-});
+}, true);
 
 const reorderAllMegaSummaryEntries = errorCatched(async () => {
+  const checkContext = captureSummaryContext();
   const wbName = getActiveWorldbookName();
   if (!wbName) return;
   const entries = await getWorldbookEntriesSafe();
+  checkContext();
   
   const megaEntries = entries
     .filter((e) => e && isMegaSummaryEntry(e.name))
@@ -1862,6 +1942,7 @@ const reorderAllMegaSummaryEntries = errorCatched(async () => {
   if (megaEntries.length === 0) return;
   
   await updateWorldbookWith(wbName, (wb) => {
+    checkContext();
     const arr = normalizeWorldbookEntries(wb);
     megaEntries.forEach((megaEntry, idx) => {
       const target = arr.find((e) => e && e.name === megaEntry.name);
@@ -1883,7 +1964,8 @@ const reorderAllMegaSummaryEntries = errorCatched(async () => {
     });
     return Array.isArray(wb) ? arr : { ...wb, entries: arr };
   });
-});
+  checkContext();
+}, true);
 
 const deleteMegaSummaryEntry = errorCatched(async (entryName) => {
   const wbName = getActiveWorldbookName();
@@ -2051,8 +2133,10 @@ const getMegaSummaryContentsBefore = errorCatched(async (entryName) => {
  */
 
 const buildSummaryPromptParams = errorCatched(async (startFloor, endFloor) => {
+  const checkContext = captureSummaryContext();
   const settings = getSettings();
   const rawMsgs = await getRawMessages(startFloor, endFloor);
+  checkContext();
   const processed = processMessagesByTags(rawMsgs, settings.includeTags, settings.excludeTags, settings.excludeHtmlComments);
   if (processed.length === 0) {
     throw new Error(`楼层 ${startFloor}-${endFloor} 中没有提取到任何有效内容`);
@@ -2065,6 +2149,7 @@ const buildSummaryPromptParams = errorCatched(async (startFloor, endFloor) => {
   let oldSummaryContent = '';
   if (settings.includeOldSummary) {
     const allSummaries = await getAllSummaryContents();
+    checkContext();
     if (allSummaries.length > 0) {
       oldSummaryContent = allSummaries
         .map((s) => `[${s.name}]\n${s.content}`)
@@ -2072,15 +2157,17 @@ const buildSummaryPromptParams = errorCatched(async (startFloor, endFloor) => {
     }
   }
   const scanText = await getRawChatTextForScan(startFloor, endFloor);
+  checkContext();
   return {
     promptBlocks: settings.promptBlocks || [],
     oldSummaryContent,
     mergedChatText,
     scanText,
   };
-});
+}, true);
 
 const buildRegeneratePromptParams = errorCatched(async (entryName) => {
+  const checkContext = captureSummaryContext();
   const settings = getSettings();
   const parsed = parseSummaryEntryName(entryName);
   if (!parsed) throw new Error('条目名不符合"总结x-y楼"格式');
@@ -2088,6 +2175,7 @@ const buildRegeneratePromptParams = errorCatched(async (entryName) => {
   const lastId = getLastMessageId();
   const actualEnd = Math.min(end, lastId);
   const rawMsgs = await getRawMessages(start, actualEnd);
+  checkContext();
   const processed = processMessagesByTags(rawMsgs, settings.includeTags, settings.excludeTags, settings.excludeHtmlComments);
   if (processed.length === 0) {
     throw new Error(`楼层 ${start}-${actualEnd} 中没有提取到任何有效内容`);
@@ -2100,6 +2188,7 @@ const buildRegeneratePromptParams = errorCatched(async (entryName) => {
   let oldSummaryContent = '';
   if (settings.includeOldSummary) {
     const beforeSummaries = await getSummaryContentsBefore(entryName);
+    checkContext();
     if (beforeSummaries.length > 0) {
       oldSummaryContent = beforeSummaries
         .map((s) => `[${s.name}]\n${s.content}`)
@@ -2107,19 +2196,22 @@ const buildRegeneratePromptParams = errorCatched(async (entryName) => {
     }
   }
   const scanText = await getRawChatTextForScan(start, actualEnd);
+  checkContext();
   return {
     promptBlocks: settings.promptBlocks || [],
     oldSummaryContent,
     mergedChatText,
     scanText,
   };
-});
+}, true);
 
 const buildMegaSummaryPromptParams = errorCatched(async (summaryNames, entryName = null) => {
+  const checkContext = captureSummaryContext();
   const settings = getSettings();
   
   // 获取所有要大总结的总结条目内容
   const entries = await getWorldbookEntriesSafe();
+  checkContext();
   const summaryContents = [];
   for (const name of summaryNames) {
     const entry = entries.find((e) => e && e.name === name);
@@ -2138,6 +2230,7 @@ const buildMegaSummaryPromptParams = errorCatched(async (summaryNames, entryName
   let oldMegaSummaryContent = '';
   if (entryName) {
     const beforeMegaSummaries = await getMegaSummaryContentsBefore(entryName);
+    checkContext();
     if (beforeMegaSummaries.length > 0) {
       oldMegaSummaryContent = beforeMegaSummaries
         .map((s) => `[${s.name}]\n${s.content}`)
@@ -2146,6 +2239,7 @@ const buildMegaSummaryPromptParams = errorCatched(async (summaryNames, entryName
   } else {
     // 如果不是重新生成，获取所有已有的大总结
     const allMegaSummaries = await getAllMegaSummaryEntriesForDisplay();
+    checkContext();
     const megaContents = [];
     for (const mega of allMegaSummaries) {
       if (mega.disabled) continue;
@@ -2164,16 +2258,18 @@ const buildMegaSummaryPromptParams = errorCatched(async (summaryNames, entryName
     oldMegaSummaryContent,
     mergedSummaryText,
   };
-});
+}, true);
 
 const buildRegenerateMegaSummaryPromptParams = errorCatched(async (entryName) => {
+  const checkContext = captureSummaryContext();
   const summaryNames = await getMegaSummaryMapping(entryName);
+  checkContext();
   if (!summaryNames || summaryNames.length === 0) {
     throw new Error('未找到该大总结的原始总结条目映射');
   }
   
   return await buildMegaSummaryPromptParams(summaryNames, entryName);
-});
+}, true);
 
 
 // ============================================================
@@ -2322,12 +2418,15 @@ const startSummaryProcess = errorCatched(async () => {
 
 const executeSummary = errorCatched(
   async (startFloor, endFloor, entryName, { requireReview = false } = {}) => {
+    const checkContext = captureSummaryContext();
     showSummaryHint(
       `正在生成总结，请稍候...\n总结范围：${startFloor} - ${endFloor} 楼`
     );
     try {
       const params = await buildSummaryPromptParams(startFloor, endFloor);
+      checkContext();
       const aiMessage = await callSummaryApi(params);
+      checkContext();
       if (!aiMessage) {
         showSummaryHintFor('总结失败：AI没有返回任何内容。', 'error', 3800);
         toastr.error('AI没有返回任何内容。');
@@ -2341,6 +2440,7 @@ const executeSummary = errorCatched(
           aiMessage,
           { rows: 12, wide: true, okButton: '确定保存', cancelButton: '取消' }
         );
+        checkContext();
         if (typeof result !== 'string') {
           showSummaryHintFor('已取消保存本次总结。', 'info', 2200);
           toastr.info('操作已取消。');
@@ -2349,6 +2449,7 @@ const executeSummary = errorCatched(
         contentToSave = result;
       }
       await upsertSummaryEntryByName(entryName, contentToSave);
+      checkContext();
       showSummaryHintFor(`总结已生成：${entryName}`, 'success', 3200);
       toastr.success(`总结已保存：${entryName}`);
     } catch (error) {
@@ -2363,6 +2464,7 @@ const executeSummary = errorCatched(
 // ---- 重新生成 ----
 
 const regenerateAndReplaceEntry = errorCatched(async (entryName) => {
+  const checkContext = captureSummaryContext();
   const parsed = parseSummaryEntryName(entryName);
   if (!parsed) {
     toastr.error('条目名不符合"总结x-y楼"格式。');
@@ -2387,11 +2489,14 @@ const regenerateAndReplaceEntry = errorCatched(async (entryName) => {
       `继续吗？`,
     SillyTavern.POPUP_TYPE.CONFIRM
   );
+  checkContext();
   if (confirm !== SillyTavern.POPUP_RESULT.AFFIRMATIVE) return;
   showSummaryHint(`正在重新生成条目，请稍候...\n目标条目：${entryName}`);
   try {
     const params = await buildRegeneratePromptParams(entryName);
+    checkContext();
     const aiMessage = await callSummaryApi(params);
+    checkContext();
     if (!aiMessage) {
       showSummaryHintFor('重新生成失败：AI没有返回任何内容。', 'error', 3800);
       toastr.error('AI没有返回任何内容。');
@@ -2403,12 +2508,14 @@ const regenerateAndReplaceEntry = errorCatched(async (entryName) => {
       aiMessage,
       { rows: 12, wide: true, okButton: '确定替换', cancelButton: '取消' }
     );
+    checkContext();
     if (typeof result !== 'string') {
       showSummaryHintFor('已取消替换该条目。', 'info', 2200);
       toastr.info('操作已取消。');
       return;
     }
     await upsertSummaryEntryByName(entryName, result);
+    checkContext();
     showSummaryHintFor(`条目已重新生成：${entryName}`, 'success', 3200);
     toastr.success(`已重新生成并替换：${entryName}`);
   } catch (error) {
@@ -2444,12 +2551,15 @@ const autoTriggerSummary = errorCatched(async () => {
 
 const executeMegaSummary = errorCatched(
   async (summaryNames, entryName, { requireReview = false } = {}) => {
+    const checkContext = captureSummaryContext();
     showSummaryHint(
       `正在生成大总结，请稍候...\n总结条目数：${summaryNames.length}`
     );
     try {
       const params = await buildMegaSummaryPromptParams(summaryNames);
+      checkContext();
       const aiMessage = await callMegaSummaryApi(params);
+      checkContext();
       if (!aiMessage) {
         showSummaryHintFor('大总结失败：AI没有返回任何内容。', 'error', 3800);
         toastr.error('AI没有返回任何内容。');
@@ -2463,6 +2573,7 @@ const executeMegaSummary = errorCatched(
           aiMessage,
           { rows: 12, wide: true, okButton: '确定保存', cancelButton: '取消' }
         );
+        checkContext();
         if (typeof result !== 'string') {
           showSummaryHintFor('已取消保存本次大总结。', 'info', 2200);
           toastr.info('操作已取消。');
@@ -2473,11 +2584,13 @@ const executeMegaSummary = errorCatched(
       
       // 保存大总结条目
       await upsertMegaSummaryEntry(entryName, contentToSave, summaryNames);
+      checkContext();
       
       // 禁用已被大总结的总结条目
       const wbName = getActiveWorldbookName();
       if (wbName) {
         await updateWorldbookWith(wbName, (wb) => {
+          checkContext();
           const arr = normalizeWorldbookEntries(wb);
           for (const summaryName of summaryNames) {
             const entry = arr.find((e) => e && e.name === summaryName);
@@ -2488,6 +2601,7 @@ const executeMegaSummary = errorCatched(
           }
           return Array.isArray(wb) ? arr : { ...wb, entries: arr };
         });
+        checkContext();
       }
       
       showSummaryHintFor(`大总结已生成：${entryName}`, 'success', 3200);
@@ -2502,6 +2616,7 @@ const executeMegaSummary = errorCatched(
 );
 
 const regenerateAndReplaceMegaEntry = errorCatched(async (entryName) => {
+  const checkContext = captureSummaryContext();
   const parsed = parseMegaSummaryEntryName(entryName);
   if (!parsed) {
     toastr.error('条目名不符合"大总结x-y楼"格式。');
@@ -2509,6 +2624,7 @@ const regenerateAndReplaceMegaEntry = errorCatched(async (entryName) => {
   }
   
   const summaryNames = await getMegaSummaryMapping(entryName);
+  checkContext();
   if (!summaryNames || summaryNames.length === 0) {
     toastr.error('未找到该大总结的原始总结条目映射。');
     return;
@@ -2523,12 +2639,15 @@ const regenerateAndReplaceMegaEntry = errorCatched(async (entryName) => {
       `继续吗？`,
     SillyTavern.POPUP_TYPE.CONFIRM
   );
+  checkContext();
   if (confirm !== SillyTavern.POPUP_RESULT.AFFIRMATIVE) return;
   
   showSummaryHint(`正在重新生成大总结条目，请稍候...\n目标条目：${entryName}`);
   try {
     const params = await buildRegenerateMegaSummaryPromptParams(entryName);
+    checkContext();
     const aiMessage = await callMegaSummaryApi(params);
+    checkContext();
     if (!aiMessage) {
       showSummaryHintFor('重新生成失败：AI没有返回任何内容。', 'error', 3800);
       toastr.error('AI没有返回任何内容。');
@@ -2540,12 +2659,14 @@ const regenerateAndReplaceMegaEntry = errorCatched(async (entryName) => {
       aiMessage,
       { rows: 12, wide: true, okButton: '确定替换', cancelButton: '取消' }
     );
+    checkContext();
     if (typeof result !== 'string') {
       showSummaryHintFor('已取消替换该大总结条目。', 'info', 2200);
       toastr.info('操作已取消。');
       return;
     }
     await upsertMegaSummaryEntry(entryName, result, summaryNames);
+    checkContext();
     showSummaryHintFor(`大总结条目已重新生成：${entryName}`, 'success', 3200);
     toastr.success(`已重新生成并替换：${entryName}`);
   } catch (error) {
@@ -4380,6 +4501,7 @@ eventOn(tavern_events.MESSAGE_RECEIVED, async () => {
 
 // 聊天切换时处理世界书绑定
 eventOn(tavern_events.CHAT_CHANGED, async () => {
+  summaryChatEpoch++;
   try {
     await onChatChanged();
   } catch (e) {
