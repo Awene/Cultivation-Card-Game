@@ -624,7 +624,7 @@ function normalizeTimePeriod(input) {
   }
   const alias = Object.entries(TIME_PERIOD_ALIASES).find(([name]) => text.includes(name));
   if (alias) return `${alias[1]}时`;
-  const vague = { 凌晨:'丑', 清晨:'卯', 早:'卯', 早上:'卯', 上午:'巳', 中午:'午', 白天:'午', 日间:'午', 下午:'申', 傍晚:'酉', 晚:'戌', 晚间:'戌', 晚上:'戌', 夜间:'戌', 深夜:'亥' };
+  const vague = { 凌晨: '丑', 清晨: '卯', 早: '卯', 早上: '卯', 上午: '巳', 中午: '午', 白天: '午', 日间: '午', 下午: '申', 傍晚: '酉', 晚: '戌', 晚间: '戌', 晚上: '戌', 夜间: '戌', 深夜: '亥' };
   return vague[text] ? `${vague[text]}时` : undefined;
 }
 
@@ -632,27 +632,27 @@ function normalizeTimePeriod(input) {
 function parseCalendarNumber(input) {
   if (typeof input === 'number') return Number.isFinite(input) ? Math.trunc(input) : NaN;
   let text = String(input ?? '').normalize('NFKC').trim().replace(/[年月日号]$/, '').replace(/^初/, '');
-  text = ({ 正:'一', 冬:'十一', 腊:'十二', 臘:'十二' })[text] ?? text;
+  text = ({ 正: '一', 冬: '十一', 腊: '十二', 臘: '十二' })[text] ?? text;
   if (/^\d+$/.test(text)) return Number(text);
   const digits = '零一二三四五六七八九';
-  text = text.replace(/〇/g,'零').replace(/两/g,'二').replace(/廿/g,'二十').replace(/卅/g,'三十');
+  text = text.replace(/〇/g, '零').replace(/两/g, '二').replace(/廿/g, '二十').replace(/卅/g, '三十');
   if (!/^[零一二三四五六七八九十百千万]+$/.test(text)) return NaN;
-  if (!/[十百千万]/.test(text)) return Number([...text].map(c=>digits.indexOf(c)).join(''));
-  let total=0, section=0, n=0;
+  if (!/[十百千万]/.test(text)) return Number([...text].map(c => digits.indexOf(c)).join(''));
+  let total = 0, section = 0, n = 0;
   for (const c of text) {
-    const digit=digits.indexOf(c);
-    if (digit>=0) n=digit;
-    else if(c==='万') { total+=(section+n)*10000; section=0; n=0; }
-    else { section+=(n||1)*({十:10,百:100,千:1000})[c]; n=0; }
+    const digit = digits.indexOf(c);
+    if (digit >= 0) n = digit;
+    else if (c === '万') { total += (section + n) * 10000; section = 0; n = 0; }
+    else { section += (n || 1) * ({ 十: 10, 百: 100, 千: 1000 })[c]; n = 0; }
   }
-  return total+section+n;
+  return total + section + n;
 }
 
 const TimeSchema = z
   .object({
     年: z.preprocess(parseCalendarNumber, z.number().min(1).catch(1)).prefault(1),
-    月: z.preprocess(parseCalendarNumber, z.number().transform(n=>_.clamp(n,1,12)).catch(1)).prefault(1),
-    日: z.preprocess(parseCalendarNumber, z.number().transform(n=>_.clamp(n,1,30)).catch(1)).prefault(1),
+    月: z.preprocess(parseCalendarNumber, z.number().transform(n => _.clamp(n, 1, 12)).catch(1)).prefault(1),
+    日: z.preprocess(parseCalendarNumber, z.number().transform(n => _.clamp(n, 1, 30)).catch(1)).prefault(1),
     // “子时中 / 子时三刻 / 子初 / 子正”等可理解写法统一收敛到所属时辰。
     时辰: z.preprocess(normalizeTimePeriod, z.enum(TIME_PERIODS.map((item) => `${item}时`)).catch('午时')).prefault("午时"),
   })
@@ -793,17 +793,42 @@ const FixedAssetsSchema = z.preprocess(
   z.record(z.string(), FixedAssetSchema),
 ).prefault({});
 
-// ===== 任务 Schema =====
-// 任务只保存尚未结束的条目；完成、失败或放弃后直接移除，不保留履历。
+function normalizeTaskStatus(input) {
+  const text = String(input ?? "").trim();
+  if (text.includes("结算")) return "待结算";
+  if (text.includes("平息")) return "待平息";
+  if (text.includes("抉择") || text.includes("选择") || text.includes("分支")) return "待抉择";
+  return "进行中";
+}
+
+// ===== 任务与事件 Schema =====
+// 对应世界书《[任务与事件规则]》的三大模式：
+// 1. 模式一：委托任务（契约委托）
+// 2. 模式二：奇遇/突发事件/危机（快进快出）
+// 3. 模式三：长线剧情/宿命事件（专属大纲驱动·统一紫色风格）
+// 任务与事件只保存尚未结束的条目；完成、失败、放弃或平息后直接移除，不保留履历。
 const TaskSchema = z.object({
-  状态: z.enum(["进行中", "待结算"]).prefault("进行中"),
-  委托方: z.preprocess((input) => normalizeLooseString(input, "未知"), z.string()).prefault("未知"),
+  状态: z.preprocess(normalizeTaskStatus, z.enum(["进行中", "待结算", "待平息", "待抉择"])).catch("进行中").prefault("进行中"),
   难度: z.preprocess((input) => normalizeLooseString(input, "未定"), z.string()).prefault("未定"),
-  目标: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   进展: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  // 模式一：委托任务字段
+  委托方: z.preprocess((input) => normalizeLooseString(input, "未知"), z.string()).prefault("未知"),
+  目标: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   奖励: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
   交付: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
   截止时间: AssetTimeSchema,
+  // 模式二：奇遇/突发事件/危机字段
+  态势: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  紧迫: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  牵涉: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  焦点: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  祸福: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  触发时间: AssetTimeSchema,
+  // 模式三：长线剧情/宿命事件字段
+  类别: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  幕次: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  局势: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  契机: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
 });
 const TasksSchema = z.record(z.string(), TaskSchema).prefault({});
 
@@ -830,7 +855,7 @@ function migrateRumorEntries(value) {
   for (const [key, raw] of Object.entries(value)) {
     if (!raw || typeof raw !== 'object') { result[key] = raw; continue; }
     const content = String(raw.内容 ?? '');
-    const base = array ? String(raw.标题 || content.split(/[，。；\n]/)[0].slice(0,24) || raw.类别 || ('旧传闻' + key)) : key;
+    const base = array ? String(raw.标题 || content.split(/[，。；\n]/)[0].slice(0, 24) || raw.类别 || ('旧传闻' + key)) : key;
     let title = base, suffix = 2;
     while (Object.hasOwn(result, title)) title = base + '（' + suffix++ + '）';
     const location = String(raw.地点 || [raw.世界, raw.地域].filter(Boolean).join('·'));
@@ -840,9 +865,9 @@ function migrateRumorEntries(value) {
   return result;
 }
 const RumorEntrySchema = z.object({
-  类别: z.preprocess(v=>normalizeLooseString(v, '待分类'), z.string()).prefault('待分类'),
-  内容: z.preprocess(v=>normalizeLooseString(v, '暂无详情'), z.string()).prefault('暂无详情'),
-  难度: z.preprocess(v=>Array.isArray(v) ? v.map(x=>normalizeLooseString(x,'待查')).join('—') : normalizeLooseString(v,'待查'), z.string()).prefault('待查'),
+  类别: z.preprocess(v => normalizeLooseString(v, '待分类'), z.string()).prefault('待分类'),
+  内容: z.preprocess(v => normalizeLooseString(v, '暂无详情'), z.string()).prefault('暂无详情'),
+  难度: z.preprocess(v => Array.isArray(v) ? v.map(x => normalizeLooseString(x, '待查')).join('—') : normalizeLooseString(v, '待查'), z.string()).prefault('待查'),
 });
 
 // ===== 主 Schema (扁平化:基本信息/修炼功法/储物空间 三大类拆掉) =====
@@ -1101,14 +1126,14 @@ function tryParseValue(t) {
   if (e === "false") return false;
   if (e === "null") return null;
   if (e === "undefined") return undefined;
-  try { return JSON.parse(e); } catch (_) {}
+  try { return JSON.parse(e); } catch (_) { }
   if ((e.startsWith("{") && e.endsWith("}")) || (e.startsWith("[") && e.endsWith("]"))) {
     try {
       const r = new Function(`return ${e};`)();
       if (typeof r === "object" && r !== null) return r;
-    } catch (_) {}
+    } catch (_) { }
   }
-  try { return YAML.parse(e); } catch (_) {}
+  try { return YAML.parse(e); } catch (_) { }
   return t;
 }
 
@@ -1348,7 +1373,7 @@ function restoreOriginalJsonPatchPath(command) {
     return;
   }
 
-  const wholeEntry = patch.value && typeof patch.value === 'object' && ['类别','内容','难度'].some(key=>Object.hasOwn(patch.value,key));
+  const wholeEntry = patch.value && typeof patch.value === 'object' && ['类别', '内容', '难度'].some(key => Object.hasOwn(patch.value, key));
   const targetSegments = splitPath(repairRumorPointer(patch.path ?? patch.to, wholeEntry));
   if (targetSegments.length === 0) return;
   if (command.type === "insert") {
@@ -1367,20 +1392,20 @@ function repairRumorPointer(path, wholeEntry = false) {
   if (typeof path !== 'string' || !path.startsWith('/')) return path;
   const parts = path.slice(1).split('/');
   if (parts[0] !== '传闻' || parts[1] !== '条目' || parts.length <= 3) return path;
-  const field = !wholeEntry && ['类别','内容','难度'].includes(parts.at(-1)) ? parts.pop() : null;
+  const field = !wholeEntry && ['类别', '内容', '难度'].includes(parts.at(-1)) ? parts.pop() : null;
   const title = parts.slice(2).map(decodeJsonPointerSegment).join('/');
-  return '/传闻/条目/' + title.replace(/~/g,'~0').replace(/\//g,'~1') + (field ? '/' + field : '');
+  return '/传闻/条目/' + title.replace(/~/g, '~0').replace(/\//g, '~1') + (field ? '/' + field : '');
 }
 
 function normalizeTimeCommand(command, variables) {
-  if (!['set','insert'].includes(command.type)) return true;
+  if (!['set', 'insert'].includes(command.type)) return true;
   const parts = splitPath(command.args[0]);
   if (command.type === 'insert') parts.push(String(tryParseValue(command.args[1])));
   const index = command.args.length - 1;
   const value = tryParseValue(command.args[index]);
   const isTime = path => path.join('.') === '时间' || path.join('.') === '传闻.上次世界推进时间点'
     || (path[0] === '固定资产' && path.length === 5 && path[2] === '设施' && path[4] === '上次收取日期');
-  if (isTime(parts.slice(0,-1)) && ['年','月','日','时辰'].includes(parts.at(-1))) {
+  if (isTime(parts.slice(0, -1)) && ['年', '月', '日', '时辰'].includes(parts.at(-1))) {
     const field = parts.at(-1);
     const parsed = field === '时辰' ? normalizeTimePeriod(value) : parseCalendarNumber(value);
     if (parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))) {
@@ -1398,14 +1423,14 @@ function normalizeTimeCommand(command, variables) {
       if (!node || typeof node !== 'object') return;
       if (isTime(path)) {
         const old = _.get(variables?.stat_data, path) ?? {};
-        for (const field of ['年','月','日','时辰']) {
+        for (const field of ['年', '月', '日', '时辰']) {
           const parsed = field === '时辰' ? normalizeTimePeriod(node[field]) : parseCalendarNumber(node[field]);
           if (node[field] !== undefined && (parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))))
-            console.warn('[JSONPatch preprocessor] 时间对象字段无法识别，使用旧值:', [...path,field], node[field]);
+            console.warn('[JSONPatch preprocessor] 时间对象字段无法识别，使用旧值:', [...path, field], node[field]);
           node[field] = parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))
             ? (old[field] ?? (field === '时辰' ? '午时' : 1)) : parsed;
         }
-      } else for (const [key, child] of Object.entries(node)) visit(child, [...path,key]);
+      } else for (const [key, child] of Object.entries(node)) visit(child, [...path, key]);
     };
     visit(value, parts);
     command.args[index] = value;
@@ -1459,11 +1484,11 @@ function jsonPatchPreprocessor(_variables, commands) {
     const targets = [splitPath(cmd.args[0])];
     if (cmd.type === 'insert') targets[0].push(String(tryParseValue(cmd.args[1])));
     if (cmd.type === 'move') targets.push(splitPath(cmd.args[1]));
-    if (targets.some(parts=>parts.some(p=>['__proto__','prototype','constructor'].includes(p)))) {
+    if (targets.some(parts => parts.some(p => ['__proto__', 'prototype', 'constructor'].includes(p)))) {
       console.warn('[JSONPatch preprocessor] 忽略危险原型路径:', cmd.args[0]);
-      commands.splice(ci,1); continue;
+      commands.splice(ci, 1); continue;
     }
-    if (!normalizeTimeCommand(cmd, _variables)) { commands.splice(ci,1); continue; }
+    if (!normalizeTimeCommand(cmd, _variables)) { commands.splice(ci, 1); continue; }
     // 1.5 容错: 修正后路径根段仍不属于当前 schema 的合法顶级词条 → 指向不存在的字段。
     //     整批 JSONPatch 是原子应用的,留着它会令同批的正确命令(如新增 NPC)一并失败,
     //     故在此丢弃,使其余命令照常生效。判定以 ALL_TOP_LEVEL_KEYS 为准 —— 日后新增

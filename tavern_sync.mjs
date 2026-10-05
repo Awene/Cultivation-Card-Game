@@ -59591,7 +59591,7 @@ const ScriptFolder = strictObject({
 });
 const ScriptTree = discriminatedUnion('type', [Script, ScriptFolder]);
 const Extensions = looseObject({
-    regex_scripts: array(strictObject({
+    regex_scripts: array(looseObject({
         script_name: coerce_string(),
         id: coerce_string().prefault((uuid_random_default())),
         enabled: schemas_boolean(),
@@ -59600,13 +59600,14 @@ const Extensions = looseObject({
         trim_strings: array(coerce_string()).default([]),
         content: coerce_string().optional().describe('要替换为的内容'),
         file: coerce_string().optional().describe('要替换为的内容所在的文件路径'),
-        source: strictObject({
+        source: looseObject({
             user_input: schemas_boolean(),
             ai_output: schemas_boolean(),
             slash_command: schemas_boolean().prefault(false),
             world_info: schemas_boolean().prefault(false),
+            reasoning: schemas_boolean().prefault(false),
         }),
-        destination: strictObject({
+        destination: looseObject({
             display: schemas_boolean(),
             prompt: schemas_boolean(),
         }),
