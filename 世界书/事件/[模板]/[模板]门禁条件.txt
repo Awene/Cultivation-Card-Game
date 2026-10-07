@@ -1,0 +1,167 @@
+<%_ { _%>
+<%_
+// ============================================================
+// 【模板】修仙世界书 · 纯 stat_data 门禁条件与语义函数速查词典
+// 规范文档: Doc/事件写作规范.md · 适配骨架: [模板]小型事件骨架.txt / [模板]大型事件骨架.txt
+//
+// 设计哲学与工程规范:
+// 1. 【100% 纯 stat_data 驱动】: 彻底废除 scanText 与 提到() 正则词扫描，杜绝聊天滞留与上下文误触。
+// 2. 【按需取用原则 (On-Demand)】: 编写具体事件文件时，切勿盲目全量复制！
+//    只需根据当前事件的实际判定诉求，从本词典中复制对应需要的 1~3 行辅助函数粘贴到事件头部即可。
+// 3. 【可组合性】: 所有语义函数均返回 Boolean，可直接作为参数传入 门禁放行() 或 大事件放行() 中自由组合。
+// ============================================================
+
+// ============================================================
+// 一、系统级刚性互斥与底层锁 (所有事件文件的必选基础)
+// ============================================================
+const 标题   = getMessageVar('stat_data.事件.标题', { defaults: '' }) || '';
+const 阶段   = getMessageVar('stat_data.事件.阶段', { defaults: '' }) || '';
+const 已完成 = getMessageVar('stat_data.事件.已完成事件', { defaults: [] }) || [];
+const 做过   = (n) => 已完成.includes(n);
+const 无大事件 = 标题 === '';
+
+// 小型事件专属防并发锁 (单轮只准触发一个小型事件):
+let 本轮已触发 = false;
+
+// 小型事件评估器 (内置 3 项底层刚性红线: 无大事件 + 未做过 + 本轮未触发其他小事件):
+const 门禁放行 = (事件名, ...附加条件) => {
+  if (!无大事件 || 做过(事件名) || 本轮已触发) return false;
+  return 附加条件.every(cond => typeof cond === 'function' ? cond() : Boolean(cond));
+};
+
+// 大型事件评估器 (内置 2 项底层刚性独占锁: 无大事件 + 未做过):
+const 大事件放行 = (...附加条件) => {
+  if (!无大事件 || 做过(本事件)) return false;
+  return 附加条件.every(cond => typeof cond === 'function' ? cond() : Boolean(cond));
+};
+
+
+// ============================================================
+// 二、空间与地理位置门禁 (物理在场才触发，防隔空幽灵触发)
+// ============================================================
+const 世界     = String(getMessageVar('stat_data.地点.世界', { defaults: '凡界' }));
+const 地域     = String(getMessageVar('stat_data.地点.地域', { defaults: '' }));
+const 具体地点 = String(getMessageVar('stat_data.地点.具体地点', { defaults: '' }));
+
+// 语义判定工具:
+const 在地 = (kw) => 具体地点.includes(kw);  // 例: 在地('膳堂') / 在地('后山')
+const 在域 = (r)  => 地域.includes(r);      // 例: 在域('南疆') / 在域('东土')
+const 在界 = (w)  => 世界.includes(w);      // 例: 在界('凡界') / 在界('灵界')
+
+
+// ============================================================
+// 三、门派身份与立场门禁 (宗门专属、身份特权判定)
+// ============================================================
+const 身份List = getMessageVar('stat_data.身份', { defaults: [] });
+const 身份文本 = Array.isArray(身份List) ? 身份List.join(' ') : String(身份List);
+
+// 语义判定工具:
+const 是身份   = (kw) => 身份文本.includes(kw); // 例: 是身份('真传') / 是身份('长老')
+const 是本宗   = 身份文本.includes('五毒');     // ★ 改为本宗门关键词; 通用事件设为 true
+
+
+// ============================================================
+// 四、修为境界与突破瓶颈门禁 (实力阶位判定)
+// ============================================================
+const 境界 = String(getMessageVar('stat_data.修炼进度.境界') || '凡人');
+// 大境界阶梯映射: 0=凡人, 1=炼气, 2=筑基, 3=金丹, 4=元婴, 5=化神, 6=返虚/炼虚, 7=合体, 8=大乘, 9=渡劫
+const L = 境界.includes('渡劫') ? 9 : 境界.includes('大乘') ? 8
+        : 境界.includes('合体') ? 7 : (境界.includes('返虚') || 境界.includes('炼虚')) ? 6
+        : 境界.includes('化神') ? 5 : 境界.includes('元婴') ? 4
+        : 境界.includes('金丹') ? 3 : 境界.includes('筑基') ? 2
+        : (境界.includes('炼气') || 境界.includes('练气')) ? 1 : 0;
+
+// 语义判定工具:
+const 境界在   = (minL, maxL = 9) => L >= minL && L <= maxL; // 例: 境界在(1, 3) 炼气到金丹
+const 当前进度 = Number(getMessageVar('stat_data.修炼进度.当前进度') || 0);
+const 突破进度 = Number(getMessageVar('stat_data.修炼进度.突破所需进度') || 100);
+const 临近突破 = (当前进度 / (突破进度 || 1)) >= 0.85;       // 修炼进度达85%以上，瓶颈感悟期
+
+
+// ============================================================
+// 五、肉身气血与异常状态门禁 (危急救助、中毒走火判定)
+// ============================================================
+const 气血现值 = Number(getMessageVar('stat_data.资源池.气血.现值') || 100);
+const 气血上限 = Number(getMessageVar('stat_data.资源池.气血.上限') || 100);
+const 气血比   = 气血现值 / (气血上限 || 1);
+
+// 语义判定工具:
+const 濒危残血 = 气血比 <= 0.25;                               // 气血不足25%，濒死求生/急救
+const 状态Map  = getMessageVar('stat_data.状态效果', { defaults: {} }) || {};
+const 有状态   = (name) => Boolean(状态Map[name]);            // 例: 有状态('走火入魔')
+const 状态层数 = (name) => Number(状态Map[name]?.层数 || 0);  // 例: 状态层数('丹毒') >= 3
+
+
+// ============================================================
+// 六、财帛资产与背包信物门禁 (交易、异宝共鸣、机缘解锁)
+// ============================================================
+const 灵石数   = Number(getMessageVar('stat_data.灵石') || 0);
+const 物品Map  = getMessageVar('stat_data.物品', { defaults: {} }) || {};
+const 功法Map  = getMessageVar('stat_data.功法', { defaults: {} }) || {};
+
+// 语义判定工具:
+const 灵石在   = (min, max = Infinity) => 灵石数 >= min && 灵石数 <= max; // 例: 灵石在(100) 身上至少百石
+const 有物品   = (name) => Boolean(物品Map[name]);                        // 例: 有物品('神秘残卷')
+const 物品数量 = (name) => Number(物品Map[name]?.数量 || (有物品(name) ? 1 : 0));
+const 有功法   = (name) => Boolean(功法Map[name]);                        // 例: 有功法('青木长生诀')
+
+
+// ============================================================
+// 七、社交人脉与爱恨羁绊门禁 (NPC好感、在场状态、故人相逢判定)
+// ============================================================
+// 布尔安全解析工具 (严格对齐 变量结构.js normalizeBoolean，杜绝 Boolean("false") === true 强制转型陷阱)
+const parseBool = (v) => {
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  const s = String(v ?? '').trim().toLowerCase();
+  if (['true', '1', '是', '有', '在场', '开启', '启用'].includes(s)) return true;
+  if (['false', '0', '否', '无', '不在场', '关闭', '禁用', '未在场'].includes(s)) return false;
+  return false;
+};
+
+const 关系Map = getMessageVar('stat_data.关系列表', { defaults: {} }) || {};
+const 在场Map = getMessageVar('stat_data.在场', { defaults: {} }) || {};
+
+// 语义判定工具:
+const 认识NPC = (npc) => Boolean(关系Map[npc]);                     // 认识该角色
+const 好感度  = (npc) => {                                         // 例: 好感度('蓝幽月') >= 50
+  const d = 关系Map[npc];
+  if (typeof d === 'number') return d;
+  return Number(d?.好感度 ?? d?.好感 ?? 0);
+};
+
+// 双轨在场判定: 兼容 stat_data.关系列表[npc].在场 与 stat_data.在场[npc]，杜绝幽灵在场或漏检
+const 在场NPC = (npc) => {
+  const relIn = 关系Map[npc]?.在场;
+  if (relIn !== undefined) return parseBool(relIn);
+  if (Object.prototype.hasOwnProperty.call(在场Map, npc)) {
+    return parseBool(在场Map[npc]?.在场 ?? true);
+  }
+  return false;
+};
+
+
+// ============================================================
+// 八、天时时辰与昼夜节气门禁 (月黑风高、正午阳极判定)
+// ============================================================
+const 时辰   = String(getMessageVar('stat_data.时间.时辰') || '');
+const 月     = Number(getMessageVar('stat_data.时间.月') || 1);
+
+// 语义判定工具:
+const 是夜晚 = ['戌', '亥', '子', '丑'].some(k => 时辰.includes(k)); // 夜间专属事件
+const 是正午 = 时辰.includes('午');                                  // 正午阳气最盛
+const 是时辰 = (kws) => [].concat(kws).some(k => 时辰.includes(k));  // 指定时辰
+
+
+// ============================================================
+// 九、开局剧本与专属标记门禁 (stat_data.__custom_start__.flags)
+// ============================================================
+// ★ 架构铁律：开局专属剧情在玩家选定对应开局剧本时，初始地点、境界、身份与信物已由开局选择条件严格内定。
+// 因此开局类事件只需【开局标记】作为唯一业务门禁，切勿重复堆叠地点/境界判定，更严禁扫描聊天记录关键词！
+const 有开局标记 = (flag) => {
+  const flags = [].concat(getMessageVar('stat_data.__custom_start__.flags', { defaults: [] }) || []);
+  return flags.includes(flag); // 例: 有开局标记('残简传承·破庙拾简')
+};
+
+_%>
+<%_ } _%>

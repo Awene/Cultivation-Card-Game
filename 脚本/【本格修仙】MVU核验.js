@@ -4,7 +4,7 @@
  * - 主角与所有「人物」NPC 的气血/灵气上限及基础遁速，并按原百分比折算气血/灵气现值；
  * - 主角与所有「人物」NPC 的出生年份及年龄（年龄 = 当前年份 - 生日）；
  * - 主角与所有「人物」NPC 的上次突破时间点：仅当既有角色的境界字段实际变化时，记录当回合年份；
- * - 为旧存档补齐任务根节点，保证后续 JSON Patch 可以直接写入任务；
+ * - 补齐历练根节点，保证后续 JSON Patch 可以直接写入历练；
  * - 保留原「性器随机」功能，仍只为主角和在场女性 NPC 首次补齐。
  * 角色"首次出场/生成"时,对女性(体质.元阴非null 且 体质.元阳==null)按其灵根五行随机
  * 抽取四类名器(口腔/屄穴/肛门/乳房),把名器"描述"写入 stat_data.性器(不写名器名)。
@@ -283,8 +283,8 @@ function migrateRumorEntries(value) {
       sd.传闻.上次世界推进时间点 = { 年: Number(worldTime.年), 月: Number(worldTime.月), 日: Number(worldTime.日), 时辰: worldTime.时辰 };
       changed = true;
     }
-    if (!sd.任务 || typeof sd.任务 !== "object" || Array.isArray(sd.任务)) {
-      sd.任务 = {};
+    if (!sd.历练 || typeof sd.历练 !== "object" || Array.isArray(sd.历练)) {
+      sd.历练 = {};
       changed = true;
     }
     if (!sd.修炼进度 || typeof sd.修炼进度 !== "object") sd.修炼进度 = {};

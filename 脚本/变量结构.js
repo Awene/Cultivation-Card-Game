@@ -885,7 +885,7 @@ export const Schema = z.object({
   技艺: SkillSchema,
   资源池: ResourcePoolSchema,
   固定资产: FixedAssetsSchema,
-  任务: TasksSchema,
+  历练: TasksSchema,
   地点: LocationSchema,
   时间: TimeSchema,
   状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
@@ -1147,14 +1147,14 @@ function tryParseValue(t) {
 // 全部合法顶级键 (与 Schema z.object 内字段名一致); 任一段命中即认为是真正的根入口
 const ALL_TOP_LEVEL_KEYS = new Set([
   "姓名", "寿元", "种族", "身份", "灵根", "体质", "修炼进度",
-  "性器", "技艺", "资源池", "固定资产", "任务", "地点", "时间", "状态效果", "功法",
+  "性器", "技艺", "资源池", "固定资产", "历练", "地点", "时间", "状态效果", "功法",
   "灵石", "物品", "装备", "傀儡", "灵兽",
   "关系列表", "事件", "传闻",
 ]);
 
 // 这些键在 schema 中只在顶级出现, NPC 子结构、record 内都不含;
 // 出现在路径中段必然是错误嵌套 (例 /状态效果/时间/年).
-const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "固定资产", "任务", "地点", "时间", "事件", "传闻"]);
+const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "固定资产", "历练", "地点", "时间", "事件", "传闻"]);
 const TOP_LEVEL_KEY_ALIASES = { 资产: "固定资产", 不动产: "固定资产", 产业: "固定资产" };
 const FIXED_ASSET_KEY_ALIASES = {
   分类: "类型", 资产类型: "类型",
@@ -1196,7 +1196,7 @@ const TOP_LEVEL_CONTAINER_DEFAULTS = {
     遁速: 10,
   },
   固定资产: {},
-  任务: {},
+  历练: {},
   地点: { 世界: "凡界", 地域: "中原", 具体地点: "荒野" },
   时间: { 年: 1, 月: 1, 日: 1, 时辰: "午时" },
   状态效果: {},
