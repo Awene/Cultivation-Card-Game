@@ -131,23 +131,26 @@ types:
       }
     check:
       - 记录<user>名下的资产，变化时更新；宗门类资产仅<user>成为宗主时添加
-  任务:
+    任务:
     type: |-
       {
         [任务名: string]: {
           状态: '进行中'|'待结算';
-          委托方: string;
+          委托方?: string;
           难度: string; # 以境界表示（如：炼气初期）
           目标: string; # 简述完成条件
           进展: string; # 记录已经发生的关键进展
+          幕次?: string; # 仅<event>直接声明时使用
           奖励: string;
           交付: string; # 领取奖励方式
-          截止时间: *time | null; # 无期限为 null
+          截止时间?: *time;
         }
+        聚焦任务: string | null; # 当前剧情聚焦的任务名,无聚焦任务时为 null
+        已完成任务: string[]; #完成后写入任务名
       }
     check:
       - 仅在<user>明确接取、或剧情明确强制赋予任务时添加；
-      - 达成目标后将状态改为待结算；实际完成交付并获得奖励后移除任务，奖励仅发放一次
+      - 达成目标后将状态改为待结算；完成交付并获得奖励后移除任务，奖励仅发放一次
       - 失败或<user>明确放弃时移除任务；超过截止时间视为失败
   地点:
     type: *location
@@ -168,17 +171,6 @@ types:
       }
     check:
       - 详见<rule ref="状态规则"/>
-  事件:
-    type: |-
-      {
-        开启: boolean;
-        标题: string;
-        阶段: string;
-        已完成事件: string[];
-        进度?: { [进度名: string]: unknown };
-      }
-    check:
-      - 仅<event>中有明确要求时更新，不得自行杜撰事件
   功法: &cultivation
     type: |-
       {
