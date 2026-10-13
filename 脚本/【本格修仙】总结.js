@@ -80,6 +80,7 @@ function errorCatched(fn, rethrow = false) {
 }
 
 let summaryChatEpoch = 0;
+let summaryChatId = SillyTavern.getCurrentChatId();
 function captureSummaryContext() {
   const epoch = summaryChatEpoch;
   const chatId = SillyTavern.getCurrentChatId();
@@ -4501,6 +4502,10 @@ eventOn(tavern_events.MESSAGE_RECEIVED, async () => {
 
 // 聊天切换时处理世界书绑定
 eventOn(tavern_events.CHAT_CHANGED, async () => {
+  const chatId = SillyTavern.getCurrentChatId();
+  // 正则刷新也会发送 CHAT_CHANGED；只有实际切换聊天才使进行中的总结失效。
+  if (chatId === summaryChatId) return;
+  summaryChatId = chatId;
   summaryChatEpoch++;
   try {
     await onChatChanged();
