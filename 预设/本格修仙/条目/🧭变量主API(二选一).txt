@@ -1,9 +1,7 @@
 {{setvar::变量f::
-- 变量处理: 在<UpdateVariable>中依"variables_update_rules"与规定格式完整记录本轮实际变化，禁止写入不可更新字段。}}{{setvar::变量g::变量更新声明
-声明: 严格遵守"variables_update_rules"、"variables_update_format"输出规则与<Format>格式，完整记录需要更新的变量内容(如角色姓名的完整记录等)，禁止记录任何不可更新内容}}{{setvar::变量c::
-Variable Update Declaration
-Disclaimer:
-Follow `variables_update_rules`, `variables_update_format`, and `<Format>` exactly. Record every required variable change and never write prohibited fields.
-}}{{setvar::变量1::<UpdateVariable>
+- 只列本轮真实发生的时间、地点、环境、资源、状态、穿戴、物品、功法、任务、关系等变化；无变化字段不列，禁止重复扣除。
+- 变量处理: 在<UpdateVariable>中依"variables_update_rules"与规定格式完整记录本轮实际变化，禁止写入不可更新字段。}}{{setvar::变量c::
+- List only changes that actually occur this turn: time, location, environment, resources, conditions, worn items, inventory, cultivation arts, tasks, and relationships. Omit unchanged fields and never deduct twice.
+- Variable handling: record all actual changes this turn in <UpdateVariable>, following "variables_update_rules" and the required format; never write read-only fields.}}{{setvar::变量1::<UpdateVariable>
 ...
 </UpdateVariable>}}

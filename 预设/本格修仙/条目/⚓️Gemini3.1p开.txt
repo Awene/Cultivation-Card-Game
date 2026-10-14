@@ -1,1 +1,0 @@
-{{setvar::ai模型::Gemini}}{{setvar::cot模式::标准}}{{setvar::思维预算g::至少2048字中文}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}<|no-trans|>

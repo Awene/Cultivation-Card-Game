@@ -1,1 +1,1 @@
-{{setvar::ai模型::Claude}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}
+{{setvar::ai模型::Claude}}{{setvar::思维预算c::No more than 2048 English words.}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}

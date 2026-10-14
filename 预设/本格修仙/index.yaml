@@ -79,7 +79,8 @@
     内容: |-
       {{setvar::转述::
       - 转述融入：将`分析输入`后的结果去除命令与指令内容，**确保<Participant_input>的对白部分在正文有所体现**转述至正文中，不得复述原句，符合<<user>_setting>}}{{setvar::转述1f::
-      - 输入落地: 将解析后的有效对白与行动依<<user>_setting>转述融入正文，不复述原句。}}{{setvar::转述1g::并将处理后的有效内容结合<<user>_setting>`转述融入`}}{{setvar::转述1c::, then integrate it with <<user>_setting> for  `转述融入`}}
+      - 输入落地: 将解析后的有效对白与行动依<<user>_setting>转述融入正文，不复述原句。}}{{setvar::转述1c::
+      - Input delivery: integrate valid dialogue and actions into the narrative according to <<user>_setting>, without repeating the original wording.}}
 
   - 名称: 🧭不转述(不推荐)
     启用: false
@@ -89,7 +90,8 @@
     内容: |-
       {{setvar::转述::
       - 不转述：严格避免<Participant_input>在正文中以任何形式出现，<Participant_input>中内容是已经发生的事实，你的正文需要按照其已经进行完毕的状态开始}}{{setvar::转述1f::
-      - 输入落地: 有效输入视为已发生事实，正文从结果继续，禁止复述<user>言行。}}{{setvar::转述1g::，处理后的有效内容是已经发生的事实，避免在正文生成复述<user>言行}}{{setvar::转述1c::, then avoid repeating <user>'s words and actions in the generated main content}}
+      - 输入落地: 有效输入视为已发生事实，正文从结果继续，禁止复述<user>言行。}}{{setvar::转述1c::
+      - Input delivery: treat valid input as already occurred; continue from its consequences without repeating <user>'s words or actions.}}
 
   - 名称: ⚙️对话量设置(不抢话关)
     启用: true
@@ -351,13 +353,6 @@
     角色: 系统
     文件: 条目\🧭防全知
 
-  - 名称: 🧭防负面／支配
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🧭防负面／支配
-
   - 名称: 🧭变量主API(二选一)
     启用: false
     插入位置:
@@ -508,33 +503,26 @@
     角色: 系统
     文件: 条目\📖模型使用说明(必看)
 
-  - 名称: ⚓️Gemini3.1p开
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: AI
-    文件: 条目\⚓️Gemini3.1p开
-
-  - 名称: ⚓️Gemini3.7F与3.8开
+  - 名称: ⚓️Gemini开
     启用: true
     插入位置:
       类型: 相对
     角色: 用户
-    文件: 条目\⚓️Gemini3.7F与3.8开
+    文件: 条目\⚓️Gemini开
 
   - 名称: ⚓️Claude开
     启用: false
     插入位置:
       类型: 相对
     角色: AI
-    内容: "{{setvar::ai模型::Claude}}{{setvar::cot模式::标准}}{{setvar::思维预算c::No more than 4096 words.}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}"
+    文件: 条目\⚓️Claude开
 
   - 名称: ⚓️DS开
     启用: false
     插入位置:
       类型: 相对
     角色: AI
-    内容: "{{setvar::ai模型::Deepseek}}{{setvar::cot模式::标准}}{{setvar::思维预算g::至少2048字中文}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}"
+    文件: 条目\⚓️DS开
 
   - 名称: ⚓️拷打模式(Gemini)
     启用: false
