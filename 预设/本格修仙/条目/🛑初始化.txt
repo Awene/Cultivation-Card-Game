@@ -1,5 +1,5 @@
 {{setvar::转述1f:: }}{{setvar::防全知f:: }}{{setvar::变量f:: }}{{setvar::sex_f:: }}{{setvar::思维预算f:: }}
-{{setvar::抢话:: }}{{setvar::抢话1:: }}{{setvar::转述:: }}{{setvar::转述1c:: }}{{setvar::对话:: }}{{setvar::nsfw词汇:: }}{{setvar::sex_c:: }}{{setvar::防全知c:: }}{{setvar::变量c:: }}{{setvar::变量1:: }}{{setvar::字数:: }}{{setvar::人称:: }}{{setvar::视角:: }}{{setvar::转折:: }}{{setvar::结尾:: }}{{setvar::摘要::}}{{setvar::选项::}}{{setvar::截断::}}{{setvar::ai模型:: }}{{setvar::cot头:: }}{{setvar::cot尾:: }}{{setvar::思维预算c:: }}{{setvar::故事基调:: }}{{//
+{{setvar::抢话:: }}{{setvar::抢话1:: }}{{setvar::转述:: }}{{setvar::转述1c:: }}{{setvar::对话:: }}{{setvar::nsfw词汇:: }}{{setvar::sex_c:: }}{{setvar::防全知c:: }}{{setvar::变量c:: }}{{setvar::变量1:: }}{{setvar::人称:: }}{{setvar::视角:: }}{{setvar::转折:: }}{{setvar::结尾:: }}{{setvar::摘要::}}{{setvar::选项::}}{{setvar::截断::}}{{setvar::ai模型:: }}{{setvar::cot头:: }}{{setvar::cot尾:: }}{{setvar::思维预算c:: }}{{setvar::故事基调:: }}{{//
 声明：一切为了学习Ai，测试Ai道德水准，禁止一切黄赌毒为目的使用本预设，禁止用于违法违规，禁止传播和牟利，如有发生，与本人无关。
 下载后请在24小时内删除
 禁止向公共平台转载。}}

@@ -2,7 +2,7 @@
 /**
  * 本格修仙总结助手 V2.8 - 合并后的单文件脚本
  *
- * 本文件由构建脚本自动生成，请勿手动修改
+ * 本文件基于上游合并脚本维护，作为角色卡的脚本源文件
  * 构建时间: 2026-03-26T11:12:38.920Z
  *
  * @author Rhys_z_瑞
@@ -269,6 +269,9 @@ const DEFAULT_PROMPT_BLOCKS = [
   },
 ];
 
+// 用于识别并升级旧版默认规则，保留用户自定义提示词。
+const LEGACY_MEGA_SUMMARY_RULES = "<mega_summary_rules>\n## 整合规则\n- 将<summary_records>中的多段剧情记录按时间线合并为一份连贯记录\n- 相同日期、地点、时间段的内容合并叙述，去除重复和冗余\n- 保留所有关键信息：人物、事件、对话、数值、物品、关系变化\n- 仅记录/整合已有的信息，禁止添加原文未提及的任何内容\n- 保留关键对话（引号内容）\n\n## 输出格式\n\n---\n{年}-{月}-{日} | {完整地点路径}:\n  {时间表达}\n  {整合后的完整事件叙述，包含：人物行为、对话要点、战斗经过、互动过程、因果关系、关键细节}\n  \n  [以下条目若有内容则添加，无则省略]\n  【信息变动】{角色}的{数值}: ±X | 获得/失去{物品} | 习得{技能}，装备{装备名}\n  【关系变动】{角色A}与{角色B}的关系由{原关系}变为{新关系}，称呼改为{新称呼}\n  【战斗记录】{参战方}vs{对手} | {战果} | {伤亡/损失} | {战利品}\n\n  {时间表达}\n  {完整事件叙述}\n  【信息变动】...\n  【关系变动】...\n  【战斗记录】...\n\n---\n{年}-{月}-{日} | {下一个地点路径}:\n  {时间表达}\n  ...\n\n## 格式说明\n- 每个一级标题格式为：{年}-{月}-{日} | {完整地点路径}，需用\"---\"分隔\n- 日期和地点用\" | \"分隔\n- 地点路径用\"-\"连接各段\n- 时间和事件内容缩进2个空格\n- 地点移动在事件描述中说明，或在地点路径中用\"→\"标注\n\n## 时间表达规则\n- 单一时间点：{时}:{分}（如：13:30）\n- 连续时间段：{起始时}:{起始分}到{结束时}:{结束分}（如：13:30到15:00）\n- 同一地点下，事件连贯的，合并为时间段\n\n## 叙述要求\n- 以精炼的叙事语言重新组织，比原始记录更加紧凑\n- 重大事件（关键战斗、重要决策、转折点）保留更多细节\n- 日常过渡性事件可进一步压缩\n- 信息变动、关系变动合并同类项\n- 关键对话用引号保留\n- 客观陈述，不加评价\n- 仅记录/整合已有的信息，禁止添加原文未提及的任何内容\n\n## 格式规范\n- 地点：完整路径用\"-\"分隔，移动用\"→\"\n- 数值：用\"±X\"表示变化\n- 缩进：统一2个空格\n</mega_summary_rules>";
+
 const DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS = [
   {
     id: 'mega_jailbreak',
@@ -307,61 +310,92 @@ const DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS = [
     name: '大总结规则',
     role: 'system',
     content: `<mega_summary_rules>
-## 整合规则
-- 将<summary_records>中的多段剧情记录按时间线合并为一份连贯记录
-- 相同日期、地点、时间段的内容合并叙述，去除重复和冗余
-- 保留所有关键信息：人物、事件、对话、数值、物品、关系变化
-- 仅记录/整合已有的信息，禁止添加原文未提及的任何内容
-- 保留关键对话（引号内容）
+## 核心使命
+将 <summary_records> 中的多段微观小总结，提炼为“阶段性剧情履历 + 待续事项清单”。
+
+## 压缩硬指标
+1. 具体字数上限：
+   - 小总结 ≤3000 字，大总结 ≤1200 字；
+   - 小总结 3000-6000 字，大总结 ≤2000 字；
+   - 小总结 >6000 字，上限 = 2000 + ⌈(总字数-6000)/3000⌉ × 800。
+2. 平淡期（闭关、赶路、养伤、做工）合并为一段 100-200 字的【剧情阶段梗概】；单日无重大事件压缩为一句。
+3. 只记任务、关系、剧情状态、关键信息、冲突结果与剧情后果；境界突破事件可记，具体数值不记。
+4. 仅整合已有信息，严禁添加原文未提及的人物、事件、对话、心理、评价、因果。
+
+## 必须剔除
+- 日常起居、单纯路程、过渡性找零问路
+- 试探性重复议论
+- 已知环境描写、可推断内容
+- 资产收支、物品数量结算、战利品清单、数值增减
+- 修为、技艺、属性、熟练度、生命/灵气等一切成长数值
+- 境界/实力/等级的具体数值
+- 兵器名、功法名、招式名、操作步骤、战斗过程
+- 具体路线、地址、门牌（地点只保留到街区级别）
+- 当前时间、当前地点、当前境界数值、当前资产（由变量库实时维护）
+
+## 切分规则
+- 同一天默认合并为一条。仅当出现两条以上互不连贯的独立事件线时，才拆条。
+- 拆条标准：战斗、突破、结盟、身份改变等对后续走向有决定性影响的事件，方可独立成条。
+- 正例：同一天内“暗阁突破”与“击杀钱霸”属两条独立事件线，可拆。
+- 反例：同一天内“买功法→研习→自创功法”属同一条事件线，合并。
+
+## 地点与时间归属规则
+- 同一天多地移动时，标题写“起点→终点”，梗概按移动顺序叙述。
+- 跨天区间内多项关键变动，按发生顺序在同一【阶段关键变动】内排列。
+- 标题地点可省略固定前缀，从当前最大区域写起。
 
 ## 输出格式
 
----
-{年}-{月}-{日} | {完整地点路径}:
-  {时间表达}
-  {整合后的完整事件叙述，包含：人物行为、对话要点、战斗经过、互动过程、因果关系、关键细节}
-  
-  [以下条目若有内容则添加，无则省略]
-  【信息变动】{角色}的{数值}: ±X | 获得/失去{物品} | 习得{技能}，装备{装备名}
-  【关系变动】{角色A}与{角色B}的关系由{原关系}变为{新关系}，称呼改为{新称呼}
-  【战斗记录】{参战方}vs{对手} | {战果} | {伤亡/损失} | {战利品}
-
-  {时间表达}
-  {完整事件叙述}
-  【信息变动】...
-  【关系变动】...
-  【战斗记录】...
+【阶段剧情大事记】
 
 ---
-{年}-{月}-{日} | {下一个地点路径}:
-  {时间表达}
+{年}-{月}-{日}（或 {起始年-月-日}至{结束年-月-日}） | {核心地点或移动路径}:
+  【剧情阶段梗概】
+  （严格控制在200字以内，超过300字的条目视为不合格。只写“谁做了什么、结果如何”。战斗只写结果不写过程，不写兵器名、功法名、招式名、路线细节，不写操作步骤。关键对话保留引号，其余对话不写。）
+
+  [以下条目仅在发生时添加，无则完全省略；只做索引，不重述梗概，每条不超过两行]
+  【阶段关键变动】{任务接取/完成} | {关系变化} | {剧情状态变化} | {关键信息/承诺/线索}
+  【重大转折】{重大身份改变、关键决策、核心关系确立、境界突破}
+  【重要冲突与后果】{参战方} vs {对手} | {结果与影响}
+
+---
+{下一个日期或跨天区间} | {核心地点或移动路径}:
+  【剧情阶段梗概】
   ...
 
-## 格式说明
-- 每个一级标题格式为：{年}-{月}-{日} | {完整地点路径}，需用"---"分隔
-- 日期和地点用" | "分隔
-- 地点路径用"-"连接各段
-- 时间和事件内容缩进2个空格
-- 地点移动在事件描述中说明，或在地点路径中用"→"标注
+---
 
-## 时间表达规则
-- 单一时间点：{时}:{分}（如：13:30）
-- 连续时间段：{起始时}:{起始分}到{结束时}:{结束分}（如：13:30到15:00）
-- 同一地点下，事件连贯的，合并为时间段
+【待续事项】
+  【进行中任务】{只列未完成、未结清的任务及当前阶段；已完成的移出；无则写“无”}
+  【未解伏笔】{悬念、承诺、威胁、关键线索，含影响后续的支线人物命运；无则写“无”}
+
+## 格式说明
+- 一级标题格式：\`{年}-{月}-{日}\` 或 \`{起始日期}至{结束日期}\` 与 \`{核心地点或移动路径}\` 之间用 \`" | "\` 分隔。
+- 阶段大条目之间用 \`"---"\` 分割线隔离。
+- 地点路径用 \`"-"\` 连接，地点移动用 \`"→"\` 标注。
+- 重大身份改变、关键决策、核心关系确立、境界突破归【重大转折】；伤势、通缉、伪装、承诺等剧情状态归【阶段关键变动】。境界突破只记“何时突破至何境界”，具体数值由变量库另行记录。
+- 【阶段关键变动】只记任务、关系、剧情状态、关键信息，不记物品名称与数量，不记修为/技艺/属性/熟练度等成长数值。
+- 【重要冲突与后果】只写梗概未覆盖的后续影响，不重复战斗过程与结果。
+- 支线人物命运处理：不影响主角主线的，梗概末尾一句带过；影响后续的，列入【未解伏笔】。
+- 【待续事项】只写未完成部分，已完成事件不列入。
+- 不得输出任何 HTML 标签。
+
+## 时间与日期表达规则
+- 单日表达：\`{年}-{月}-{日}\`。
+- 跨天区间表达：\`{起始年-月-日}至{结束年-月-日}\`。
+- 绝对禁止保留微观时间点。时间推移用“清晨”“正午”“黄昏”“深夜”“次日”“数日后”等自然过渡。
 
 ## 叙述要求
-- 以精炼的叙事语言重新组织，比原始记录更加紧凑
-- 重大事件（关键战斗、重要决策、转折点）保留更多细节
-- 日常过渡性事件可进一步压缩
-- 信息变动、关系变动合并同类项
-- 关键对话用引号保留
-- 客观陈述，不加评价
-- 仅记录/整合已有的信息，禁止添加原文未提及的任何内容
+- 只记录结果和驱动剧情的关键因果。
+- 客观陈述，不加主观评价或推测。
 
-## 格式规范
-- 地点：完整路径用"-"分隔，移动用"→"
-- 数值：用"±X"表示变化
-- 缩进：统一2个空格
+## 输出前自检
+1. 梗概是否出现兵器名、功法名、招式名、操作步骤或具体地址？若有，删除。
+2. 梗概是否超过 300 字？若超过，重写压缩。
+3. 同一天是否被拆成三条以上？
+4. 标签条目是否只做索引，未重述梗概？
+5. 【待续事项】是否混入了已完成事件？
+6. 是否误记了资产、物品、战利品，或修为/技艺/属性/熟练度等成长数值？
 </mega_summary_rules>`,
     enabled: true,
   },
@@ -506,6 +540,8 @@ const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  * 依赖: config.js, utils.js, errorHandler.js
  */
 
+// 用户偏好独立于卡包脚本数据，跨重载、更新角色卡保留；世界书绑定仍按聊天存储。
+const USER_SETTINGS_VAR_KEY = 'cultivation_summary_assistant_settings';
 let _cachedSettings = null;
 
 const cloneSettings = (settings) => ({
@@ -604,6 +640,11 @@ const migrateOldSettings = (raw) => {
 
   raw.promptBlocks = migrateAssistantPrefillBlocks(raw.promptBlocks);
   raw.megaPromptBlocks = migrateAssistantPrefillBlocks(raw.megaPromptBlocks);
+  raw.megaPromptBlocks = raw.megaPromptBlocks?.map((block) =>
+    block.id === 'mega_summary_rules' && block.content?.replace(/\r\n/g, '\n').trim() === LEGACY_MEGA_SUMMARY_RULES.trim()
+      ? { ...block, content: DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS.find((b) => b.id === block.id).content }
+      : block
+  );
   raw.excludeTags = migrateThoughtTagFilters(raw.excludeTags);
 
   if (Array.isArray(raw.promptBlocks) && raw.promptBlocks.length > 0) return raw;
@@ -666,7 +707,8 @@ const validateBlocks = (blocks, defaultBlocks = DEFAULT_PROMPT_BLOCKS) => {
 const loadSettings = errorCatched(async () => {
   try {
     const vars = getVariables({ type: 'script' });
-    const raw = vars?.[CONFIG.SETTINGS_VAR_KEY];
+    const stored = getVariables({ type: 'global' })?.[USER_SETTINGS_VAR_KEY];
+    const raw = stored ?? vars?.[CONFIG.SETTINGS_VAR_KEY];
     if (raw && typeof raw === 'object') {
       // 兼容旧卡：首次加载时把脚本变量里的明文 Key 搬到本机，并立刻清除可导出副本。
       const legacyApiKey = typeof raw.customApiKey === 'string' ? raw.customApiKey.trim() : '';
@@ -686,9 +728,15 @@ const loadSettings = errorCatched(async () => {
         _cachedSettings.excludeTags = [...DEFAULT_SETTINGS.excludeTags];
       _cachedSettings.promptBlocks = validateBlocks(_cachedSettings.promptBlocks, DEFAULT_PROMPT_BLOCKS);
       _cachedSettings.megaPromptBlocks = validateBlocks(_cachedSettings.megaPromptBlocks, DEFAULT_MEGA_SUMMARY_PROMPT_BLOCKS);
-      if (legacyApiKey || settingsMigrated) {
+      if (!stored || legacyApiKey || settingsMigrated) {
         await insertOrAssignVariables(
-          { [CONFIG.SETTINGS_VAR_KEY]: settingsWithoutCustomApiKey(_cachedSettings) },
+          { [USER_SETTINGS_VAR_KEY]: settingsWithoutCustomApiKey(_cachedSettings) },
+          { type: 'global' }
+        );
+      }
+      if (vars?.[CONFIG.SETTINGS_VAR_KEY]?.customApiKey) {
+        await insertOrAssignVariables(
+          { [CONFIG.SETTINGS_VAR_KEY]: { ...vars[CONFIG.SETTINGS_VAR_KEY], customApiKey: '' } },
           { type: 'script' }
         );
       }
@@ -713,10 +761,10 @@ const saveSettings = errorCatched(async (settings) => {
   _cachedSettings = cloneSettings(settings);
   writeLocalCustomApiKey(_cachedSettings.customApiKey);
   await insertOrAssignVariables(
-    { [CONFIG.SETTINGS_VAR_KEY]: settingsWithoutCustomApiKey(_cachedSettings) },
-    { type: 'script' }
+    { [USER_SETTINGS_VAR_KEY]: settingsWithoutCustomApiKey(_cachedSettings) },
+    { type: 'global' }
   );
-});
+}, true);
 
 const getSettings = () => {
   if (!_cachedSettings)
@@ -732,7 +780,7 @@ const updateSettings = errorCatched(async (partial) => {
   const updated = { ...current, ...partial };
   await saveSettings(updated);
   return updated;
-});
+}, true);
 
 const resetSettings = errorCatched(async () => {
   const defaults = cloneSettings({
@@ -741,7 +789,7 @@ const resetSettings = errorCatched(async () => {
   });
   await saveSettings(defaults);
   return defaults;
-});
+}, true);
 
 // ---- 大总结映射管理 ----
 
@@ -3327,7 +3375,7 @@ const buildPanelHtml = (settings) => `
     </div>
   </div>
   <div class="sa-footer">
-    <div class="sa-footer-left"><button class="sa-btn sa-btn-danger" id="sa-reset">重置所有设置</button></div>
+    <div class="sa-footer-left"><span class="sa-hint" id="sa-save-status" role="status">设置自动保存</span><button class="sa-btn sa-btn-danger" id="sa-reset">重置所有设置</button></div>
     <div class="sa-footer-right"><button class="sa-btn sa-btn-primary" id="sa-start-summary">手动开始总结</button></div>
   </div>
 </div>
@@ -3474,6 +3522,7 @@ const rerenderBlocks = (overlay, blocks, containerId = '#sa-blocks-container') =
   const container = overlay.querySelector(containerId);
   if (!container) return;
   container.innerHTML = renderBlocks(blocks, containerId.replace('#', ''));
+  overlay._saveSettings?.();
 };
 
 const addNewBlock = async (overlay, containerId = '#sa-blocks-container') => {
@@ -4021,6 +4070,34 @@ const refreshStatus = async (panel) => {
 
 // ---- 面板事件绑定 ----
 
+const bindSettingsAutoSave = (overlay) => {
+  // 委托事件覆盖重新渲染的提示词板块；不等待防抖，避免关闭/刷新丢失输入。
+  let saveRevision = 0;
+  const autoSave = async () => {
+    const revision = ++saveRevision;
+    const status = overlay.querySelector('#sa-save-status');
+    status.textContent = '正在保存…';
+    try {
+      await updateSettings(collectSettingsFromPanel(overlay));
+      if (revision === saveRevision) status.textContent = '已自动保存';
+    } catch (e) {
+      if (revision === saveRevision) status.textContent = '保存失败，请重新修改后重试';
+      console.warn('自动保存失败:', e);
+      toastr.error('总结设置保存失败：' + e.message);
+    }
+  };
+  overlay._saveSettings = autoSave;
+  const onSettingChange = (event) => {
+    const el = event.target;
+    if (!el.closest('.sa-settings-content, .sa-blocks-container')) return;
+    if (!el.matches('input, select, textarea')) return;
+    if (el.id === 'sa-vis-from' || el.id === 'sa-vis-to') return;
+    void autoSave();
+  };
+  overlay.addEventListener('input', onSettingChange);
+  overlay.addEventListener('change', onSettingChange);
+};
+
 const bindPanelEvents = (overlay, initialSettings) => {
   // 关闭按钮
   overlay.querySelector('#sa-close').addEventListener('click', () => {
@@ -4325,33 +4402,7 @@ const bindPanelEvents = (overlay, initialSettings) => {
     }
   });
 
-  // ---- 自动保存（防抖） ----
-  let _autoSaveTimer = null;
-  const autoSave = () => {
-    if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
-    _autoSaveTimer = setTimeout(async () => {
-      try {
-        const newSettings = collectSettingsFromPanel(overlay);
-        await updateSettings(newSettings);
-        toastr.info('设置已自动保存', '', {
-          timeOut: 1200,
-          positionClass: 'toast-top-right',
-        });
-      } catch (e) {
-        console.warn('自动保存失败:', e);
-      }
-    }, 800);
-  };
-  overlay
-    .querySelectorAll('.sa-body input, .sa-body select, .sa-body textarea')
-    .forEach((el) => {
-      if (el.id === 'sa-vis-from' || el.id === 'sa-vis-to') return;
-      const evtName =
-        el.type === 'checkbox' || el.type === 'radio' || el.tagName === 'SELECT'
-          ? 'change'
-          : 'input';
-      el.addEventListener(evtName, autoSave);
-    });
+  bindSettingsAutoSave(overlay);
 
   // ---- 重置设置 ----
   overlay.querySelector('#sa-reset').addEventListener('click', async () => {
@@ -4371,7 +4422,6 @@ const bindPanelEvents = (overlay, initialSettings) => {
 
   // ---- 手动开始总结 ----
   overlay.querySelector('#sa-start-summary').addEventListener('click', async () => {
-    if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
     const newSettings = collectSettingsFromPanel(overlay);
     await updateSettings(newSettings);
     overlay._cleanupResize?.();
@@ -4454,7 +4504,6 @@ const bindPanelEvents = (overlay, initialSettings) => {
         if (confirm !== SillyTavern.POPUP_RESULT.AFFIRMATIVE) return;
         
         // 保存设置并关闭面板
-        if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
         const newSettings = collectSettingsFromPanel(overlay);
         await updateSettings(newSettings);
         overlay._cleanupResize?.();

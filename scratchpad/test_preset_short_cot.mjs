@@ -7,6 +7,8 @@ const YAML = require('yaml');
 const root = new URL('../预设/本格修仙/', import.meta.url);
 const read = name => fs.readFileSync(new URL(name, root), 'utf8');
 const config = YAML.parse(read('index.yaml'));
+assert.ok(config.提示词.findIndex(p => p.名称 === '⚙️语言字数设置') < config.提示词.findIndex(p => p.名称 === '🛑初始化'));
+assert.ok(!read('条目/🛑初始化.txt').includes('{{setvar::字数::'), '初始化不得清空前置的语言字数设置');
 
 // Evaluate the plain EJS control/interpolation blocks used by this preset only.
 // This does not emulate ST's request pipeline, macro engine, or remote models.
