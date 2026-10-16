@@ -30,6 +30,21 @@ function macros(text, vars) {
   });
 }
 
+// Match the real pipeline: expand ST variable macros before evaluating EJS.
+const languageSettings = read('条目/⚙️语言字数设置.txt');
+assert.ok(!languageSettings.includes('<%'), '用户设置条目不再把变量宏包进 EJS');
+for (const route of ['[]', '["[时间推进规则]"]', 'invalid-json', 'null']) {
+  const vars = {};
+  macros(languageSettings, vars);
+  macros(read('条目/🛑初始化.txt'), vars);
+  vars.路由激活规则 = route;
+  const expanded = read('条目/⚙️SETTING.txt').replace(/\{\{getvar::([^}]+)\}\}/g, (_, key) => vars[key] ?? '');
+  const output = render(expanded, { getvar: key => vars[key] ?? '' });
+  assert.ok(output.includes(route.includes('[时间推进规则]') ? '2500-3500字' : '1500-2500字'));
+  assert.ok(output.includes('正文语言: 简体中文'));
+  assert.ok(!output.includes('{{setvar::'));
+}
+
 for (const item of config.提示词) {
   if (!item.文件) continue;
   const base = item.文件.replaceAll('\\', '/');

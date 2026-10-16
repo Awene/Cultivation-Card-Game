@@ -1,5 +1,13 @@
 <output_contract>
 <gametxt_setting>{{getvar::字数}}
+<%_
+{
+let 激活规则 = [];
+try { 激活规则 = JSON.parse(getvar('路由激活规则') || '[]'); } catch (_) {}
+const 世界推进中 = Array.isArray(激活规则) && 激活规则.includes('[时间推进规则]');
+_%>
+- 正文叙事汉字字数: <%= 世界推进中 ? getvar('世界推进字数') : getvar('日常剧情字数') %><% if (世界推进中) { %>；关系列表全体人物逐人展示优先，人数较多时允许超出目标字数<% } %>(面板字数不算在内)
+<%_ } _%>
 - 正文标签: 仅用一对<gametxt> </gametxt>包裹全部正文、美化与面板。
 {{getvar::人称}}{{getvar::转述}}
 {{getvar::视角}}{{getvar::转折}}{{getvar::抢话}}{{getvar::对话}}{{getvar::结尾}}

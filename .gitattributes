@@ -1,0 +1,2 @@
+# Preserve delivery bytes and published SHA-256 across platforms.
+发布文件/** -text whitespace=cr-at-eol
