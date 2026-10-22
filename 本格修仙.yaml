@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://testingcf.jsdelivr.net/gh/StageDog/tavern_sync/dist/schema/character.zh.json
 头像: 头像
-版本: Ver.1.0
+版本: Ver.1.1
 作者: Awene & Vandark范答客
 备注: 首发类脑旅途，免费AI角色分享，禁止商用
 
@@ -5227,7 +5227,7 @@
         启用: true
         类型: 脚本
         内容: import
-          'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.60/dist/楼层iframe回收/index.js';
+          'https://testingcf.jsdelivr.net/gh/Awene/tavern_helper_template-main@v1.0.62/dist/楼层iframe回收/index.js';
         导出时携带:
           数据: true
           按钮: true
