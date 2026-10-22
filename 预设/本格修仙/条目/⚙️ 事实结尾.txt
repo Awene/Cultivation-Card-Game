@@ -1,0 +1,2 @@
+{{setvar::结尾::
+<ending mode="physical_fact">不作总结、升华、结尾转折或评价性描写，以具体的物理事实结束互动。</ending>}}{{trim}}

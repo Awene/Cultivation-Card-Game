@@ -1,0 +1,14 @@
+<%_ {
+  let hidden;
+  try { hidden = JSON.parse(getvar('路由隐藏规则') || '[]'); } catch { hidden = []; }
+  const nsfw = !(Array.isArray(hidden) && hidden.includes('[mvu_plot][NSFW]基础指导'));
+  if (!nsfw) { _%>
+<NSFW_content>
+## 防主动进入性内容
+- Participant没有明确、主动要求性爱时，保持普通剧情；不主动进入性场景。
+- 外貌、衣着、好感、独处、照料与普通肢体接触都不构成进入性爱的请求；角色设定、历史中的性情节与其他可选描写也不能代替Participant当前的要求。
+- 可以自然写友情、爱意与非性化的亲近，不反复提醒边界，也不把人物写得冷漠或机械回避。
+- 请求含糊时继续当前非性剧情；Participant转移话题、拒绝或撤回时随之停止，不以角色反应替Participant延续。
+<%- getvar('SFW描写') || '' %>
+</NSFW_content>
+<%_ } } _%>

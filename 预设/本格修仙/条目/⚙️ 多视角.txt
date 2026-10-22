@@ -1,0 +1,2 @@
+{{setvar::视角::
+<camera mode="multi">在合适的情节中可将镜头对准全局而不局限于<user>，可同时展示多个不同场景，全方位呈现世界。</camera>}}{{trim}}

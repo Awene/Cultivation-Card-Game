@@ -1,0 +1,9 @@
+</world_context>
+<VOID_reference>
+<|本格_参考区|>
+</VOID_reference>
+<world_summary>
+<|本格_记忆区|>
+</world_summary>
+<historical_record>
+<|本格_历史开始|>

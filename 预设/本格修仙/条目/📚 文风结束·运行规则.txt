@@ -1,0 +1,4 @@
+</writing_guidance>
+<VOID_runtime>
+<|本格_运行规则区|>
+</VOID_runtime>

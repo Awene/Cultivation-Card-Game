@@ -1,5 +1,6 @@
+{{setvar::变量模式::extra}}
 {{setvar::变量f::
 - 读取与本轮剧情相关的时间、地点、环境、资源、状态、穿戴、物品、功法、任务和关系，以动作、对白和感受自然呈现，不将数值或字段名写成人物认知与对白。
-- 变量处理: <UpdateVariable>由外部模型负责；本回复不得生成、解析或预写变量代码。}}{{setvar::变量c::
+- 本轮不更新变量，不输出 UpdateVariable 或变量更新代码。}}{{setvar::变量c::
 - Read the time, location, environment, resources, conditions, worn items, inventory, cultivation arts, tasks, and relationships relevant to this turn. Convey them naturally through actions, dialogue, and sensations; keep stat values and field names out of character knowledge and dialogue.
-- Variable handling: an external model handles <UpdateVariable>; do not generate, parse, or prewrite variable-update code in this reply.}}
+- Do not update variables or output UpdateVariable or variable-update code in this reply.}}

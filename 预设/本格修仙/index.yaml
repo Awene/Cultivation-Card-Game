@@ -6,7 +6,7 @@
   温度: 1
   频率惩罚: 0
   存在惩罚: 0
-  top_p: 0.98
+  top_p: 0.95
   top_k: 64
   压缩系统消息: false
   推理强度: 自动
@@ -17,1296 +17,466 @@
   允许发送图片: 禁用
   允许发送视频: false
   角色名称前缀: 默认
-
 锚点: {}
-
 提示词:
-  - 名称: 🪐开头
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🪐开头
-
-  - 名称: ⚙️语言字数设置
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\⚙️语言字数设置
-
-  - 名称: 🛑初始化
-    启用: true
-    角色: 系统
-    文件: 条目\🛑初始化
-
-  - 名称: ⚙️抢话
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::抢话::
-      - 扮演规则: 允许代替<user>进行选择、对话与行动}}
-
-  - 名称: ⚙️不抢话弱(不抢话容易八股)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::抢话::
-      - 扮演约束: 禁止替任何<user>做重要决定，消费/缔结契约/接取任务等行为只可通过<Participant_input>意图判断，可通过其他角色互动进行叙事}}{{//字数设置少点}}
-
-  - 名称: ⚙️不抢话(转述)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::抢话::
-      - 扮演约束: **在正文中，<user>言行仅描述限定于<Participant_input>的合理内容；本回复不得替<user>做任何<Participant_input>以外的行为与决定，消费/缔结契约/接取任务等行为只可通过<Participant_input>意图判断;可以通过描述其他非<user>角色来展现剧情且对<Participant_input>有所互动；可以描述非<user>角色对<user>的“观察”和“反应”；不能将<user>处理为隐形**}}{{setvar::抢话1::
-      - <user>言行仅限于<Participant_input>中内容，不要作多余扮演}}
-
-  - 名称: ⚙️不抢话(不转述,不推荐)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::抢话::
-      - 扮演约束: **本回复不得扮演<user>，只可通过描述其他非<user>角色来展现剧情且对<Participant_input>有所互动；可以描述非<user>角色对<user>的“观察”和“反应”；不能将<user>处理为隐形**}}{{setvar::抢话1::
-      - 避免与正文中扮演<user>言行}}
-
-  - 名称: 🧭转述融入
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::转述::
-      - 转述融入：将`分析输入`后的结果去除命令与指令内容，**确保<Participant_input>的对白部分在正文有所体现**转述至正文中，不得复述原句，符合<<user>_setting>}}{{setvar::转述1f::
-      - 输入落地: 将解析后的有效对白与行动依<<user>_setting>转述融入正文，不复述原句。}}{{setvar::转述1c::
-      - Input delivery: integrate valid dialogue and actions into the narrative according to <<user>_setting>, without repeating the original wording.}}
-
-  - 名称: 🧭不转述(不推荐)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::转述::
-      - 不转述：严格避免<Participant_input>在正文中以任何形式出现，<Participant_input>中内容是已经发生的事实，你的正文需要按照其已经进行完毕的状态开始}}{{setvar::转述1f::
-      - 输入落地: 有效输入视为已发生事实，正文从结果继续，禁止复述<user>言行。}}{{setvar::转述1c::
-      - Input delivery: treat valid input as already occurred; continue from its consequences without repeating <user>'s words or actions.}}
-
-  - 名称: ⚙️对话量设置(不抢话关)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::对话::
-      - 对话占比: 通过大量对话填充正文、推进剧情。对白在正文占比50%}}
-
-  - 名称: 🧩文本补全上下文
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🧩文本补全上下文
-
-  - 名称: 🎭叙事执行偏好
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🎭叙事执行偏好
-
-  - 名称: 🎚️真实难度(三选一)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🎚️真实难度(三选一)
-
-  - 名称: 🎚️简单难度(三选一)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🎚️简单难度(三选一)
-
-  - 名称: 🎚️平然难度(三选一)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🎚️平然难度(三选一)
-
-  - 名称: ➡️文风指导开始
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: <base_writing_guidance>
-
-  - 名称: ✅️基调(3.1p／claude4.6op)(H一串)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\✅️基调(3.1p／claude4.6op)(H一串)
-
-  - 名称: ✅️叙事声音(对话即兴)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\✅️叙事声音(对话即兴)
-
-  - 名称: ✅️开放结尾(反收束)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\✅️开放结尾(反收束)
-
-  - 名称: ➡️文风指导结束
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: </base_writing_guidance>
-
-  - 名称: ➡️写作风格开始
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: <Writing_style>
-
-  - 名称: 📜故事基调-轻松
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\📜故事基调-轻松
-
-  - 名称: ❄️文风（仙侠）
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\❄️文风（仙侠）
-
-  - 名称: 🔥NSFW词汇(选开)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🔥NSFW词汇(选开)
-
-  - 名称: 🔥NSFW指导
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🔥NSFW指导
-
-  - 名称: 🔇去八股
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🔇去八股
-
-  - 名称: ➡️世界开始
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\➡️世界开始
-
-  - id: 角色定义之前
-    启用: true
-
-  - 名称: ➡️用户设定开始
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: <{{user}}_setting>{{getvar::抢话1}}
-
-  - 名称: ⚙️用户设定(防油腻／霸总自己设置）
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\⚙️用户设定(防油腻／霸总自己设置）
-
-  - id: 玩家描述
-    启用: true
-
-  - 名称: ➡️用户设定结束
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: </{{user}}_setting>
-
-  - id: 角色描述
-    启用: true
-
-  - id: 角色性格
-    启用: true
-
-  - id: 情景
-    启用: true
-
-  - id: 角色定义之后
-    启用: true
-
-  - id: 对话示例
-    启用: true
-
-  - 名称: ➡️D2到900条目
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      <additional_info><|additional_info|>
-      </additional_info>
-
-  - 名称: ➡️世界结束
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      </info>
-      </world_context>
-
-  - 名称: ➡️世界书总结(D900以上，不要动)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: <world_summary><|world_summary|></world_summary>
-
-  - 名称: ➡️历史记录开始
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      <historical_record>
-      <additional_settings>
-
-  - 名称: ➡️开局添加
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 用户
-    内容: "[Start Interaction]"
-
-  - id: 聊天记录
-    启用: true
-
-  - 名称: ➡️D2
-    启用: true
-    插入位置:
-      类型: 聊天中
-      深度: 2
-      顺序: 100
-    角色: 系统
-    内容: </additional_settings><深度2><additional_settings>
-
-  - 名称: ➡️D900
-    启用: true
-    插入位置:
-      类型: 聊天中
-      深度: 900
-      顺序: 100
-    角色: 系统
-    内容: </additional_settings><深度900><additional_settings>
-
-  - 名称: ➡️历史记录结束
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\➡️历史记录结束
-
-  - 名称: ➡️D2到0条目
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\➡️D2到0条目
-
-  - 名称: ➡️CLEWD_REGEX(不要动)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\➡️CLEWD_REGEX(不要动)
-
-  - 名称: 🧭防全知
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🧭防全知
-
-  - 名称: 🧭变量主API(二选一)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🧭变量主API(二选一)
-
-  - 名称: 🧭变量额外API(二选一)
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🧭变量额外API(二选一)
-
-  - 名称: 🌐COT
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🌐COT
-
-  - 名称: ⚙️人称设置
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::人称::
-      - 叙事人称: 必须以第三人称**有限视角**创作正文，直接使用角色完整名称呼角色}}
-
-  - 名称: ⚙️多视角
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::视角::
-      - 叙事视角: 在合适的情节时可将镜头对准全局而不局限于聚焦<user>，可同时展示多个不同场景，全方位展示世界}}
-
-  - 名称: ⚙️防转折
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::转折::
-      - 剧情控制：绝不通过转折进行剧情的推进，聚焦于当前事件，不引入新的角色，不打断当前主线，以主线为基础进行推进，不引入新支线}}
-
-  - 名称: ⚙️结尾
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::结尾::
-      - 正文结尾：结尾不进行任何总结、升华、结尾转折和评价性描写，以具体的物理事实结束互动}}
-
-  - 名称: ⚙️非user结尾
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    内容: |-
-      {{setvar::结尾::
-      - 正文结尾：必须以非<user>角色的语言动作/环境描写收尾，不进行任何总结、升华、结尾转折和评价性描写，以具体的物理事实结束互动}}
-
-  - 名称: ⚙️SETTING
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\⚙️SETTING
-
-  - 名称: 📑时间地点天气栏（不要关）
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\📑时间地点天气栏（不要关）
-
-  - 名称: 📑摘要（不要关）
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\📑摘要（不要关）
-
-  - 名称: 📑行动选项
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\📑行动选项
-
-  - 名称: 🛟防截断（非流式）
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🛟防截断（非流式）
-
-  - 名称: 🛟防截断+防神化加强（非流式）
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🛟防截断+防神化加强（非流式）
-
-  - 名称: 🛟防截断加强（非流式）
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🛟防截断加强（非流式）
-
-  - 名称: ⚡️活人感去数据化(选开,占注意力，claude可关)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\⚡️活人感去数据化(选开,占注意力，claude可关)
-
-  - 名称: 🚫格式顺序
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\🚫格式顺序
-
-  - 名称: ⚓️尾部
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\⚓️尾部
-
-  - 名称: 📖模型使用说明(必看)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: 系统
-    文件: 条目\📖模型使用说明(必看)
-
-  - 名称: ⚓️Gemini开
-    启用: true
-    插入位置:
-      类型: 相对
-    角色: 用户
-    文件: 条目\⚓️Gemini开
-
-  - 名称: ⚓️Claude开
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: AI
-    文件: 条目\⚓️Claude开
-
-  - 名称: ⚓️DS开
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: AI
-    文件: 条目\⚓️DS开
-
-  - 名称: ⚓️拷打模式(Gemini)
-    启用: false
-    插入位置:
-      类型: 相对
-    角色: AI
-    文件: 条目\⚓️拷打模式(Gemini)
-
+- 名称: ⚙️语言字数设置
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️语言字数设置
+- 名称: 📚 宏与变量
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 宏与变量
+- 名称: ⚙️ 用户附加设定
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 用户附加设定
+- 名称: ⚙️ 允许抢话
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 允许抢话
+- 名称: ⚙️ 禁止抢话
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 禁止抢话
+- 名称: 🧩 融入转述
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 融入转述
+- 名称: 🧩 禁止转述
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 禁止转述
+- 名称: ⚙️ 对话量
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 对话量
+- 名称: 🔌 Gemini头部
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔌 Gemini头部
+- 名称: 🔌 Claude头部
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔌 Claude头部
+- 名称: 🔌 Glm头部
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔌 Glm头部
+- 名称: 🔌 DeepSeek头部
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔌 DeepSeek头部
+- 名称: 📚 输出协议
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 输出协议
+- id: 角色定义之前
+  启用: true
+- 名称: 📚 用户开始
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 用户开始
+- id: 玩家描述
+  启用: true
+- 名称: 📚 用户结束
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 用户结束
+- id: 角色描述
+  启用: true
+- id: 角色性格
+  启用: true
+- id: 情景
+  启用: true
+- id: 角色定义之后
+  启用: true
+- id: 对话示例
+  启用: true
+- 名称: 📚 世界结束·参考与记忆
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 世界结束·参考与记忆
+- id: 聊天记录
+  启用: true
+- 名称: 📚 深度二
+  启用: true
+  插入位置:
+    类型: 聊天中
+    深度: 2
+    顺序: 100
+  角色: 系统
+  文件: 条目/📚 深度二
+- 名称: 📚 深度九百
+  启用: true
+  插入位置:
+    类型: 聊天中
+    深度: 900
+    顺序: 100
+  角色: 系统
+  文件: 条目/📚 深度九百
+- 名称: 📚 历史结束·文风开始
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 历史结束·文风开始
+- 名称: 🎭 简笔叙事
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎭 简笔叙事
+- 名称: 🎭 细节叙事
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎭 细节叙事
+- 名称: 🎭 舒展叙事
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎭 舒展叙事
+- 名称: 🎭 进阶基调·轻松
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎭 进阶基调·轻松
+- 名称: ✒️ 仙侠
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/✒️ 仙侠
+- 名称: 🔥 NSFW模式·男性向(二选一)
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔥 NSFW模式·男性向(二选一)
+- 名称: 🔥 NSFW模式·女性向(二选一)
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔥 NSFW模式·女性向(二选一)
+- 名称: 🔥 NSFW模式·防发情
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔥 NSFW模式·防发情
+- 名称: 🔧 NSFW可选·SFW描写
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔧 NSFW可选·SFW描写
+- 名称: 🔧 NSFW可选·词汇
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔧 NSFW可选·词汇
+- 名称: 🔧 精简人称代词
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔧 精简人称代词
+- 名称: 🔧 减少无谓精确数字
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🔧 减少无谓精确数字
+- 名称: 🧩 表达约束
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 表达约束
+- 名称: 📚 文风结束·运行规则
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 文风结束·运行规则
+- 名称: 🎚️真实难度(三选一)
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎚️真实难度(三选一)
+- 名称: 🎚️简单难度(三选一)
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎚️简单难度(三选一)
+- 名称: 🎚️平然难度(三选一)
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎚️平然难度(三选一)
+- 名称: 🧭 大纲展开
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧭 大纲展开
+- 名称: 🧩 限制全知视角
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 限制全知视角
+- 名称: 🧩 前情回顾
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 前情回顾
+- 名称: 🧩 自查修正
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 自查修正
+- 名称: 🧩 文笔强化
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 文笔强化
+- 名称: 🧩 书籍参考
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧩 书籍参考
+- 名称: ⚙️ 叙事人称
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 叙事人称
+- 名称: ⚙️ 多视角
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 多视角
+- 名称: ⚙️ 防转折
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 防转折
+- 名称: ⚙️ 事实结尾
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 事实结尾
+- 名称: ⚙️ 配角结尾
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/⚙️ 配角结尾
+- 名称: 📤 时间地点天气
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📤 时间地点天气
+- 名称: 📚 文本协议
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 文本协议
+- 名称: 📚 正文协议
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 正文协议
+- 名称: 🧭变量主API(二选一)
+  启用: false
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧭变量主API(二选一)
+- 名称: 🧭变量额外API(二选一)
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧭变量额外API(二选一)
+- 名称: 📋 回复摘要
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📋 回复摘要
+- 名称: 🎯 行动选项
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🎯 行动选项
+- 名称: 🧠 中文思维链
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧠 中文思维链
+- 名称: 🧠 英文思维链
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/🧠 英文思维链
+- 名称: 📚 最终输出格式
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 系统
+  文件: 条目/📚 最终输出格式
+- 名称: 🔌 Gemini尾部
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 用户
+  文件: 条目/🔌 Gemini尾部
+- 名称: 🔌 Glm尾部
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 用户
+  文件: 条目/🔌 Glm尾部
+- 名称: 🔌 Claude尾部
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 用户
+  文件: 条目/🔌 Claude尾部
+- 名称: 🔌 DeepSeek尾部
+  启用: true
+  插入位置:
+    类型: 相对
+  角色: 用户
+  文件: 条目/🔌 DeepSeek尾部
 未添加的提示词: []
-
 扩展字段:
+  cultivation_card:
+    id: bengexiuxian
+    version: 2026.10.22
   正则:
-    - 正则名称: 破限3兼容·删除Python起止壳
-      id: 204ea440-5088-46d6-9a67-b8d8554d1a73
-      启用: true
-      查找表达式: '/^\s*(?:```(?:python)?\s*)?(?:import\s+sys\s*)?(?:content\s*=\s*""")?<｜begin｜>\s*([\s\S]*?)\s*<｜over｜>(?:"""\s*)?(?:sys\.stdout\.write\(content\)\s*)?(?:```\s*)?$/i'
-      内容: $1
-      来源:
-        用户输入: true
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: true
-
-    - 正则名称: k3.3思维链转义标签1
-      id: 27cb54ca-593d-48f2-ac5c-035c7b3e88f0
-      启用: true
-      查找表达式: /<([\s\S]*?)>(?=[\s\S]*?<\/think(?:ing)?>)/g
-      内容: $1
-      来源:
-        用户输入: false
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: false
-
-    - 正则名称: 思维链美化
-      id: 53ead7d0-8d20-4979-b4dd-e84703d054ed
-      启用: true
-      查找表达式: /([\s\S]*?)<\/think(?:ing)?>/gi
-      文件: 正则\思维链美化
-      来源:
-        用户输入: false
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: false
-      最大深度: 1
-
-    - 正则名称: 用户输入3
-      id: a7cbed68-ae09-4e0f-b69d-933837e803cc
-      启用: true
-      查找表达式: ^([\s\S]*)$
-      内容: |-
-        <Participant_input>
-        $1
-        </Participant_input>
-      来源:
-        用户输入: true
-        AI输出: false
-      作用于:
-        仅格式显示: false
-        仅格式提示词: true
-      最大深度: 1
-
-    - 正则名称: 深层楼层用小总结代替
-      id: c2f8d5b3-4e0a-4b7c-9d26-8f3a0e5b2d41
-      启用: true
-      查找表达式: /^[\s\S]*?(<summary>[\s\S]*?<\/summary>)[\s\S]*$/i
-      内容: $1
-      来源:
-        用户输入: false
-        AI输出: true
-      作用于:
-        仅格式显示: false
-        仅格式提示词: true
-      最小深度: 6
-
-    - 正则名称: 去除多余信息4
-      id: 2916dba3-68bb-4c60-8a65-95eafa682b77
-      启用: true
-      查找表达式: /(<Disclaimer>(((?!<Disclaimer>).)*?)</Disclaimer>)|<done>|(<!--[\s\S]*?-->(\s*))|(.*?</think(ing)?>(\n)?)|(<think(ing)?>[\s\S]*<\/think(ing)?>(\n)?)/gsi
-      内容: ""
-      来源:
-        用户输入: false
-        AI输出: true
-      作用于:
-        仅格式显示: true
-        仅格式提示词: true
-
-    - 正则名称: 行动选项删除
-      id: ad67d9ba-e913-4d59-8f41-5c6b9e22e9e4
-      启用: true
-      查找表达式: /<(?:action_options|options)>.*?<\/(?:action_options|options)>/gs
-      内容: ""
-      来源:
-        用户输入: false
-        AI输出: true
-      作用于:
-        仅格式显示: false
-        仅格式提示词: true
-
-    - 正则名称: k3.0底部正则8
-      id: 7296ffd6-a5b2-4d2c-ab99-5e795cbf31e1
-      启用: true
-      查找表达式: /(.*)/s
-      内容: </additional_settings>$1<additional_settings>
-      来源:
-        用户输入: true
-        AI输出: true
-      作用于:
-        仅格式显示: false
-        仅格式提示词: true
-
-    - 正则名称: 杀增殖
-      id: 88e5ad4b-1b1f-4c45-b2db-2264bee1c3f8
-      启用: true
-      查找表达式: /极其|由于/g
-      内容: ""
-      来源:
-        用户输入: false
-        AI输出: true
-      作用于:
-        仅格式显示: false
-        仅格式提示词: true
-
+  - 正则名称: 思维链展示
+    id: 1b6fe649-9da6-56f1-b8e3-ff3b36682531
+    启用: true
+    查找表达式: /<(?:thinking|think|recorder_thinking)\b[^>]*>([\s\S]*?)<\/(?:thinking|think|recorder_thinking)>/gi
+    来源:
+      用户输入: false
+      AI输出: true
+    作用于:
+      仅格式显示: true
+      仅格式提示词: false
+    文件: 正则/思维链美化
+    最大深度: 1
+  - 正则名称: 思维链不发送
+    id: e01339d9-b1d3-5c15-8474-28656f497f8c
+    启用: true
+    查找表达式: /<(thinking|think|recorder_thinking)\b[^>]*>[\s\S]*?<\/\1>/gi
+    来源:
+      用户输入: false
+      AI输出: true
+    作用于:
+      仅格式显示: false
+      仅格式提示词: true
+    内容: ''
+  - 正则名称: 局部检查与变量不发送
+    id: f0d276f0-bf54-5180-81ca-41e9c842f583
+    启用: true
+    查找表达式: /<!--[\s\S]*?-->|<UpdateVariable\b[^>]*>[\s\S]*?<\/UpdateVariable>/gi
+    来源:
+      用户输入: false
+      AI输出: true
+    作用于:
+      仅格式显示: false
+      仅格式提示词: true
+    内容: ''
+  - 正则名称: 行动选项不发送
+    id: 3de263bb-a944-59c3-97b8-0975fc326243
+    启用: true
+    查找表达式: /<(?:action_options|options)>[\s\S]*?<\/(?:action_options|options)>/gi
+    来源:
+      用户输入: false
+      AI输出: true
+    作用于:
+      仅格式显示: false
+      仅格式提示词: true
+    内容: ''
+  - 正则名称: 远层仅发送摘要
+    id: 5bfd47d4-84a9-5de9-a50f-3b4521f3485b
+    启用: true
+    查找表达式: /^[\s\S]*?(<summary>[\s\S]*?<\/summary>)[\s\S]*$/i
+    来源:
+      用户输入: false
+      AI输出: true
+    作用于:
+      仅格式显示: false
+      仅格式提示词: true
+    内容: $1
+    最小深度: 6
   酒馆助手:
     脚本库:
-      - 名称: 【本格修仙】【SoliUmbra】SPreset
-        id: 1f606a66-701f-483e-a390-4f28ce3efda9
-        启用: true
-        类型: 脚本
-        导出时携带:
-          数据: true
-          按钮: true
-        文件: 脚本\【本格修仙】【SoliUmbra】SPreset
-        介绍: |
-          <!doctype html>
-          <html lang="zh-CN">
-          <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-          <title>SillyTavern 预设绑定正则 · 功能介绍</title>
-          <meta name="color-scheme" content="light dark" />
-          <style>
-            :root{
-              --bg: #0b0c10;
-              --panel: #111218;
-              --text: #e9e9ee;
-              --muted: #a4a6b0;
-              --brand: #7c5cff;
-              --brand-2: #46c2ff;
-              --ok: #2ecc71;
-              --warn: #ffb020;
-              --danger: #ff5b5b;
-              --border: #262733;
-              --code-bg: #0f1016;
-              --shadow: 0 10px 30px rgba(0,0,0,.35);
-            }
-            @media (prefers-color-scheme: light){
-              :root{
-                --bg: #f7f7fb;
-                --panel: #ffffff;
-                --text: #1a1b22;
-                --muted: #5a5d70;
-                --brand: #6a5cff;
-                --brand-2: #00aaff;
-                --ok: #1f9b5f;
-                --warn: #b78000;
-                --danger: #ce3b3b;
-                --border: #e9e9f0;
-                --code-bg: #f2f3f8;
-                --shadow: 0 10px 24px rgba(0,0,0,.08);
-              }
-            }
-            *{box-sizing:border-box}
-            html,body{height:100%}
-            body{
-              margin:0;
-              font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-                "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", Arial, "Apple Color Emoji",
-                "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-              background: radial-gradient(1200px 600px at 20% 0%, rgba(124,92,255,.10), transparent),
-                          radial-gradient(1000px 500px at 80% 0%, rgba(70,194,255,.10), transparent),
-                          var(--bg);
-              color: var(--text);
-              line-height: 1.65;
-              -webkit-font-smoothing: antialiased;
-              -moz-osx-font-smoothing: grayscale;
-            }
-            .wrap{max-width:1100px;margin:0 auto;padding:32px 20px 80px}
-            .hero{
-              display:grid; gap:16px; padding:28px 24px; border:1px solid var(--border);
-              background: linear-gradient(180deg, rgba(124,92,255,.12), rgba(124,92,255,0) 60%) , var(--panel);
-              border-radius:18px; box-shadow: var(--shadow);
-            }
-            .badge{
-              width:max-content; padding:6px 10px; border-radius:999px; font-size:12px; letter-spacing:.4px;
-              background: linear-gradient(90deg, rgba(124,92,255,.25), rgba(70,194,255,.25));
-              color:#fff; border:1px solid rgba(255,255,255,.18);
-              text-transform: uppercase;
-            }
-            h1{font-size:32px; margin:0 0 6px; line-height:1.25}
-            p.lead{margin:0;color:var(--muted);font-size:15px}
-            .grid{
-              display:grid; gap:16px; margin-top:22px;
-              grid-template-columns: repeat(12, 1fr);
-            }
-            .col-4{grid-column: span 12}
-            .col-6{grid-column: span 12}
-            @media (min-width: 820px){
-              .col-4{grid-column: span 4}
-              .col-6{grid-column: span 6}
-            }
-            .card{
-              height:100%;
-              padding:18px 16px;
-              background: var(--panel);
-              border:1px solid var(--border);
-              border-radius:14px;
-            }
-            .card h3{margin:0 0 6px;font-size:18px}
-            .muted{color:var(--muted)}
-            .icon{
-              display:inline-flex; align-items:center; justify-content:center;
-              width:28px; height:28px; border-radius:8px; margin-right:8px;
-              background: linear-gradient(180deg, rgba(124,92,255,.22), rgba(124,92,255,.08));
-              border:1px solid rgba(124,92,255,.35);
-            }
-            .kbar{
-              display:flex; gap:10px; flex-wrap:wrap; margin-top:8px
-            }
-            .kbtn{
-              display:inline-flex; align-items:center; gap:8px;
-              padding:8px 12px; border-radius:999px; font-size:13px;
-              background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0));
-              border:1px solid var(--border);
-              cursor:default;
-            }
-            .kbtn .dot{width:8px;height:8px;border-radius:999px;background:var(--ok)}
-            .section{margin-top:28px;
-                display:grid; gap:16px; padding:28px 24px; border:1px solid var(--border);
-              background: linear-gradient(180deg, rgba(124,92,255,.12), rgba(124,92,255,0) 60%) , var(--panel);
-              border-radius:18px; box-shadow: var(--shadow);}
-            .section h2{font-size:22px;margin:0 0 8px}
-            ul.check{padding-left:0;list-style:none;margin:10px 0 0}
-            ul.check li{display:flex;gap:10px;align-items:flex-start;margin:8px 0}
-            ul.check svg{flex:none;margin-top:4px}
-            .code{
-              margin-top:12px; border:1px solid var(--border); border-radius:14px; overflow:auto;
-              background: var(--code-bg); padding:14px;
-              color: var(--muted);
-              font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-              font-size: 13px;
-            }
-            .tip{font-size:13px;color:var(--muted);margin-top:6px}
-            .footer{
-              margin-top:36px; padding-top:16px; border-top:1px dashed var(--border); color:var(--muted); font-size:13px
-            }
-            a{color:var(--brand-2); text-decoration:none}
-            a:hover{text-decoration:underline}
-            .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;background:rgba(255,255,255,.04)}
-          </style>
-          </head>
-          <body>
-            <div class="wrap">
-              <div class="hero">
-                <span class="badge">SillyTavern · Regex Preset Binder</span>
-                <h1>预设绑定正则（Regex Preset Binder）</h1>
-                <p class="lead">为 SillyTavern 带来“把正则脚本内置到预设”的能力，并提供与原生一致的管理体验与一键切换。</p>
-
-                <div class="grid">
-                  <div class="col-4">
-                    <div class="card">
-                      <div class="icon" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          <path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </div>
-                      <h3>预设内置正则</h3>
-                      <p class="muted">原版不支持“正则随预设一并加载”。本插件让预设作者可在预设中内置配套正则，用户载入预设即自动可用。</p>
-                    </div>
-                  </div>
-                  <div class="col-4">
-                    <div class="card">
-                      <div class="icon" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          <path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </div>
-                      <h3>完整 UI 控制</h3>
-                      <p class="muted">和原生正则面板一致的体验：启用/禁用、编辑、导入/导出、排序、批量选择等，一应俱全。</p>
-                    </div>
-                  </div>
-                  <div class="col-4">
-                    <div class="card">
-                      <div class="icon" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          <path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </div>
-                      <h3>一键快速切换</h3>
-                      <p class="muted">点击按钮即可在“全局 &lt;→ 预设”之间移动脚本，随时绑定或解绑。</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="section">
-                <h2>快速上手</h2>
-                <ol class="muted" style="margin:6px 0 0;padding-left:20px">
-                  <li>安装此脚本（你已经完成了）</li>
-                  <li>打开 <b>设置 → Regex</b>，你会看到新增的 <b>“预设绑定正则”</b> 区域。</li>
-                  <li>使用 <b>导入预设正则</b> 或 <b>新建预设正则</b> 配置配套规则。</li>
-                  <li>通过“⬆ 绑定到预设 / ⬇ 移回全局”按钮在两域快速切换。</li>
-                  <li>拖拽排序，保存即可。</li>
-                </ol>
-
-                <div class="code" role="region" aria-label="示例：在预设与全局间切换">
-          <pre><code>// 在“全局脚本”项中会出现“绑定到预设”按钮：
-          // 点击后 -> 从 extensions.regex 移除，加入预设列表（并持久化至 prompts）。
-          // 反向操作“移回全局”同理。
-          </code></pre>
-                </div>
-                <div class="tip">提示：预设数据以 JSON 字符串形式保存在 <code>chatCompletionSettings.prompts</code> 的标识 <code>regexes-bindings</code> 下。</div>
-              </div>
-
-              <div class="section">
-                <h2>FAQ</h2>
-                <div class="card col-6" style="padding:16px">
-                  <h3 style="margin:0 0 4px">预设绑定正则突然无法拖动了怎么办？</h3>
-                  <p class="muted" style="margin:0">关掉此脚本再打开即可。</p>
-                </div>
-                <div class="card col-6" style="padding:16px; margin-top:10px">
-                  <h3 style="margin:0 0 4px">能否批量删除预设绑定项？</h3>
-                  <p class="muted" style="margin:0">由于酒馆前端代码的硬性限制，目前不支持批删。可单条删除或移回全局后再批量处理。</p>
-                </div>
-              </div>
-
-              <div class="footer">
-                <span>© 2025 Regex Preset Binder · 为创作者与玩家提供更顺滑的正则工作流</span>
-              </div>
-            </div>
-          </body>
-          </html>
-
-      - 名称: 【本格修仙】【kemini】
-        id: 287d952d-32d8-4488-a99e-95d7e414f448
-        启用: true
-        类型: 脚本
-        导出时携带:
-          数据: true
-          按钮: true
-        文件: 脚本\【本格修仙】【kemini】
-        数据:
-          用户: Human
-          AI: Assistant
-          example_user: H
-          example_assistant: A
-          系统: SYSTEM
-          separator: ""
-          separator_system: ""
-          prefill_user: Continue the conversation.
-          capture_enabled: true
-          capture_rules: []
-          stored_data: {}
-
-      - 名称: 隐藏历史用户楼层
-        id: d3a9f1c6-5b2e-4f8a-9c07-1e6b3d8a2f50
-        启用: true
-        类型: 脚本
-        导出时携带:
-          数据: true
-          按钮: true
-        文件: 脚本\隐藏历史用户楼层
-
-    变量: {}
-
-  SPreset:
-    ChatSquash:
-      启用: false
-      separate_chat_history: false
-      parse_clewd: true
-      角色: follow
-      stop_string: "Participant:"
-      user_prefix: |-
-        
-
-        Participant:
-      user_suffix: ""
-      char_prefix: |-
-        
-
-        Recorder:
-      char_suffix: ""
-      prefix_system: ""
-      suffix_system: ""
-      enable_squashed_separator: true
-      squashed_separator_regex: false
-      squashed_separator_string: <|no-trans|>
-      squashed_post_script_enable: false
-      squashed_post_script: ""
-      user_role_system: false
-      enable_stop_string: false
-    RegexBinding:
-      regexes:
-        - id: 204ea440-5088-46d6-9a67-b8d8554d1a73
-          scriptName: 破限3兼容·删除Python起止壳
-          禁用: false
-          runOnEdit: true
-          findRegex: '/^\s*(?:```(?:python)?\s*)?(?:import\s+sys\s*)?(?:content\s*=\s*""")?<｜begin｜>\s*([\s\S]*?)\s*<｜over｜>(?:"""\s*)?(?:sys\.stdout\.write\(content\)\s*)?(?:```\s*)?$/i'
-          trimStrings: []
-          replaceString: $1
-          placement:
-            - 1
-            - 2
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: null
-          markdownOnly: true
-          promptOnly: true
-        - id: 27cb54ca-593d-48f2-ac5c-035c7b3e88f0
-          scriptName: k3.3思维链转义标签1
-          禁用: false
-          runOnEdit: false
-          findRegex: /<([\s\S]*?)>(?=[\s\S]*?<\/think(?:ing)?>)/g
-          trimStrings: []
-          replaceString: $1
-          placement:
-            - 2
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: null
-          markdownOnly: true
-          promptOnly: false
-        - id: 53ead7d0-8d20-4979-b4dd-e84703d054ed
-          scriptName: 思维链美化
-          禁用: false
-          runOnEdit: false
-          findRegex: /([\s\S]*?)<\/think(?:ing)?>/gi
-          trimStrings: []
-          replaceString: |
-            ```
-            <body>
-            <style>
-              /* —— 思维链 折叠卡片:与正文美化的 .action-panel/.char-panel 等保持同一视觉语言 —— */
-              .cot-collapse {
-                --cot-accent: #b794f4;
-                position: relative;
-                margin: 12px 0;
-                border-radius: 12px;
-                overflow: hidden;
-                background: linear-gradient(155deg,
-                  rgba(20, 16, 32, 0.78) 0%,
-                  rgba(28, 22, 44, 0.72) 60%,
-                  rgba(20, 16, 32, 0.82) 100%);
-                backdrop-filter: blur(18px) saturate(180%);
-                -webkit-backdrop-filter: blur(18px) saturate(180%);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                box-shadow:
-                  0 14px 44px rgba(0, 0, 0, 0.42),
-                  0 1px 0 rgba(255, 255, 255, 0.06) inset,
-                  0 -1px 0 rgba(0, 0, 0, 0.25) inset;
-                color: #e8d5b7;
-                animation: cot-panel-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-                transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-              }
-              .cot-collapse:hover {
-                transform: translateY(-2px);
-                border-color: rgba(255, 255, 255, 0.16);
-                box-shadow:
-                  0 22px 56px rgba(0, 0, 0, 0.5),
-                  0 0 0 1px var(--cot-accent) inset,
-                  0 1px 0 rgba(255, 255, 255, 0.08) inset;
-              }
-              @keyframes cot-panel-in {
-                from { opacity: 0; transform: translateY(12px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
-
-              /* 顶部流光带 */
-              .cot-collapse::before {
-                content: '';
-                position: absolute;
-                top: 0; left: 0; right: 0;
-                height: 2px;
-                background: linear-gradient(90deg,
-                  transparent 0%,
-                  var(--cot-accent) 30%,
-                  color-mix(in srgb, var(--cot-accent) 70%, white) 50%,
-                  var(--cot-accent) 70%,
-                  transparent 100%);
-                background-size: 250% 100%;
-                animation: cot-panel-shimmer 6s ease-in-out infinite;
-                z-index: 1;
-              }
-              @keyframes cot-panel-shimmer {
-                0%, 100% { background-position: 0% 0; }
-                50% { background-position: 100% 0; }
-              }
-
-              /* 头部 */
-              .cot-collapse > summary.cot-collapse-head {
-                list-style: none;
-                display: flex;
-                align-items: center;
-                gap: 9px;
-                padding: 9px 14px;
-                cursor: pointer;
-                user-select: none;
-                background: linear-gradient(135deg,
-                  rgba(255, 255, 255, 0.04) 0%,
-                  rgba(255, 255, 255, 0.02) 50%,
-                  rgba(255, 255, 255, 0.06) 100%);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-                transition: background 0.25s ease;
-              }
-              .cot-collapse > summary.cot-collapse-head::-webkit-details-marker { display: none; }
-              .cot-collapse > summary.cot-collapse-head::marker { content: ''; }
-              .cot-collapse > summary.cot-collapse-head:hover {
-                background: linear-gradient(135deg,
-                  rgba(255, 255, 255, 0.08) 0%,
-                  rgba(255, 255, 255, 0.04) 50%,
-                  rgba(255, 255, 255, 0.10) 100%);
-              }
-              .cot-collapse-icon {
-                font-size: 1.05em;
-                color: var(--cot-accent);
-                filter: drop-shadow(0 0 10px color-mix(in srgb, var(--cot-accent) 60%, transparent));
-              }
-              .cot-collapse-title {
-                flex: 1;
-                font-family: 'Cinzel', 'Noto Serif SC', serif;
-                font-size: 0.98em;
-                font-weight: 700;
-                letter-spacing: 1.2px;
-                color: var(--cot-accent);
-                text-shadow: 0 0 14px color-mix(in srgb, var(--cot-accent) 35%, transparent);
-                word-break: break-word;
-              }
-              .cot-collapse-toggle {
-                color: var(--cot-accent);
-                opacity: 0.7;
-                font-size: 0.82em;
-                font-family: ui-monospace, SFMono-Regular, monospace;
-                letter-spacing: 0.4px;
-                transition: opacity 0.2s ease;
-              }
-              .cot-collapse > summary.cot-collapse-head:hover .cot-collapse-toggle { opacity: 1; }
-              .cot-collapse-toggle::before { content: '▸ 展开'; }
-              .cot-collapse[open] > summary.cot-collapse-head .cot-collapse-toggle::before { content: '▾ 收起'; }
-
-              /* 内容区 */
-              .cot-collapse-body {
-                padding: 12px 14px;
-                white-space: pre-wrap;
-                word-break: break-word;
-                font-size: 0.86em;
-                line-height: 1.75;
-                color: #e8d5b7;
-                font-family: ui-monospace, 'JetBrains Mono', 'Source Code Pro', Consolas, monospace;
-                max-height: 520px;
-                overflow-y: auto;
-                background: rgba(0, 0, 0, 0.12);
-              }
-              .cot-collapse-body::-webkit-scrollbar { width: 5px; }
-              .cot-collapse-body::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.18); border-radius: 3px; }
-              .cot-collapse-body::-webkit-scrollbar-thumb {
-                background: color-mix(in srgb, var(--cot-accent) 40%, transparent);
-                border-radius: 3px;
-              }
-              .cot-collapse-body::-webkit-scrollbar-thumb:hover {
-                background: color-mix(in srgb, var(--cot-accent) 65%, transparent);
-              }
-
-              /* 日间模式:与正文美化保持同一暖色调
-                 由于 思维链 渲染位置可能在正文美化 body 之外,[data-theme='light'] 选择器不一定能命中,
-                 因此同时支持 .cot-theme-light 显式类(由内嵌脚本根据 localStorage 'rb-theme' 设置) */
-              [data-theme='light'] .cot-collapse,
-              .cot-collapse.cot-theme-light {
-                background: linear-gradient(155deg,
-                  rgba(255, 250, 240, 0.92) 0%,
-                  rgba(248, 240, 222, 0.86) 55%,
-                  rgba(252, 244, 228, 0.94) 100%);
-                border: 1px solid rgba(160, 127, 72, 0.28);
-                color: #3a2f24;
-                box-shadow:
-                  0 8px 28px rgba(101, 75, 38, 0.14),
-                  0 1px 0 rgba(255, 255, 255, 0.6) inset,
-                  0 -1px 0 rgba(101, 75, 38, 0.06) inset;
-              }
-              [data-theme='light'] .cot-collapse:hover,
-              .cot-collapse.cot-theme-light:hover {
-                border-color: rgba(160, 127, 72, 0.45);
-                box-shadow:
-                  0 16px 40px rgba(101, 75, 38, 0.20),
-                  0 0 0 1px var(--cot-accent) inset,
-                  0 1px 0 rgba(255, 255, 255, 0.7) inset;
-              }
-              [data-theme='light'] .cot-collapse > summary.cot-collapse-head,
-              .cot-collapse.cot-theme-light > summary.cot-collapse-head {
-                background: linear-gradient(135deg,
-                  rgba(168, 153, 104, 0.10) 0%,
-                  rgba(168, 153, 104, 0.05) 50%,
-                  rgba(168, 153, 104, 0.14) 100%);
-                border-bottom: 1px solid rgba(160, 127, 72, 0.20);
-              }
-              [data-theme='light'] .cot-collapse > summary.cot-collapse-head:hover,
-              .cot-collapse.cot-theme-light > summary.cot-collapse-head:hover {
-                background: linear-gradient(135deg,
-                  rgba(168, 153, 104, 0.16) 0%,
-                  rgba(168, 153, 104, 0.08) 50%,
-                  rgba(168, 153, 104, 0.22) 100%);
-              }
-              [data-theme='light'] .cot-collapse .cot-collapse-icon,
-              .cot-collapse.cot-theme-light .cot-collapse-icon {
-                filter: drop-shadow(0 0 10px color-mix(in srgb, var(--cot-accent) 35%, transparent));
-              }
-              [data-theme='light'] .cot-collapse .cot-collapse-title,
-              .cot-collapse.cot-theme-light .cot-collapse-title {
-                color: color-mix(in srgb, var(--cot-accent) 75%, #1a0f00);
-                text-shadow: 0 0 10px color-mix(in srgb, var(--cot-accent) 18%, transparent);
-              }
-              [data-theme='light'] .cot-collapse .cot-collapse-body,
-              .cot-collapse.cot-theme-light .cot-collapse-body {
-                background: rgba(168, 153, 104, 0.07);
-                color: #3a2f24;
-              }
-              [data-theme='light'] .cot-collapse .cot-collapse-body::-webkit-scrollbar-track,
-              .cot-collapse.cot-theme-light .cot-collapse-body::-webkit-scrollbar-track {
-                background: rgba(168, 153, 104, 0.12);
-              }
-
-              /* 移动端 */
-              @media (max-width: 600px) {
-                .cot-collapse { margin: 9px 0; }
-                .cot-collapse > summary.cot-collapse-head { padding: 7px 11px; gap: 7px; }
-                .cot-collapse-title { font-size: 0.92em; letter-spacing: 0.8px; }
-                .cot-collapse-body {
-                  padding: 9px 12px;
-                  font-size: 0.82em;
-                  line-height: 1.7;
-                  max-height: 380px;
-                }
-              }
-            </style>
-            <details class="cot-collapse">
-              <summary class="cot-collapse-head">
-                <i class="cot-collapse-icon fa-solid fa-brain"></i>
-                <span class="cot-collapse-title">思维链 · 剧情推演</span>
-                <span class="cot-collapse-toggle"></span>
-              </summary>
-              <div class="cot-collapse-body">$1</div>
-            </details>
-            <script>
-              // 主题同步:由于思维链可能渲染在 正文美化 body 之外,无法依赖 [data-theme='light'] CSS 选择器,
-              // 因此读取 正文美化 写入的 localStorage 'rb-theme' 并显式给 .cot-collapse 元素加 class。
-              (function () {
-                function readTheme() {
-                  try {
-                    const v = localStorage.getItem('rb-theme');
-                    if (v === 'light' || v === 'dark') return v;
-                  } catch (e) { /* private mode / disabled */ }
-                  // 回退:OS 偏好
-                  try {
-                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
-                  } catch (e) { /* ignore */ }
-                  return 'dark';
-                }
-                function syncCotTheme() {
-                  const light = readTheme() === 'light';
-                  const nodes = document.querySelectorAll('.cot-collapse');
-                  for (let i = 0; i < nodes.length; i++) {
-                    nodes[i].classList.toggle('cot-theme-light', light);
-                  }
-                }
-                syncCotTheme();
-                // 仅注册一次的轮询,捕捉用户在 正文美化 上的切换
-                if (!window.__cotThemeSyncRegistered) {
-                  window.__cotThemeSyncRegistered = true;
-                  setInterval(syncCotTheme, 1500);
-                  // 跨标签页变更时也响应
-                  window.addEventListener('storage', function (e) {
-                    if (e && e.key === 'rb-theme') syncCotTheme();
-                  });
-                }
-              })();
-            </script>
-            </body>
-            ```
-          placement:
-            - 2
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: 1
-          markdownOnly: true
-          promptOnly: false
-        - id: a7cbed68-ae09-4e0f-b69d-933837e803cc
-          scriptName: 用户输入3
-          禁用: false
-          runOnEdit: false
-          findRegex: ^([\s\S]*)$
-          trimStrings: []
-          replaceString: |-
-            <Participant_input>
-            $1
-            </Participant_input>
-          placement:
-            - 1
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: 1
-          markdownOnly: false
-          promptOnly: true
-        - id: c2f8d5b3-4e0a-4b7c-9d26-8f3a0e5b2d41
-          scriptName: 深层楼层用小总结代替
-          禁用: false
-          runOnEdit: false
-          findRegex: /^[\s\S]*?(<summary>[\s\S]*?<\/summary>)[\s\S]*$/i
-          trimStrings: []
-          replaceString: $1
-          placement:
-            - 2
-          substituteRegex: 0
-          minDepth: 6
-          maxDepth: null
-          markdownOnly: false
-          promptOnly: true
-        - id: 2916dba3-68bb-4c60-8a65-95eafa682b77
-          scriptName: 去除多余信息4
-          禁用: false
-          runOnEdit: false
-          findRegex: /(<Disclaimer>(((?!<Disclaimer>).)*?)</Disclaimer>)|<done>|(<!--[\s\S]*?-->(\s*))|(.*?</think(ing)?>(\n)?)|(<think(ing)?>[\s\S]*<\/think(ing)?>(\n)?)/gsi
-          trimStrings: []
-          replaceString: ""
-          placement:
-            - 2
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: null
-          markdownOnly: true
-          promptOnly: true
-        - id: ad67d9ba-e913-4d59-8f41-5c6b9e22e9e4
-          scriptName: 行动选项删除
-          禁用: false
-          runOnEdit: false
-          findRegex: /<(?:action_options|options)>.*?<\/(?:action_options|options)>/gs
-          trimStrings: []
-          replaceString: ""
-          placement:
-            - 2
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: null
-          markdownOnly: false
-          promptOnly: true
-        - id: 7296ffd6-a5b2-4d2c-ab99-5e795cbf31e1
-          scriptName: k3.0底部正则8
-          禁用: false
-          runOnEdit: false
-          findRegex: /(.*)/s
-          trimStrings: []
-          replaceString: </additional_settings>$1<additional_settings>
-          placement:
-            - 1
-            - 2
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: null
-          markdownOnly: false
-          promptOnly: true
-        - id: 88e5ad4b-1b1f-4c45-b2db-2264bee1c3f8
-          scriptName: 杀增殖
-          禁用: false
-          runOnEdit: false
-          findRegex: /极其|由于/g
-          trimStrings: []
-          replaceString: ""
-          placement:
-            - 2
-          substituteRegex: 0
-          minDepth: null
-          maxDepth: null
-          markdownOnly: false
-          promptOnly: true
-    MacroNest: false
-    ToolBindings: {}
+    - 名称: 【本格修仙】消息分区
+      id: c9201424-5bfa-5ee9-9946-9f81e553ef0c
+      启用: true
+      类型: 脚本
+      导出时携带:
+        数据: true
+        按钮: false
+      文件: 脚本/消息分区
+      介绍: 参考命定·黄昏 Prime-1.11 的消息分区方式；无前端界面，仅组装本预设正文请求。
+      数据: {}

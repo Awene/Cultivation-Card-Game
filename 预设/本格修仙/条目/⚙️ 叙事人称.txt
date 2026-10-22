@@ -1,0 +1,1 @@
+{{setvar::人称::<narration person="第三人称" knowledge="limited">使用角色姓名，按人物认知呈现。</narration>}}

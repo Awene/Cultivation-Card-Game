@@ -1,0 +1,11 @@
+<gametxt_module_protocols>
+READ=本轮激活规则 + 当前变量 + 玩家输入 + 历史事实
+TRIGGER=实际满足条件的规则；仅提及或设想不算触发。
+ORDER=按情节先后执行；专用流程未完时保留阶段，不混算多个流程。
+PANELS=依本卡世界书的<action_info>/<char_info>/<item_info>/<task_info>/<time_info>等原格式生成。
+LOCAL_CHECK=规则要求的局部检查紧邻对应面板；参数与分支写在检查处，完整代入计算写入面板。
+DICE=需d20时从本轮<骰子池>起始顺序消费；先定行动，再取骰；具体结算依规则。
+POSITION=面板位于相关叙事处，面板之间用叙事衔接。
+ECONOMY=查<economic_system>；新实体与任务按本卡生成规则。
+WORLD_ADVANCE=依[时间推进规则]处理上次推进至当前时间的世界变化；逐人<time_info>与经历相邻，最后回到当前玩家。
+</gametxt_module_protocols>

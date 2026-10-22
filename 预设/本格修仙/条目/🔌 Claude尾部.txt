@@ -1,0 +1,3 @@
+<%_ if (getvar('ai模型') === 'Claude') { _%>
+Follow output_template: give the brief conclusions required by recorder_audit_format in English inside thinking, then output now_plot in the configured language; place subsequent modules as specified in the template.
+<%_ } _%>

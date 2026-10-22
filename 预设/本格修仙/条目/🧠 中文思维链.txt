@@ -1,0 +1,80 @@
+<%_ if (getvar('ai模型') !== 'Claude') {
+const readList = key => { try { const v = JSON.parse(getvar(key) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } };
+const active = readList('路由激活规则'), hidden = readList('路由隐藏规则');
+const advance = active.includes('[时间推进规则]');
+const rules = [
+  [
+    "[非战斗判定规则]",
+    "非战斗判定=克服不确定性阻碍；角色L≥挑战L+2时略过面板"
+  ],
+  [
+    "[战斗规则]",
+    "战斗=双方明确交战或强行破阵；单方面碾压不触发"
+  ],
+  [
+    "[生产制作规则]",
+    "生产制作=明确炼丹/炼器/制符/阵盘刻录/制傀儡等"
+  ],
+  [
+    "[修为获取规则]",
+    "修为获取=明确修炼/服丹/双修/夺灵"
+  ],
+  [
+    "[突破规则]",
+    "突破=<user>宣告突破且当前修为达到阈值"
+  ],
+  [
+    "[领悟规则]",
+    "领悟=研读秘籍/参悟阵图/观摩石碑/接受传功"
+  ],
+  [
+    "[角色生成规则]",
+    "角色生成=重要NPC或无主战斗单位首次登场"
+  ],
+  [
+    "[物品功法生成规则]",
+    "物品展示=交易/战利品/生产完成/发现素材/领悟生成功法等"
+  ],
+  [
+    "[任务发布规则]",
+    "任务发布=明确委托/查看任务榜/任务状态实质变化"
+  ],
+  [
+    "[时间推进规则]",
+    "仅玩家明确要求时回顾上次推进至当前的世界演进；全体人物逐人面板与叙事，最后回到当前玩家，不额外推进时间"
+  ],
+  [
+    "[轮回转生规则]",
+    "轮回转生=<user>死亡且无保命手段，或冥族主动投入轮回井"
+  ]
+];
+const visibleRules = rules.filter(([id]) => !hidden.includes(id) && (!advance || id === '[时间推进规则]'));
+const ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\n');
+_%>
+<recorder_audit_format>
+OUTPUT=<thinking>逐项简要结论</thinking>; LANGUAGE=中文
+记录结论、依据与待处理事项；计算、局部检查和面板留到正文对应位置。
+<% if (advance) { %>
+MODE=WORLD_ADVANCE; STEPS=1→5
+1. 场景人物: INTERVAL=上次推进→当前; ACTORS=关系列表全体NPC(除傀儡/灵兽); MAP=地点/处境/目标/认知。
+2. 规则面板: APPLY=[时间推进规则]; EACH=人物→time_info→经历; SETTLE=尚未处理的变化; PLAYER_TIME=区间终点; 记录本次推进终点。
+3. 状态处理: <%- getvar('变量f') %>
+  RUMORS=保留有效/清理过期/补充其它地区势力人物事件；尽量独立于当前故事，提供后续线索。
+4. 群像编排: GROUP=地点与事件; COVER=每人面板+叙事; END=当前玩家现场，不代其行动。
+5. 输出核验: CHECK=全员/区间/传闻依据/面板事实/两项文风锚点/输出顺序。
+<% } else { %>
+MODE=STORY; STEPS=1→7
+1. 输入裁决: READ=Participant_input; SPLIT=言行尝试/期望结果; APPLY=logic_check; ENTRY=最早待处理事项; DELIVERY={{getvar::转述1}}。
+2. 场景人物: MAP=时间/地点/人物/位置/目标/认知/关系; REACTION=性格与事实相称。
+3. 规则触发: SELECT=实际激活规则→面板与位置; FLOW=按先后执行; DICE=按序留给局部结算; NEW_NPC=尽量一名重要人物。
+4. 状态处理: <%- getvar('变量f') %>
+5. 前文衔接: READ=world_summary/summary; KEEP=结尾状态/未完事项/承诺/任务/关系。
+6. 剧情规划: PLAN=2~4节点(内容+预计字数); TOTAL=正文目标; <% if (getvar('推进规划')) { %>PACE=<%- getvar('推进规划') %>; <% } %>INSPIRATION=按需参考，不改因果。
+7. 输出核验: STYLE=两项锚点; CHECK=启用模块/顺序/标签闭合/面板叙事变量一致。
+<% } %>
+KNOWLEDGE={{getvar::防全知}}
+{{getvar::回顾}}{{getvar::自查}}
+RULE_INDEX:
+<%- ruleText %>
+</recorder_audit_format>
+<%_ } _%>

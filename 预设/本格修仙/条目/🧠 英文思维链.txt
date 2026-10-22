@@ -1,0 +1,80 @@
+<%_ if (getvar('ai模型') === 'Claude') {
+const readList = key => { try { const v = JSON.parse(getvar(key) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } };
+const active = readList('路由激活规则'), hidden = readList('路由隐藏规则');
+const advance = active.includes('[时间推进规则]');
+const rules = [
+  [
+    "[非战斗判定规则]",
+    "Non-combat checks: overcoming an uncertain obstacle; skip the panel when character L >= challenge L + 2."
+  ],
+  [
+    "[战斗规则]",
+    "Combat: both sides explicitly engage or an array is forcibly breached; one-sided crushing does not trigger it."
+  ],
+  [
+    "[生产制作规则]",
+    "Production: explicit pill refining, artifact forging, talisman crafting, array-disc engraving, puppet crafting, etc."
+  ],
+  [
+    "[修为获取规则]",
+    "Cultivation gain: explicit cultivation, pill consumption, dual cultivation, or spiritual-energy absorption."
+  ],
+  [
+    "[突破规则]",
+    "Breakthrough: <user> declares a breakthrough and current cultivation meets the threshold."
+  ],
+  [
+    "[领悟规则]",
+    "Comprehension: studying manuals or array diagrams, observing inscriptions, or receiving instruction."
+  ],
+  [
+    "[角色生成规则]",
+    "Character generation: the first appearance of an important NPC or an ownerless combat unit."
+  ],
+  [
+    "[物品功法生成规则]",
+    "Item display: trade, loot, completed production, discovered materials, newly comprehended cultivation arts, etc."
+  ],
+  [
+    "[任务发布规则]",
+    "Task issuance: an explicit commission, viewing a task board, or a substantive change in task status."
+  ],
+  [
+    "[时间推进规则]",
+    "World evolution: only on an explicit player request; cover the interval from the previous advancement to the current time, give every person a panel and narrative, then return to the current player without advancing time again."
+  ],
+  [
+    "[轮回转生规则]",
+    "Reincarnation: <user> dies without an effective life-saving measure, or a member of 冥族 voluntarily enters 轮回井."
+  ]
+];
+const visibleRules = rules.filter(([id]) => !hidden.includes(id) && (!advance || id === '[时间推进规则]'));
+const ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\n');
+_%>
+<recorder_audit_format>
+OUTPUT=<thinking>brief conclusions by item</thinking>; LANGUAGE=English
+Record conclusions, sources and pending items. Keep calculations, local checks and panels at their narrative positions. Preserve names and protocol tags.
+<% if (advance) { %>
+MODE=WORLD_ADVANCE; STEPS=1→5
+1. Scene and cast: INTERVAL=previous advancement→current time; ACTORS=all relationship NPCs except puppets/spirit beasts; MAP=location/situation/goals/knowledge.
+2. Rules and panels: APPLY=[时间推进规则]; EACH=person→time_info→experience; SETTLE=unprocessed changes only; PLAYER_TIME=interval endpoint; record this advancement endpoint.
+3. State: <%- getvar('变量c') %>
+  RUMORS=retain valid/remove outdated/add other regions' or factions' events; mostly independent of this story, offering future leads.
+4. Ensemble: GROUP=location/event; COVER=panel+narrative for each person; END=current player scene without acting for them.
+5. Output check: CHECK=roster/interval/rumor sources/panel facts/two style anchors/module order.
+<% } else { %>
+MODE=STORY; STEPS=1→7
+1. Input: READ=Participant_input; SPLIT=attempts/desired results; APPLY=logic_check; ENTRY=earliest pending action.
+2. Scene and cast: MAP=time/location/people/positions/goals/knowledge/relationships; REACTION=personality and facts.
+3. Triggers: SELECT=active rules→panels and positions; FLOW=sequential; DICE=consume in order at local resolution; NEW_NPC=prefer one important introduction.
+4. State: <%- getvar('变量c') %>
+5. Continuity: READ=world_summary/summary; KEEP=ending state/pending matters/promises/tasks/relationships.
+6. Plot: PLAN=2~4 beats(content+Chinese-character budget); TOTAL=required length; <% if (getvar('推进规划')) { %>PACE=<%- String(getvar('推进规划')).split(';')[0] %>; <% } %>INSPIRATION=optional, preserve causality.
+7. Output check: STYLE=two anchors; CHECK=enabled modules/order/closed tags/panel-narrative-state consistency.
+<% } %>
+KNOWLEDGE=use only each character's established sources; private scenes do not inform absent characters.
+CONSISTENCY=correct contradictions with active rules, history and state.
+RULE_INDEX:
+<%- ruleText %>
+</recorder_audit_format>
+<%_ } _%>

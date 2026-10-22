@@ -1,1 +1,0 @@
-{{setvar::ai模型::Deepseek}}{{setvar::思维预算f::不超过2048字}}{{setvar::cot头::<think>}}{{setvar::cot尾::</think>}}

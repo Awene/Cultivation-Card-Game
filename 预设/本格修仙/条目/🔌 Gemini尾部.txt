@@ -1,0 +1,3 @@
+<%_ if (getvar('ai模型') === 'Gemini') { _%>
+按 output_template 输出：先在 thinking 中逐项简述 recorder_audit_format 要求的结论，再输出 now_plot；后续模块按模板排列。
+<%_ } _%>

@@ -1,0 +1,5 @@
+{{//修改 target_ratio 与 min_round_trips 的数字即可。}}
+{{setvar::对话::
+<dialogue target_ratio="40%" min_round_trips="2">
+存在可交流对象且交流能推进当前事件时，正文必须以直接对白形成不低于2轮的实质性来回互动，对白约占普通叙事与对白的40%；每轮回应前文并带来新信息、立场、情绪或决定，不得用概述、转述、单句寒暄或一人连续独白代替。`actor_control=delegated`时，<user>至少直接发言或回应两次；`reserved`时不得代写<user>，只增加NPC对白。战斗、生产、独处、无法交流或连续对白明显不合情境时按场景缩减，不为凑比例硬塞台词。
+</dialogue>}}{{trim}}

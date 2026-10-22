@@ -1,0 +1,12 @@
+<output_template>
+<thinking>${按recorder_audit_format逐项填写简要结论}</thinking>
+<now_plot>
+<gametxt>
+<tp>${当前修仙历时间 @ 世界-地域-地点 | 天气}</tp>
+${叙事与按规则插入的面板}
+</gametxt>
+{{getvar::摘要}}{{getvar::选项}}
+</now_plot>
+{{getvar::变量1}}
+</output_template>
+<|本格_正文结束|>

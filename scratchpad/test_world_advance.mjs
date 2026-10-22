@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
+import { renderPreset } from '../预设/本格修仙/模拟预设效果.mjs';
 const require = createRequire(new URL('../../tavern_helper_template-main/package.json', import.meta.url));
 const _ = require('lodash');
 const { z } = require('zod');
@@ -74,8 +75,11 @@ for (const active of [[], ['[时间推进规则]']]) {
   assert.equal(rules.includes('本轮禁止更新'), active.length === 0);
   const prompt = ejs.render(read('../世界书/变量/[mvu_update]变量输出列表（额外API开）.ejs'), context);
   assert.equal(prompt.includes('上次世界推进时间点'), active.length > 0);
-  const length = ejs.render(read('../预设/本格修仙/条目/⚙️语言字数设置.txt'), context);
+  const { entries } = renderPreset({ route: JSON.stringify(active) });
+  const length = entries.find(entry => entry.name === '📚 文本协议')?.content;
+  assert.ok(length, '正文长度要求已渲染到文本协议');
   assert.equal(length.includes('2500-3500'), active.length > 0);
+  assert.equal(length.includes('1500-2500'), active.length === 0);
 }
 
 const config = JSON.parse(read('../插件/cultivation-rule-router-config.json'));
@@ -100,7 +104,7 @@ const host = { chat, chatMetadata: { variables: {} }, stopGeneration: () => stop
 const settings = { enabled: true, extraApiMode: 'skip' };
 const routeCtx = { ...logic, console, setTimeout: () => 0, clearTimeout() {}, window: { TavernHelper: { getVariables: () => ({ stat_data: data }) } }, document: { querySelector: () => input }, SillyTavern: { getContext: () => host } };
 vm.createContext(routeCtx);
-let router = read('../../cultivation-rule-router/index.js').replace(/^import .*?from '\.\/world-advance.js';\r?\n/m, '');
+let router = read('../../../../SillyTavern-1.16.0/data/default-user/extensions/cultivation-rule-router/index.js').replace(/^import .*?from '\.\/world-advance.js';\r?\n/m, '');
 router = router.slice(0, router.lastIndexOf('\nif (globalThis.SillyTavern?.getContext)'));
 vm.runInContext(router + '\nthis.test = { apply: applyRouting, before: onBeforeGeneration, loaded: onEntriesLoaded, received: onMessageReceived, getRecord: () => pendingRoute, getHide: () => [...hideSet] };', routeCtx);
 routeCtx.host = host; routeCtx.testSettings = settings;
@@ -116,7 +120,7 @@ routeCtx.window.SillyTavern = routeCtx.SillyTavern;
 routeCtx.window.document = routeCtx.document;
 routeCtx.window.Event = class {};
 let cleanup;
-const cardCtx = { window: { parent: routeCtx.window, addEventListener: (_, fn) => { cleanup = fn; } }, setTimeout: () => 0, setInterval: () => 0, clearInterval() {} };
+const cardCtx = { window: { parent: routeCtx.window, addEventListener: (_, fn) => { cleanup = fn; } }, setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {} };
 vm.createContext(cardCtx);
 vm.runInContext(cardSource, cardCtx);
 await routeCtx.test.before('normal', {}, false);

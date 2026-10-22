@@ -1,0 +1,2 @@
+{{setvar::书籍参考::
+- Literary References: [文学作品×3 → 可迁移技巧与本轮用法；不得仿写原句]}}{{trim}}

@@ -1,0 +1,12 @@
+<gametxt_setting>
+<%_ {
+let active; try { active = JSON.parse(getvar('路由激活规则') || '[]'); } catch (_) { active = []; }
+const advance = Array.isArray(active) && active.includes('[时间推进规则]');
+_%>
+- 正文语言：<%= getvar('正文语言') %>。
+- 正文字数：<%= getvar(advance ? '世界推进字数' : '日常剧情字数') %>，仅计叙事与对白，不含面板。<% if (advance) { %>全员覆盖优先，人数较多时允许超出。<% } %>
+<%_ } _%>
+- 战斗每次输出一个完整回合；先补完前次未完回合，结束条件按战斗规则。
+{{getvar::人称}}{{getvar::转述}}{{getvar::视角}}{{getvar::转折}}{{getvar::抢话}}{{getvar::对话}}{{getvar::结尾}}
+{{getvar::表达称呼}}{{getvar::表达计数}}{{getvar::表达约束}}{{getvar::文学}}{{getvar::书籍参考}}
+</gametxt_setting>

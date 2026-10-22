@@ -1,7 +1,0 @@
-<character_knowledge>
-- 有限视角; 不要掺杂该角色不可能知道的外部事实
-- 认知界限: 角色已知信息仅限于该角色获取此信息的言行在<historical_record>中已描述
-- 隐藏信息: 角色会出于身份，情景等隐藏各种信息且不被记录，不说出于口
-</character_knowledge>{{setvar::防全知f::
-- 认知边界: 列出本轮关键角色不知道或隐藏的信息，依据<character_knowledge>与<historical_record>。不主动暴露未知信息。}}{{setvar::防全知c::
-- Knowledge boundaries: list key characters' unknown or concealed information this turn, based on <character_knowledge> and <historical_record>. Do not reveal information they do not know.}}

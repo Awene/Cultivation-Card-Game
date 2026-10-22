@@ -1,0 +1,2 @@
+{{setvar::文学::
+- Technique Design: [叙事技巧×3＋电影剪辑技巧×3 → 本轮具体用法]}}{{trim}}

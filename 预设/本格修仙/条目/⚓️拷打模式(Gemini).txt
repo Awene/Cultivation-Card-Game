@@ -1,8 +1,0 @@
-<|no-trans|>任务模式切换
-<%- getvar('cot尾') %>
-
-[TASK CHANGED]
-
-<meta_instruction_mode>
-本次不进行创作、记录或叙事，仅分析并满足<Participant_input>中的元指令需求。
-</meta_instruction_mode>

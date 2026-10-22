@@ -1,0 +1,2 @@
+{{setvar::转述::
+<input_presentation mode="integrate">从最早未呈现U#起，按原顺序融入一次内在内容、台词与动作尝试；推进只调详略，不删前项或从末项起笔。FAIL呈现受阻；PENDING及依赖它的后续待条件成立，不跳过兑现。意图不等于效果。</input_presentation>}}{{setvar::转述1::依<input_presentation>确定最早未呈现或未处理U#；待定后续不抢先}}{{trim}}

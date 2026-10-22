@@ -1,0 +1,3 @@
+{{//架构参考：命定·黄昏 Prime-1.11。配置使用酒馆原生条目；消息分区脚本仅处理本预设正文请求。}}
+{{setvar::用户设定::}}{{setvar::抢话::}}{{setvar::抢话1::}}{{setvar::转述::}}{{setvar::转述1::}}{{setvar::对话::}}{{setvar::人称::}}{{setvar::视角::}}{{setvar::转折::}}{{setvar::结尾::}}{{setvar::推进规划::}}{{setvar::防全知::}}{{setvar::表达约束::}}{{setvar::表达称呼::}}{{setvar::表达计数::}}{{setvar::文学::}}{{setvar::书籍参考::}}{{setvar::回顾::}}{{setvar::自查::}}{{setvar::变量模式::}}{{setvar::变量f::}}{{setvar::变量c::}}{{setvar::变量1::}}{{setvar::摘要::}}{{setvar::选项::}}{{setvar::ai模型::}}
+{{setvar::SFW描写::}}{{setvar::NSFW词汇::}}
