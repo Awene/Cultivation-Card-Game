@@ -1,0 +1,86 @@
+[
+  {
+    "path": "src/修仙状态栏/maps/冥界/冥界地图.png",
+    "status": 200,
+    "bytes": 2993713,
+    "sha256": "c7a9f77218d7662f362c2156915ac2aeae9c77cefdd47c40682d87878aec5ff5"
+  },
+  {
+    "path": "src/修仙状态栏/maps/凡界/东土地图.png",
+    "status": 200,
+    "bytes": 3472517,
+    "sha256": "46f8d3811688e6e6392accb23871b66e7d1db154293bcdbee8aaa8dcf94ffcf5"
+  },
+  {
+    "path": "src/修仙状态栏/maps/凡界/中原地图.png",
+    "status": 200,
+    "bytes": 3552294,
+    "sha256": "82cbeca0c4d6a06cf1c32c8ac8813de5b2914e786dc59e537cd6c5b7495cba87"
+  },
+  {
+    "path": "src/修仙状态栏/maps/凡界/北境地图.png",
+    "status": 200,
+    "bytes": 3506695,
+    "sha256": "6aa0adfa965842a67d2680c552a82a4e374db691c721f78a89fda77e375b3767"
+  },
+  {
+    "path": "src/修仙状态栏/maps/凡界/南疆地图.png",
+    "status": 200,
+    "bytes": 3478635,
+    "sha256": "5db307ae7523a0a0617cf2da588aab5fa90a41a684603c4dbf22b070005d0d9d"
+  },
+  {
+    "path": "src/修仙状态栏/maps/凡界/西域地图.png",
+    "status": 200,
+    "bytes": 3610642,
+    "sha256": "3934232941402ac79fe6efcec5854aa4bc154dd6f2a4a862647cf54784d9156d"
+  },
+  {
+    "path": "src/修仙状态栏/maps/地球/地球地图.png",
+    "status": 200,
+    "bytes": 3293978,
+    "sha256": "b86b1652b80e67f7bd01137625581f0e25f33eced8917bd202cefe10990b706f"
+  },
+  {
+    "path": "src/修仙状态栏/maps/灵界/万兽大陆地图.png",
+    "status": 200,
+    "bytes": 3646434,
+    "sha256": "c51aad2794abf3e756ec41180e83fc1bb53009082a68a464cc2d8fcfea4af5d4"
+  },
+  {
+    "path": "src/修仙状态栏/maps/灵界/圣银大陆地图.png",
+    "status": 200,
+    "bytes": 3341859,
+    "sha256": "c4af1316e98d2d230c7c8b9d9f15efaaf5ac74dd4740076cc3f005b2095eff1f"
+  },
+  {
+    "path": "src/修仙状态栏/maps/灵界/太初大陆地图.png",
+    "status": 200,
+    "bytes": 2824014,
+    "sha256": "6c985951dc30272b25279a072c826206cfd6f78e4ade9bb23147e86665246afc"
+  },
+  {
+    "path": "src/修仙状态栏/maps/灵界/星坠大陆地图.png",
+    "status": 200,
+    "bytes": 3560623,
+    "sha256": "1330318e82736e9a65921badc44d100274dec2b04ea8ba8ff09a4de9ae7780f7"
+  },
+  {
+    "path": "src/修仙状态栏/maps/灵界/殒落大陆地图.png",
+    "status": 200,
+    "bytes": 3036303,
+    "sha256": "5cd5b1e85736f784abd52ab4b7931478cbf60cef4ed43cc04d2cbf58ffdac609"
+  },
+  {
+    "path": "src/修仙状态栏/maps/灵界/沧溟大陆地图.png",
+    "status": 200,
+    "bytes": 3140939,
+    "sha256": "d0c3305aa50b5fe1038cc0b157aad07a8228ec57a3b2308a8c0df2813007ab98"
+  },
+  {
+    "path": "src/修仙状态栏/maps/灵界/灵境大陆地图.png",
+    "status": 200,
+    "bytes": 3028199,
+    "sha256": "4a7c697a1829e33b96c36519d6b75eb9b14e0ccbae89936e7ba301790db5f993"
+  }
+]

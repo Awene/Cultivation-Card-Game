@@ -2962,7 +2962,12 @@ input[type="checkbox"]:checked::after {
 .sa-hint { font-size: 11px; color: var(--sa-text3); line-height: 1.5; padding: 5px 8px; background: var(--sa-surface); border-left: 2px solid var(--sa-accent); border-radius: 0 var(--sa-radius-xs) var(--sa-radius-xs) 0; margin-top: 5px; }
 
 /* ===== 特定组件样式 ===== */
-.sa-status-grid { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; align-items: center; }
+.sa-status-grid { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 14px; align-items: center; }
+.sa-status-value { min-width: 0; overflow-wrap: anywhere; }
+.sa-hidden-floors summary { cursor: pointer; color: var(--sa-accent); }
+.sa-hidden-preview { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--sa-text3); font-size: 12px; }
+.sa-hidden-floors[open] .sa-hidden-preview { display: none; }
+.sa-hidden-list { max-height: 120px; overflow-y: auto; overflow-wrap: anywhere; overscroll-behavior: contain; margin-top: 6px; padding: 6px 8px; background: var(--sa-surface); border-radius: var(--sa-radius-xs); line-height: 1.6; }
 .sa-status-grid .sa-status-label { text-align: right; white-space: nowrap; color: var(--sa-text2); }
 .sa-progress-bar { width: 100%; height: 5px; background: rgba(60,50,38,0.07); border-radius: 3px; overflow: hidden; margin-top: 4px; }
 .sa-progress-fill { height: 100%; background: var(--sa-accent); border-radius: 3px; transition: width 0.3s ease; }
@@ -3128,7 +3133,15 @@ const renderStatusInfo = errorCatched(async () => {
       <span class="sa-status-label">绑定世界书</span>
       <span class="sa-status-value">${isChatWorldbookBound() ? `✅ ${escapeHtml(getActiveWorldbookName())}` : '❌ 未绑定'}</span>
       <span class="sa-status-label">当前隐藏楼层</span>
-      <span class="sa-status-value" title="${hiddenIds.join(', ')}">${escapeHtml(compressRanges(hiddenIds)) || '无'}</span>
+      <div class="sa-status-value">
+        ${hiddenIds.length > 12 ? `
+          <details class="sa-hidden-floors">
+            <summary>共 ${hiddenIds.length} 层 · 查看完整列表</summary>
+            <span class="sa-hidden-preview">${escapeHtml(compressRanges(hiddenIds.slice(0, 12)))} …</span>
+            <div class="sa-hidden-list" tabindex="0" role="region" aria-label="隐藏楼层完整列表">${escapeHtml(compressRanges(hiddenIds))}</div>
+          </details>
+        ` : escapeHtml(compressRanges(hiddenIds))}
+      </div>
     </div>
   `;
 });

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "dist/修仙状态栏/index.html",
+    "status": 200,
+    "bytes": 8981387,
+    "sha256": "b8dfdc575bc39ac144c16f320bff64ba4e59b5706c6771c41553d1b0c8dafc5d"
+  },
+  {
+    "path": "dist/自定义开局/index.html",
+    "status": 200,
+    "bytes": 1801679,
+    "sha256": "57b7deb5081f81e49ef767ab1c3607c1541930c9c7e9bdc6e801b69ddf3ddc29"
+  },
+  {
+    "path": "dist/正文美化/index.html",
+    "status": 200,
+    "bytes": 496777,
+    "sha256": "8b43dfb3316aaf36354dc0401cd094938ec93f7f83b16dc1c7b5949738447307"
+  },
+  {
+    "path": "dist/创意工坊/index.js",
+    "status": 200,
+    "bytes": 294772,
+    "sha256": "fb09d0f552ed1d155399702fb24a2d926d472de41fa70d0f25af5ab638d06473"
+  },
+  {
+    "path": "dist/楼层iframe回收/index.js",
+    "status": 200,
+    "bytes": 774,
+    "sha256": "c0e4634c667be1075edbd0b436f9cdeab837516abad97f4b7372472188a0ea71"
+  }
+]
