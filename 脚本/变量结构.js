@@ -802,29 +802,24 @@ function normalizeTaskStatus(input) {
 }
 
 // ===== 任务与事件 Schema =====
-// 对应世界书《[任务与事件规则]》的三大模式：
-// 1. 模式一：委托任务（契约委托）
-// 2. 模式二：奇遇/突发事件/危机（快进快出）
-// 3. 模式三：长线剧情/宿命事件（专属大纲驱动·统一紫色风格）
+// 委托与世界书剧情共用历练结构；
 // 任务与事件只保存尚未结束的条目；完成、失败、放弃或平息后直接移除，不保留履历。
 const TaskSchema = z.object({
   状态: z.preprocess(normalizeTaskStatus, z.enum(["进行中", "待结算", "待平息", "待抉择"])).catch("进行中").prefault("进行中"),
   难度: z.preprocess((input) => normalizeLooseString(input, "未定"), z.string()).prefault("未定"),
   进展: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
-  // 模式一：委托任务字段
+  // 委托任务字段
   委托方: z.preprocess((input) => normalizeLooseString(input, "未知"), z.string()).prefault("未知"),
   目标: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   奖励: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
   交付: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
   截止时间: AssetTimeSchema,
-  // 模式二：奇遇/突发事件/危机字段
-  态势: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
+  // 剧情共享字段
   紧迫: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   牵涉: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   焦点: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
-  祸福: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   触发时间: AssetTimeSchema,
-  // 模式三：长线剧情/宿命事件字段
+  // 剧情标识与里程碑
   类别: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   幕次: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   局势: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
