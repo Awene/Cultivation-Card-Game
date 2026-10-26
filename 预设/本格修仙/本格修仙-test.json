@@ -1192,6 +1192,23 @@
   "extensions": {
     "regex_scripts": [
       {
+        "id": "27cb54ca-593d-48f2-ac5c-035c7b3e88f0",
+        "scriptName": "思维链引用标签转义",
+        "disabled": false,
+        "runOnEdit": false,
+        "findRegex": "/<(?!\\/?(?:thinking|think|recorder_thinking)\\b[^>]*>[ \\t]*\\r?$)([^<>\\r\\n]+)>(?=[\\s\\S]*?^[ \\t]*<\\/(?:thinking|think|recorder_thinking)>[ \\t]*\\r?$)/gmi",
+        "replaceString": "$1",
+        "trimStrings": [],
+        "placement": [
+          2
+        ],
+        "substituteRegex": 0,
+        "minDepth": null,
+        "maxDepth": null,
+        "markdownOnly": true,
+        "promptOnly": false
+      },
+      {
         "id": "1b6fe649-9da6-56f1-b8e3-ff3b36682531",
         "scriptName": "思维链展示",
         "disabled": false,
