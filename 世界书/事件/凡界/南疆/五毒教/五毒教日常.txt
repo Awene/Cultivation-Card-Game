@@ -1,17 +1,18 @@
 <%_ { _%>
 <%_
 
-const 标题   = getMessageVar('stat_data.事件.标题', { defaults: '' }) || '';
+const 标题 = JSON.parse(await getwi('[公共]统一剧情调度')).title;
 const 已完成 = getMessageVar('stat_data.事件.已完成事件', { defaults: [] }) || [];
 const 做过   = (n) => 已完成.includes(n);
-const 无大事件 = 标题 === '';
+const 本轮无长线 = 标题 === '';
 const 待回应 = getMessageVar('stat_data.事件.进度.五毒教日常', { defaults: {} }) || {};
 let 本轮已触发 = false;
 
 const 门禁放行 = (事件名, ...附加条件) => {
+  if (getMessageVar('stat_data.事件.聚焦模式', { defaults: '自动' }) === '暂停') return false;
   if (本轮已触发 || 做过(事件名)) return false;
+  if (!本轮无长线) return false;
   if (待回应.名称) return 待回应.名称 === 事件名;
-  if (!无大事件) return false;
   return 附加条件.every(cond => typeof cond === 'function' ? cond() : Boolean(cond));
 };
 

@@ -819,6 +819,8 @@ const TaskSchema = z.object({
   牵涉: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   焦点: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   触发时间: AssetTimeSchema,
+  阶段: z.string().optional(),
+  推进线索: z.string().optional(),
   // 剧情标识与里程碑
   类别: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   幕次: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
@@ -832,6 +834,7 @@ const TasksSchema = z.record(z.string(), TaskSchema).prefault({});
 // 会被路径白名单或 Zod 校验误判为未知字段。
 const EventSchema = z
   .object({
+    聚焦模式: z.enum(["自动", "手动", "暂停"]).prefault("自动"),
     开启: z.preprocess(normalizeBoolean, z.boolean().prefault(false)),
     标题: z.string().prefault(""),
     阶段: z.string().prefault(""),
@@ -1465,6 +1468,38 @@ function dropHarmlessMissingDeletes(variables, commands) {
 }
 
 // mag_command_parsed_for_zod 钩子: 在 mvu_zod 处理器之前清洗每个 command 的 args
+// 同名剧情的部分对象更新保留未涉及字段，事件容器保留其他线与已完成历史。
+function preservePlotRecords(command, variables) {
+  const data = variables?.stat_data || {};
+  const parts = splitPath(command.args[0]);
+  if (command.type === "insert") parts.push(String(tryParseValue(command.args[1])));
+  if (parts[0] === "事件" && parts[1] === "聚焦模式") return false;
+  if (!["set", "insert"].includes(command.type)) return true;
+  const index = command.args.length - 1;
+  const value = tryParseValue(command.args[index]);
+  const mode = data.事件?.聚焦模式;
+  if (parts[0] === "事件" && parts.length === 2 && ["标题", "阶段", "开启"].includes(parts[1])) {
+    if (mode === "暂停") return false;
+    if (parts[1] === "标题" && mode === "手动" && data.事件.标题 && value && value !== data.事件.标题) return false;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return true;
+  if (parts[0] === "历练" && parts.length === 2 && data.历练?.[parts[1]]) {
+    command.args[index] = _.merge({}, data.历练[parts[1]], value);
+  }
+  if (parts[0] === "事件" && parts.length === 1) {
+    const old = data.事件 || {};
+    const next = _.merge({}, old, value);
+    if (old.聚焦模式) next.聚焦模式 = old.聚焦模式;
+    next.已完成事件 = Array.from(new Set([...(old.已完成事件 || []), ...(value.已完成事件 || [])]));
+    if (old.聚焦模式 === "手动" && old.标题 && next.标题 && next.标题 !== old.标题) {
+      next.标题 = old.标题; next.阶段 = old.阶段;
+    }
+    if (old.聚焦模式 === "暂停") { next.标题 = ""; next.阶段 = ""; next.开启 = false; }
+    command.args[index] = next;
+  }
+  return true;
+}
+
 function jsonPatchPreprocessor(_variables, commands) {
   if (!Array.isArray(commands)) return;
   repairMissingSchemaContainers(_variables);
@@ -1483,6 +1518,7 @@ function jsonPatchPreprocessor(_variables, commands) {
       console.warn('[JSONPatch preprocessor] 忽略危险原型路径:', cmd.args[0]);
       commands.splice(ci, 1); continue;
     }
+    if (!preservePlotRecords(cmd, _variables)) { commands.splice(ci, 1); continue; }
     if (!normalizeTimeCommand(cmd, _variables)) { commands.splice(ci, 1); continue; }
     // 1.5 容错: 修正后路径根段仍不属于当前 schema 的合法顶级词条 → 指向不存在的字段。
     //     整批 JSONPatch 是原子应用的,留着它会令同批的正确命令(如新增 NPC)一并失败,
@@ -1533,8 +1569,62 @@ function jsonPatchPreprocessor(_variables, commands) {
   dropHarmlessMissingDeletes(_variables, commands);
 }
 
+// 同步模型明确写出的合法阶段，事件指针与每线快照互为镜像；不判定节点、不发奖。
+const FOCUSED_PLOT_PHASES = {
+  "梦茧": [
+    "丹成待服",
+    "了结抉择",
+    "收集归元材料",
+    "梦茧苏醒",
+    "炼制归元化生丹",
+    "献祭·查证",
+    "筑基结蛊",
+    "结局·化蝶",
+    "结局·夺舍",
+    "结局·完美",
+    "结局·茧中",
+    "追问传说",
+    "集毒"
+  ],
+  "五毒圣女·幽月情缘": [
+    "传音求救",
+    "同行_确认朋友",
+    "秘窟驰援",
+    "终幕_月下定情"
+  ],
+  "万毒祖窟·噬心蛊鸣": [
+    "以身饲蛊",
+    "压制魔性",
+    "吞果初醒",
+    "炼蛊抉择中",
+    "祖窟归位",
+    "蛊鸣辨毒"
+  ]
+};
+function syncFocusedPlotIndex(variables, previousVariables) {
+  const data = variables?.stat_data;
+  const event = data?.事件;
+  if (!event?.标题 || event.聚焦模式 === "暂停") return;
+  const task = data.历练?.[event.标题];
+  const allowed = FOCUSED_PLOT_PHASES[event.标题];
+  if (task?.类别 !== "剧情" || !allowed || event.已完成事件?.includes(event.标题)) return;
+  const old = previousVariables?.stat_data;
+  const valid = value => allowed.includes(value);
+  const taskChanged = task.阶段 !== old?.历练?.[event.标题]?.阶段;
+  const eventChanged = event.标题 !== old?.事件?.标题 || event.阶段 !== old?.事件?.阶段;
+  const stage = taskChanged && valid(task.阶段) ? task.阶段
+    : eventChanged && valid(event.阶段) ? event.阶段
+    : valid(task.阶段) ? task.阶段 : valid(event.阶段) ? event.阶段 : null;
+  if (!stage) return;
+  task.阶段 = stage;
+  event.阶段 = stage;
+  event.开启 = true;
+}
+
 $(() => {
   // 先注册预处理器,确保在 mvu_zod 的同名事件处理器之前执行
   eventOn("mag_command_parsed_for_zod", jsonPatchPreprocessor);
   registerMvuSchema(Schema);
+  eventOn("mag_variable_update_ended", syncFocusedPlotIndex);
+  console.info("[剧情聚焦索引] 2026-10-30-v6：统一注册阶段索引");
 });

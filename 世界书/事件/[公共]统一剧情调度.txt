@@ -1,0 +1,229 @@
+<%_
+const plotRuntime = (()=>{const modules=[function(module,exports){"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.dispatchPlots = dispatchPlots;
+exports.validatePlotRegistry = validatePlotRegistry;
+function dispatchPlots(data, action, plots, daily = [], entries) {
+    const empty = () => ({ title: '', phase: '', kind: 'none', advance: false, respond: false, opening: false, diagnostics });
+    const diagnostics = [];
+    const event = data.事件 || {}, tasks = data.历练 || {}, done = event.已完成事件 || [];
+    if (event.聚焦模式 === '暂停')
+        return empty();
+    const ctx = { data, action };
+    const names = new Map(), entryCounts = new Map();
+    for (const p of plots) {
+        names.set(p.name, (names.get(p.name) || 0) + 1);
+        entryCounts.set(p.entry, (entryCounts.get(p.entry) || 0) + 1);
+    }
+    if (event.聚焦模式 === '手动' && event.标题 && !names.has(event.标题))
+        diagnostics.push(`未注册的聚焦剧情：${event.标题}`);
+    const hasDailyPending = () => daily.some(def => {
+        if (entries && !entries.includes(def.entry)) {
+            diagnostics.push(`无效日常入口：${def.name}`);
+            return false;
+        }
+        try {
+            return def.pending(ctx);
+        }
+        catch (error) {
+            diagnostics.push(`日常条件异常：${def.name}：${String(error)}`);
+            return false;
+        }
+    });
+    const candidates = [];
+    let mentioned = false;
+    for (const def of plots) {
+        if (!def.name || names.get(def.name) !== 1 || entryCounts.get(def.entry) !== 1 || !def.entry || (entries && !entries.includes(def.entry)) || !Number.isFinite(def.order)) {
+            diagnostics.push(`无效或重复剧情注册：${def.name}`);
+            continue;
+        }
+        try {
+            const explicit = def.matches(action);
+            mentioned || (mentioned = def.mentions?.(action) ?? explicit);
+            if (done.includes(def.name) || def.completedAliases?.some(n => done.includes(n)))
+                continue;
+            const task = tasks[def.name];
+            if (!task && event.标题 !== def.name && !def.region(ctx))
+                continue;
+            if (def.authorized && !def.authorized(ctx))
+                continue;
+            if (!task) {
+                if (def.region(ctx) && def.opening(ctx) && (explicit || def.openingScene(ctx)))
+                    candidates.push({ def, phase: '', kind: 'opening', explicit, response: false });
+                continue;
+            }
+            if (task.类别 !== '剧情')
+                continue;
+            const phase = String(task.阶段 || (event.标题 === def.name ? event.阶段 : '') || '');
+            if (!Object.prototype.hasOwnProperty.call(def.stages, phase)) {
+                diagnostics.push(`未知剧情阶段：${def.name}/${phase}`);
+                continue;
+            }
+            const stage = def.stages[phase];
+            const pending = event.进度?.[def.name]?.待回应 === true;
+            const canRespond = pending && Boolean(stage.respond?.(ctx));
+            if (canRespond)
+                candidates.push({ def, phase, kind: 'respond', explicit, response: def.response(action) });
+            else if (stage.advance(ctx))
+                candidates.push({ def, phase, kind: 'advance', explicit, response: false });
+        }
+        catch (error) {
+            diagnostics.push(`剧情条件异常：${def.name}：${String(error)}`);
+        }
+    }
+    const sorted = candidates.sort((a, b) => a.def.order - b.def.order || (a.def.name < b.def.name ? -1 : a.def.name > b.def.name ? 1 : 0));
+    const selected = (c) => ({ title: c.def.name, phase: c.phase, kind: c.kind, opening: c.kind === 'opening', advance: c.kind === 'advance', respond: c.kind === 'respond', diagnostics });
+    if (event.聚焦模式 === '手动') {
+        const focused = sorted.find(c => c.def.name === event.标题 && !(c.def.mentions?.(action) && !c.explicit));
+        if (focused)
+            return selected(focused);
+        const explicitOpening = sorted.find(c => c.kind === 'opening' && c.explicit);
+        if (explicitOpening)
+            return selected(explicitOpening);
+        if (hasDailyPending())
+            return empty();
+        const opening = !mentioned && sorted.find(c => c.kind === 'opening');
+        return opening ? selected(opening) : empty();
+    }
+    const explicit = sorted.find(c => c.explicit);
+    if (explicit)
+        return selected(explicit);
+    if (mentioned)
+        return empty();
+    const response = sorted.find(c => c.kind === 'respond' && c.response && c.def.name === event.标题);
+    if (response)
+        return selected(response);
+    if (hasDailyPending())
+        return empty();
+    const opening = sorted.find(c => c.kind === 'opening');
+    return opening ? selected(opening) : empty();
+}
+function validatePlotRegistry(plots, entries) {
+    const names = new Set(), usedEntries = new Set();
+    for (const p of plots) {
+        if (!p.name || names.has(p.name))
+            throw new Error(`重复或空剧情名称：${p.name}`);
+        names.add(p.name);
+        if (usedEntries.has(p.entry))
+            throw new Error(`重复世界书入口：${p.entry}`);
+        usedEntries.add(p.entry);
+        if (!entries.includes(p.entry))
+            throw new Error(`无效世界书入口：${p.entry}`);
+        if (!Number.isFinite(p.order) || !p.stages || !Object.keys(p.stages).length)
+            throw new Error(`无效剧情配置：${p.name}`);
+        for (const key of ['region', 'opening', 'openingScene', 'matches', 'response'])
+            if (typeof p[key] !== 'function')
+                throw new Error(`缺少剧情条件：${p.name}/${key}`);
+        for (const [phase, condition] of Object.entries(p.stages))
+            if (!phase || typeof condition.advance !== 'function' || (condition.respond !== undefined && typeof condition.respond !== 'function'))
+                throw new Error(`无效阶段条件：${p.name}/${phase}`);
+    }
+}
+
+},
+function(module,exports){"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.registeredDaily = exports.registeredPlots = void 0;
+const dream_1 = load(2);
+const saint_1 = load(4);
+const ancestor_1 = load(5);
+exports.registeredPlots = [dream_1.dreamPlot, saint_1.saintPlot, ancestor_1.ancestorPlot];
+exports.registeredDaily = [{ name: '五毒教日常', entry: '[事件]五毒教-日常', pending: ({ data }) => Boolean(data.事件?.进度?.五毒教日常?.名称) }];
+
+},
+function(module,exports){"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.dreamPlot = void 0;
+const shared_1 = load(3);
+exports.dreamPlot = {
+    name: '梦茧', entry: '[事件]五毒教-梦茧', order: 30, region: shared_1.availableRegion,
+    opening: ctx => (0, shared_1.identity)(ctx).includes('五毒') && (0, shared_1.inside)(ctx) && (0, shared_1.rank)(ctx) === 1 && (/后|圆满|巅峰/.test((0, shared_1.realm)(ctx)) || Number(ctx.data.修炼进度?.当前进度 || 0) / Number(ctx.data.修炼进度?.进度上限 || 100) >= .8),
+    openingScene: shared_1.inside, authorized: ctx => (0, shared_1.identity)(ctx).includes('五毒'),
+    ...(0, shared_1.actionPattern)('梦茧|血蝶|集毒|五毒蛊|本命蛊|炼蛊池|归元化生|奇毒'), response: shared_1.response,
+    stages: {
+        '追问传说': { advance: shared_1.always }, '集毒': { advance: shared_1.always }, '筑基结蛊': { advance: shared_1.always },
+        '梦茧苏醒': { advance: ctx => (0, shared_1.rank)(ctx) > 2 || ((0, shared_1.rank)(ctx) === 2 && /中|后|圆满|巅峰/.test((0, shared_1.realm)(ctx))), respond: shared_1.inside },
+        '了结抉择': { advance: ctx => (0, shared_1.rank)(ctx) >= 3, respond: shared_1.inside },
+        '收集归元材料': { advance: shared_1.always }, '炼制归元化生丹': { advance: ctx => (0, shared_1.rank)(ctx) >= 4, respond: shared_1.inside },
+        '丹成待服': { advance: shared_1.always }, '结局·化蝶': { advance: shared_1.always }, '结局·完美': { advance: shared_1.always },
+        '结局·茧中': { advance: shared_1.always }, '结局·夺舍': { advance: shared_1.always }, '献祭·查证': { advance: shared_1.always },
+    },
+};
+
+},
+function(module,exports){"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.actionPattern = exports.always = exports.actionMatches = exports.response = exports.availableRegion = exports.inside = exports.identity = exports.place = exports.rank = exports.realm = exports.yes = void 0;
+const yes = (v) => v === true || v === 1 || ['true', '1', '是', '有', '在场', '开启', '启用'].includes(String(v).trim().toLowerCase());
+exports.yes = yes;
+const realm = ({ data }) => String(data.修炼进度?.境界 || '').replace('练气', '炼气').replace('炼虚', '返虚');
+exports.realm = realm;
+const rank = (ctx) => Math.max(0, ['凡人', '炼气', '筑基', '金丹', '元婴', '化神', '返虚', '合体', '大乘', '渡劫'].findIndex(n => (0, exports.realm)(ctx).includes(n)));
+exports.rank = rank;
+const place = ({ data }) => String(data.地点?.具体地点 || '');
+exports.place = place;
+const identity = ({ data }) => [].concat(data.身份 || []).join(' ');
+exports.identity = identity;
+const inside = (ctx) => {
+    const text = String(ctx.data.地点?.地域 || '') + (0, exports.place)(ctx);
+    return /五毒/.test(text) || /百草瘴|神木殿|万毒窟|炼蛊池|百毒瘴/.test((0, exports.place)(ctx)) || (/雨瘴林/.test(text) && /神木|万毒|炼蛊|百毒|百草|天蜈|灵蛇|魔蝎|圣蟾|鬼蛛|洞府|静室|膳堂|法坛|演武/.test((0, exports.place)(ctx)));
+};
+exports.inside = inside;
+const availableRegion = (ctx) => (!ctx.data.地点?.世界 || ctx.data.地点.世界 === '凡界') && (/南疆|五毒|雨瘴林/.test(String(ctx.data.地点?.地域 || '') + (0, exports.place)(ctx)) || (0, exports.inside)(ctx));
+exports.availableRegion = availableRegion;
+const response = (action) => /回答|回应|点头|摇头|接过|递回|同意|拒绝|答应|询问|追问|压制|献祭|另寻/.test(action);
+exports.response = response;
+const actionMatches = (source) => (action) => [...action.matchAll(new RegExp(source, 'g'))].some(m => !/(?:不去|不再|不找|不见|不回应|不理会|暂离|离开|搁置|放下|暂不|先不)[^，。；!?！？]{0,4}$/.test(action.slice(Math.max(0, m.index - 8), m.index)));
+exports.actionMatches = actionMatches;
+const always = () => true;
+exports.always = always;
+const actionPattern = (source) => ({ matches: (0, exports.actionMatches)(source), mentions: (action) => new RegExp(source).test(action) });
+exports.actionPattern = actionPattern;
+
+},
+function(module,exports){"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.saintPlot = void 0;
+const shared_1 = load(3);
+const npc = ({ data }) => data.关系列表?.蓝幽月 || data.关系列表?.['五毒圣女·蓝幽月'] || {};
+const favor = (ctx) => Number(npc(ctx).好感度 ?? npc(ctx).好感 ?? 0);
+const present = (ctx) => (0, shared_1.yes)(npc(ctx).在场) || (Boolean(ctx.data.在场?.蓝幽月) && (0, shared_1.yes)(ctx.data.在场.蓝幽月.在场 ?? true));
+const scene = (ctx) => present(ctx) || /药圃|青竹药架/.test((0, shared_1.place)(ctx));
+exports.saintPlot = {
+    name: '五毒圣女·幽月情缘', entry: '[事件]五毒教-圣女', order: 20, region: shared_1.availableRegion, completedAliases: ['五毒教圣女'],
+    opening: ctx => (0, shared_1.rank)(ctx) >= 2 && (0, shared_1.inside)(ctx), openingScene: ctx => /药圃|青竹药架|百草瘴/.test((0, shared_1.place)(ctx)),
+    ...(0, shared_1.actionPattern)('蓝幽月|圣女|药圃|青竹药架|灵糖|封口'), response: shared_1.response,
+    stages: {
+        '同行_确认朋友': { advance: ctx => (0, shared_1.rank)(ctx) >= 3 && favor(ctx) >= 50 && present(ctx), respond: scene },
+        '传音求救': { advance: ctx => (0, shared_1.rank)(ctx) >= 3 && favor(ctx) >= 70 && !present(ctx) && !(0, shared_1.inside)(ctx), respond: ctx => scene(ctx) || /传音|蓝幽月|圣女|救援/.test(ctx.action) },
+        '秘窟驰援': { advance: ctx => (0, shared_1.rank)(ctx) >= 3 && present(ctx) && (0, shared_1.place)(ctx).includes('寒髓秘窟'), respond: ctx => present(ctx) && (0, shared_1.place)(ctx).includes('寒髓秘窟') },
+        '终幕_月下定情': { advance: ctx => (0, shared_1.rank)(ctx) >= 3 && favor(ctx) >= 100 && present(ctx), respond: scene },
+    },
+};
+
+},
+function(module,exports){"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ancestorPlot = void 0;
+const shared_1 = load(3);
+const authorized = ({ data }) => data.__custom_start__?.story === 'story-wudu-init' || [].concat(data.__custom_start__?.flags || []).some(f => ['万毒祖窟', '噬心蛊经'].includes(f));
+exports.ancestorPlot = {
+    name: '万毒祖窟·噬心蛊鸣', entry: '[事件]开局-五毒教-万毒祖窟', order: 10,
+    region: authorized, opening: authorized, openingScene: shared_1.always, authorized,
+    ...(0, shared_1.actionPattern)('万毒祖窟|祖窟|噬心蛊经|识海|蛊音|蛊鸣|残魂|魔影|压制魔性|以身饲蛊'), response: shared_1.response,
+    stages: {
+        '吞果初醒': { advance: ctx => (0, shared_1.rank)(ctx) >= 2, respond: shared_1.always },
+        '蛊鸣辨毒': { advance: ctx => (0, shared_1.rank)(ctx) > 2 || ((0, shared_1.rank)(ctx) === 2 && /后期|圆满|巅峰/.test((0, shared_1.realm)(ctx))), respond: shared_1.always },
+        '炼蛊抉择中': { advance: shared_1.always }, '以身饲蛊': { advance: shared_1.always },
+        '压制魔性': { advance: ctx => (0, shared_1.rank)(ctx) >= 3 && /长老|护法|掌门|教主|供奉/.test((0, shared_1.identity)(ctx)), respond: shared_1.always },
+        '祖窟归位': { advance: ctx => (0, shared_1.rank)(ctx) >= 5, respond: shared_1.always },
+    },
+};
+
+}],cache={};function load(id){if(cache[id])return cache[id].exports;const module={exports:{}};cache[id]=module;modules[id](module,module.exports);return module.exports;}return {...load(0),...load(1)};})();
+
+const snapshot = getMessageVar('stat_data', { defaults: {} }) || {};
+const action = typeof getChatMessage === 'function' && typeof lastUserMessageId === 'number' ? getChatMessage(lastUserMessageId, 'user') : '';
+const decision = plotRuntime.dispatchPlots(snapshot, action, plotRuntime.registeredPlots, plotRuntime.registeredDaily, ["[事件]五毒教-梦茧","[事件]五毒教-圣女","[事件]开局-五毒教-万毒祖窟","[事件]五毒教-日常"]);
+for (const issue of decision.diagnostics) console.warn('[统一剧情调度] ' + issue);
+_%><%- JSON.stringify(decision) %>
