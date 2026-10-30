@@ -1,6 +1,6 @@
 ```
 <body>
-  <div id="rbPayload" hidden>$1</div>
+  <div id="rbPayload" hidden>$2</div>
   <script>
     (() => {
       const payloadHost = document.getElementById('rbPayload');

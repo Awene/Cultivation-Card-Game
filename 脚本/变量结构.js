@@ -820,6 +820,8 @@ const TaskSchema = z.object({
   焦点: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
   触发时间: AssetTimeSchema,
   阶段: z.string().optional(),
+  本幕进行中: z.preprocess(normalizeBoolean, z.boolean()).prefault(false),
+  分支: z.string().prefault(""),
   推进线索: z.string().optional(),
   // 剧情标识与里程碑
   类别: z.preprocess((input) => normalizeLooseString(input, ""), z.string()).prefault(""),
@@ -1478,6 +1480,16 @@ function preservePlotRecords(command, variables) {
   const index = command.args.length - 1;
   const value = tryParseValue(command.args[index]);
   const mode = data.事件?.聚焦模式;
+  if (mode === "暂停" && parts[0] === "历练") {
+    if (parts.length > 1 && Object.hasOwn(FOCUSED_PLOT_PHASES, parts[1])) return false;
+    if (parts.length === 1 && value && typeof value === 'object') {
+      const next = _.cloneDeep(value);
+      for (const name of Object.keys(FOCUSED_PLOT_PHASES)) {
+        if (data.历练?.[name]) next[name] = _.cloneDeep(data.历练[name]); else delete next[name];
+      }
+      command.args[index] = next;
+    }
+  }
   if (parts[0] === "事件" && parts.length === 2 && ["标题", "阶段", "开启"].includes(parts[1])) {
     if (mode === "暂停") return false;
     if (parts[1] === "标题" && mode === "手动" && data.事件.标题 && value && value !== data.事件.标题) return false;
@@ -1572,53 +1584,75 @@ function jsonPatchPreprocessor(_variables, commands) {
 // 同步模型明确写出的合法阶段，事件指针与每线快照互为镜像；不判定节点、不发奖。
 const FOCUSED_PLOT_PHASES = {
   "梦茧": [
-    "丹成待服",
-    "了结抉择",
-    "收集归元材料",
-    "梦茧苏醒",
-    "炼制归元化生丹",
-    "献祭·查证",
-    "筑基结蛊",
-    "结局·化蝶",
-    "结局·夺舍",
-    "结局·完美",
-    "结局·茧中",
-    "追问传说",
-    "集毒"
+    "第一幕",
+    "第二幕",
+    "第三幕",
+    "第四幕",
+    "第五幕"
   ],
   "五毒圣女·幽月情缘": [
-    "传音求救",
-    "同行_确认朋友",
-    "秘窟驰援",
-    "终幕_月下定情"
+    "第一幕",
+    "第二幕",
+    "第三幕",
+    "第四幕"
   ],
   "万毒祖窟·噬心蛊鸣": [
-    "以身饲蛊",
-    "压制魔性",
-    "吞果初醒",
-    "炼蛊抉择中",
-    "祖窟归位",
-    "蛊鸣辨毒"
+    "第一幕",
+    "第二幕",
+    "第三幕",
+    "第四幕",
+    "第五幕"
   ]
 };
 function syncFocusedPlotIndex(variables, previousVariables) {
-  const data = variables?.stat_data;
+  const data = variables?.stat_data, old = previousVariables?.stat_data;
   const event = data?.事件;
-  if (!event?.标题 || event.聚焦模式 === "暂停") return;
-  const task = data.历练?.[event.标题];
-  const allowed = FOCUSED_PLOT_PHASES[event.标题];
-  if (task?.类别 !== "剧情" || !allowed || event.已完成事件?.includes(event.标题)) return;
-  const old = previousVariables?.stat_data;
-  const valid = value => allowed.includes(value);
-  const taskChanged = task.阶段 !== old?.历练?.[event.标题]?.阶段;
-  const eventChanged = event.标题 !== old?.事件?.标题 || event.阶段 !== old?.事件?.阶段;
-  const stage = taskChanged && valid(task.阶段) ? task.阶段
-    : eventChanged && valid(event.阶段) ? event.阶段
-    : valid(task.阶段) ? task.阶段 : valid(event.阶段) ? event.阶段 : null;
-  if (!stage) return;
-  task.阶段 = stage;
-  event.阶段 = stage;
-  event.开启 = true;
+  if (!event) return;
+  // User selection owns the mode; model updates never unlock pause.
+  if (old?.事件?.聚焦模式) event.聚焦模式 = old.事件.聚焦模式;
+  if (event.聚焦模式 === "暂停") {
+    for (const name of Object.keys(FOCUSED_PLOT_PHASES)) {
+      if (old?.历练?.[name]) data.历练[name] = _.cloneDeep(old.历练[name]);
+      else if (data.历练) delete data.历练[name];
+    }
+    event.已完成事件 = _.cloneDeep(old?.事件?.已完成事件 || event.已完成事件 || []);
+    Object.assign(event, { 标题: "", 阶段: "", 开启: false });
+    return;
+  }
+  for (const [name, allowed] of Object.entries(FOCUSED_PLOT_PHASES)) {
+    const task = data.历练?.[name];
+    if (!task) continue;
+    const previous = old?.历练?.[name];
+    const from = allowed.indexOf(previous?.阶段);
+    const to = allowed.indexOf(task.阶段);
+    const legalStep = !previous ? to === 0 : to === from ||
+      (previous.本幕进行中 !== true && task.本幕进行中 === true && to === from + 1);
+    if (!allowed.includes(task.阶段) || !legalStep) {
+      console.warn('[剧情幕次] 拒绝未知或越级幕次：' + name + '/' + task.阶段);
+      if (old?.历练?.[name]) data.历练[name] = _.cloneDeep(old.历练[name]);
+      else delete data.历练[name];
+    }
+  }
+  const current = data.历练?.[event.标题];
+  if (current?.类别 === '剧情' && current.本幕进行中 === true && !event.已完成事件?.includes(event.标题)) {
+    event.阶段 = current.阶段; event.开启 = true; return;
+  }
+  // The model has explicitly ended or archived the chapter. Do not infer completion from prose or keywords.
+  const manualWaiting = event.聚焦模式 === '手动' && current?.类别 === '剧情'
+    && old?.历练?.[event.标题]?.本幕进行中 !== true && !event.已完成事件?.includes(event.标题);
+  if (manualWaiting) { event.阶段 = current.阶段; event.开启 = false; return; }
+  const endedFocused = Boolean(event.标题 && FOCUSED_PLOT_PHASES[event.标题]);
+  if (endedFocused) {
+    Object.assign(event, { 标题: '', 阶段: '', 开启: false });
+    if (event.聚焦模式 === '手动') event.聚焦模式 = '自动';
+  }
+  if (event.聚焦模式 !== '自动') return;
+  const active = Object.keys(FOCUSED_PLOT_PHASES).find(name => {
+    const task = data.历练?.[name], previous = old?.历练?.[name];
+    return task?.类别 === '剧情' && task.本幕进行中 === true && !event.已完成事件?.includes(name)
+      && (!previous?.本幕进行中 || previous.阶段 !== task.阶段);
+  });
+  if (active) Object.assign(event, { 标题: active, 阶段: data.历练[active].阶段, 开启: true });
 }
 
 $(() => {
@@ -1626,5 +1660,5 @@ $(() => {
   eventOn("mag_command_parsed_for_zod", jsonPatchPreprocessor);
   registerMvuSchema(Schema);
   eventOn("mag_variable_update_ended", syncFocusedPlotIndex);
-  console.info("[剧情聚焦索引] 2026-10-30-v6：统一注册阶段索引");
+  console.info("[剧情聚焦索引] 2026-10-31-v7：按幕记录与聚焦释放");
 });
