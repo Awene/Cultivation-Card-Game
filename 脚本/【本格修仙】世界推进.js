@@ -42,6 +42,8 @@ const readWorldStat = (messageId = 'latest') => host.TavernHelper.getVariables({
 const intervalOf = record => record?.requestData?.cultivationWorldAdvance || record?.worldAdvance;
 let sending = false;
 let pendingInterval = null;
+let routeInterval = null;
+let settlementTimer = null;
 let unregister = null;
 let registeredRouter = null;
 function assertSettled() {
@@ -53,8 +55,22 @@ function assertSettled() {
 function resolveRoute({ type, input, isMainRequest }) {
   if (!isMainRequest) return null;
   pendingInterval = null;
+  routeInterval = null;
+  clearTimeout(settlementTimer);
+  if (type === 'continue') {
+    const last = [...(context().chat || [])].reverse().find(m => !m.is_user && !m.is_system);
+    const interval = intervalOf(last?.extra?.crr_route);
+    if (!interval) return null;
+    const settled = compareTime(readWorldStat()?.传闻?.上次世界推进时间点, interval.end);
+    // 已结算只续写正文；未结算沿用原请求区间，不创建新的推进。
+    if (settled !== null && settled >= 0) {
+      return { enabled: [], reason: '世界推进正文续写', reuseForExtraApi: true };
+    }
+    pendingInterval = routeInterval = interval;
+    return { enabled: [WORLD_ADVANCE_RULE], reason: '继续未完成的世界推进', data: { cultivationWorldAdvance: interval }, reuseForExtraApi: true };
+  }
   let sourceStat;
-  if (!input.trim() && ['regenerate', 'swipe', 'continue'].includes(type)) {
+  if (!input.trim() && ['regenerate', 'swipe'].includes(type)) {
     const chat = context().chat || [];
     for (let i = chat.length - 1; i >= 0; i--) {
       if (!chat[i].is_user) continue;
@@ -67,7 +83,7 @@ function resolveRoute({ type, input, isMainRequest }) {
     assertSettled();
   }
   if (!input.includes(WORLD_ADVANCE_TRIGGER)) return null;
-  pendingInterval = worldAdvanceInterval(sourceStat || readWorldStat());
+  pendingInterval = routeInterval = worldAdvanceInterval(sourceStat || readWorldStat());
   return { enabled: [WORLD_ADVANCE_RULE], reason: '世界推进', data: { cultivationWorldAdvance: pendingInterval }, reuseForExtraApi: true };
 }
 function connect() {
@@ -106,19 +122,27 @@ connect();
 // 兼容插件后加载；页面卸载时解除注册，避免切卡后残留专用逻辑。
 const timer = setInterval(connect, 1000);
 const source = context().eventSource;
-const onUpdate = variables => {
-  if (!pendingInterval || !variables?.stat_data) return;
-  if (compareTime(variables.stat_data.传闻?.上次世界推进时间点, pendingInterval.end) !== 0) {
-    host.toastr.warning('世界推进时间点未正确更新，请检查本轮变量或重生成；不要直接重复推进。', '世界推进', { preventDuplicates: true });
-  }
+const onUpdate = () => {
+  if (!pendingInterval) return;
+  clearTimeout(settlementTimer);
+  // MVU 事件发生在写回之前；核对落盘后的本轮数据，不检查任意楼层的事件载荷。
+  settlementTimer = setTimeout(() => {
+    if (!pendingInterval) return;
+    const last = [...(context().chat || [])].reverse().find(m => !m.is_user && !m.is_system);
+    const interval = intervalOf(last?.extra?.crr_route);
+    if (!interval || compareTime(interval.start, pendingInterval.start) !== 0 || compareTime(interval.end, pendingInterval.end) !== 0) return;
+    const settled = compareTime(readWorldStat()?.传闻?.上次世界推进时间点, pendingInterval.end);
+    if (settled !== null && settled >= 0) pendingInterval = null;
+    // 尚未写回时保留待处理状态；再次推进由 assertSettled 提示，避免额外模型尚在运行时误报。
+  }, 200);
 };
-const onChat = () => { pendingInterval = null; sending = false; };
+const onChat = () => { clearTimeout(settlementTimer); pendingInterval = routeInterval = null; sending = false; };
 // 专用的“仅明确要求时开启”约束也留在卡内，防止旧配置关联或模型误选。
 const onEntries = payload => {
   const active = context().chatMetadata?.variables?.['路由激活规则'];
   let routed = false;
   try { routed = JSON.parse(active || '[]').includes(WORLD_ADVANCE_RULE); } catch { /* 无结果视为关闭 */ }
-  if (pendingInterval && routed) return;
+  if (routeInterval && routed) return;
   const vars = context().chatMetadata?.variables;
   // 同步 EJS 可见状态，避免实际禁用但提示词仍把此规则当作开启。
   if (vars && routed) {
@@ -136,6 +160,7 @@ source.on(context().eventTypes.CHAT_CHANGED, onChat);
 source.makeLast(context().eventTypes.WORLDINFO_ENTRIES_LOADED, onEntries);
 window.addEventListener('pagehide', () => {
   clearInterval(timer);
+  clearTimeout(settlementTimer);
   unregister?.();
   source.removeListener('mag_variable_update_ended', onUpdate);
   source.removeListener(context().eventTypes.CHAT_CHANGED, onChat);
