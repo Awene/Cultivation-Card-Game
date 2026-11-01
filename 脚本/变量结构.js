@@ -1586,6 +1586,11 @@ function preservePlotRecords(command, variables) {
   if (!["set", "insert"].includes(command.type)) return true;
   const index = command.args.length - 1;
   const value = tryParseValue(command.args[index]);
+  // Empty collection snapshots are not item consumption or technique removal.
+  // Require explicit child deletion; do not let an omitted NPC/player inventory erase owned records.
+  if (parts.length === 1 && ["物品", "功法"].includes(parts[0]) &&
+      _.isPlainObject(value) && Object.keys(value).length === 0 &&
+      _.isPlainObject(data[parts[0]]) && Object.keys(data[parts[0]]).length > 0) return false;
   const mode = data.事件?.聚焦模式;
   if (mode === "暂停" && parts[0] === "历练") {
     if (parts.length > 1 && Object.hasOwn(FOCUSED_PLOT_PHASES, parts[1])) return false;
@@ -1767,5 +1772,5 @@ $(() => {
   eventOn("mag_command_parsed_for_zod", jsonPatchPreprocessor);
   registerMvuSchema(Schema);
   eventOn("mag_variable_update_ended", syncFocusedPlotIndex);
-  console.info("[剧情聚焦索引] 2026-10-31-v7：按幕记录与聚焦释放");
+  console.info("[剧情聚焦索引] 2026-10-31-v8：按幕记录与聚焦释放");
 });

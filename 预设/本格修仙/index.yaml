@@ -546,6 +546,9 @@
 未添加的提示词: []
 
 扩展字段:
+  cultivation_card:
+    id: bengexiuxian
+    version: 2026.10.22
   正则:
     - 正则名称: 破限3兼容·删除Python起止壳
       id: 204ea440-5088-46d6-9a67-b8d8554d1a73

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-const require = createRequire(new URL('../../tavern_helper_template-main/package.json', import.meta.url));
+const require = createRequire(new URL('../../../tavern_helper_template-main/package.json', import.meta.url));
 const YAML = require('yaml');
 // Derive only test-environment settings; all content paths remain shared with the full source card.
 const source = YAML.parse(fs.readFileSync('本格修仙.yaml', 'utf8'));
