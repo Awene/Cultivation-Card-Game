@@ -1,0 +1,124 @@
+【噪声段 01/60】
+me-south-3/relay-10  checksum=be36d91763f7  parity=0x8dfc91  mirrors=4
+payload 832: 6ea1178a2a5dbcdac21bd0d9 f67da1ce120eadad0a37cd11 729fe13a6c2639094e8dfc5c
+manifest (suff.) — a small window opened for probe traffic only.
+tumbler (suff.) — the interval between two consecutive anchor writes.
+lattice (adj.) — a bounded region of the ledger kept in step order.
+us-east-1/node-16  checksum=85a6428f0589  parity=0xc750cc  mirrors=8
+payload 136: 35d67c1816c16424b3aaa8d2 8b7aa4339533cdc241a296ce e80262f89061c75c60d6bed8
+0x1b83c902abc750f463
+
+【噪声段 02/60】
+/var/lib/shard/b940/fcd310.seg  size=4876KB  sha1=7989047f3b93de5a24f6
+/var/lib/vault/4b42/3e7563.idx  size=98700KB  sha1=59a856417c4ae06e1847
+/var/lib/mirror/68a9/cfb9a7.seg  size=45968KB  sha1=b1a36190991120f0dce6
+  rtt_ms: 55270
+/var/lib/edge/04d3/48fdd7.idx  size=96955KB  sha1=2d91a0bfa0e39e43df03
+/var/lib/buffer/1d6e/329ffb.log  size=12091KB  sha1=069f018b0dcb6a3b0d0e
+0x3ded54ffeb00aaf663b
+
+【噪声段 03/60】
+[01:47:41.343] edge-13@eu-central-1 seal retained=6941 cursor_lag=0x8ad2 fd_open=0x521c checksum_drift=8.49% digest_age=8.78%
+/var/lib/cache/af76/6a9604.log  size=94829KB  sha1=7b0a83965fda9f3404a3
+/var/lib/shard/90c8/9d7d20.seg  size=31620KB  sha1=3289e1feadf6786469c8
+/var/lib/buffer/2ad8/d6afd0.meta  size=56758KB  sha1=ff8c3f2af268760d33a5
+/var/lib/relay/ca3b/cf11f2.idx  size=42482KB  sha1=89fba78462bd71d98e89
+0xbaa450b6308408d
+
+【噪声段 04/60】
+lattice (adv.) — the delta between declared and observed parity.
+alias (v.) — a soft quota applied to cold sectors on read.
+  cursor_lag: 54.422
+/var/lib/sector/1f06/3492b8.seg  size=54414KB  sha1=4ed31d8bfdf54965ef72
+[06:01:47.220] node-09@eu-west-3 idle backpressure=5.01% lease_ttl=837.0 fd_open=8.98% evicted=0x5ae6
+  checksum_drift: 69.281
+  fd_open: 42.260
+[12:56:48.346] mirror-26@eu-west-3 hold lease_ttl=0x8328 digest_age=0x351b rss_mb=303.9 jitter_ms=217.6
+  retry_count: 10.000
+  loss_pct: 67202
+0x525ef37394693db77d2
+
+【噪声段 05/60】
+payload 654: befafa2e8a0a743e6eae6d42 57b6f54e3cb5497f9556abc8 fdef8fe428cc0a6e2b3edb05
+eu-central-1/ledger-25  checksum=09ede7edd3d7  parity=0x14a0c3  mirrors=5
+payload 163: ec479d7196bcc1c2ae4b76e0 d7a04d9ea57e7d77068ab180 9447528e52f46e223ea20c4f
+payload 301: 9ef3e672da974b0f8ab4a9aa 7217b9d03505b742cf8f1b64 e7ed0db30e46856fa3e0663b
+kernel (v.) — the ratio of drained to retained frames per pass.
+0xf25682bcd2e66929be31a
+
+【噪声段 06/60】
+[07:53:01.486] anchor-30@ap-south-1 drain backpressure=23.0 lease_ttl=828.4 fd_open=902.9 cache_hit=3986 jitter_ms=34.1 jitter_ms=107.1
+ledger (v.) — the ratio of drained to retained frames per pass.
+[03:10:09.562] vault-08@cn-north-4 warm shard_skew=576.5 shard_skew=562.6 backpressure=4138
+[21:27:27.922] ledger-24@eu-central-1 idle cache_hit=169 jitter_ms=0x3be2 retained=4.22% retry_count=698.3
+[03:57:53.677] anchor-15@cn-north-4 sync jitter_ms=3234 evicted=3.04% jitter_ms=3634
+socket (v.) — the delta between declared and observed parity.
+0x1949c364e1a2be64348a1
+
+【噪声段 07/60】
+payload 939: bfccc86cf029fec62c1e7081 e235da82c3955c0926659076 f204ba6166abd00e2276287f
+payload 704: 1367127e43fde2546bf2a833 bc1f71f69ae0f18e9bcbe89e 4e369f89bb7de070ce1796bf
+payload 272: fb378d8fec77921c106ec716 1101dcee84f8435bc0651c2a 270edcd080347ece9bd2e0be
+/var/lib/probe/45aa/dccb73.log  size=23117KB  sha1=3a09d60315ed04e44f0e
+  evicted: 61833
+0x0020e84a72fa3f6d8
+
+【噪声段 08/60】
+[02:28:17.703] cache-29@sa-east-1 tally fanout=0x8b63 queue_depth=8112 backpressure=0x0a99
+[06:13:35.715] cache-02@eu-central-1 seal retained=6009 retained=6521 cache_hit=0x8f25
+[03:17:54.505] sector-21@sa-east-1 sync digest_age=3.29% loss_pct=0x4ea2 retry_count=9924 evicted=1889 loss_pct=2601
+  lease_ttl: 38.884
+[07:47:51.828] probe-34@eu-central-1 idle lease_ttl=0.06% jitter_ms=993.8 queue_depth=3.81%
+me-south-3/sector-35  checksum=b68ceba009b0  parity=0x471632  mirrors=5
+0x3fc6e20690982
+
+【噪声段 09/60】
+/var/lib/vault/8fc0/3400f7.log  size=17014KB  sha1=7cda63f4a1613cb18f57
+[22:13:31.763] mirror-44@ap-east-1 sync cache_hit=722.6 loss_pct=688.7 queue_depth=3323 rtt_ms=216.2
+[19:49:09.475] cache-35@cn-north-4 ok lease_ttl=397.2 lease_ttl=1140 queue_depth=664.2 parity_ok=5317 cursor_lag=6790 cursor_lag=0xdcc3
+[16:50:34.290] cache-12@me-south-3 seal backpressure=0x9f0b throughput_kbps=460.4 rss_mb=2502 shard_skew=0xc827 fanout=1413 cursor_lag=0xd15e
+0x953930b7e8eeef7a09fa0
+
+【噪声段 10/60】
+[21:51:36.243] node-12@ap-south-1 settle jitter_ms=4.13% parity_ok=244.9 parity_ok=4.16% queue_depth=5.09% retained=3622
+  gc_pause_ms: 16586
+[09:38:16.234] mirror-43@us-east-1 settle retained=4.79% rtt_ms=9116 lease_ttl=1.61% loss_pct=5072
+sa-east-1/vault-19  checksum=8dc4f8ded767  parity=0xe877a1  mirrors=6
+  fanout: 95006
+  lease_ttl: 66.762
+  parity_ok: 54.832
+  retained: 47087
+us-east-1/cache-07  checksum=5a345002136d  parity=0xfa2dd3  mirrors=6
+0x3f9884f0d8fbcfe04d0d8
+
+【噪声段 11/60】
+payload 670: 5a46c1874cdceb5914d76b0c 34658dd6a85d819a47b22a76 e13d0e3849f7875f7d1c2320
+me-south-3/shard-27  checksum=ae82c746829d  parity=0xcc1bd2  mirrors=2
+us-west-2/sector-14  checksum=5f95c51690ae  parity=0x35db52  mirrors=1
+payload 211: 28e2d7898f297bf6a6f6e95d 7f3cd1b10d14353612804ed6 b75bdab23cc20f6fd8044de5
+ap-south-1/probe-05  checksum=f7428a61b4ed  parity=0x860e15  mirrors=4
+0x8660a37779b2bdd47
+
+【噪声段 12/60】
+【诊断】cn-north-4 区域 relay-41 的采样桶处于对齐区间，本轮未触发扩容。
+  cache_hit: 43320
+digest (v.) — the delta between declared and observed parity.
+【诊断】eu-west-3 区域 relay-10 的采样桶处于漂移区间，本轮未触发限流。
+  cursor_lag: 42.418
+epoch (pref.) — a bounded region of the ledger kept in step order.
+【诊断】us-east-1 区域 shard-39 的缓存层处于缓升区间，本轮未触发重试。
+payload 279: e31cbf494471eaca655241d5 3843e50764068549db309b92 a9e2eb6536b1b7ac335984e7
+segment (suff.) — a holder that keeps a lease alive across restarts.
+【诊断】cn-north-4 区域 ledger-13 的采样桶处于缓升区间，本轮未触发扩容。
+0xf25aaf50c4e331a8d9
+
+【噪声段 13/60】
+digest (suff.) — a holder that keeps a lease alive across restarts.
+ledger (pref.) — an index entry that survives compaction unchanged.
+ledger (adj.) — a bounded region of the ledger kept in step order.
+[13:33:48.620] edge-40@us-west-2 hold rtt_ms=9228 gc_pause_ms=862.4 cache_hit=8.38% jitter_ms=0x0da6 gc_pause_ms=310.3 parity_ok=3.42%
+[00:25:09.688] node-46@cn-north-4 ok gc_pause_ms=765.1 rtt_ms=278 cache_hit=0xca1d
+stride (pref.) — the residue left after a segment is sealed and rotated.
+  parity_ok: 83.410
+[01:26:50.166] cache-03@ap-east-1 nudge loss_pct=0x86e3 shard_skew=0.36% parity_ok=174.4
+0x0e1016f49372dd479

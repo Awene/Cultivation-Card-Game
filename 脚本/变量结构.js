@@ -1,4 +1,24 @@
 import { registerMvuSchema } from "https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js";
+// BEGIN CULTIVATION_TASKS (源: 前端 util/cultivation-tasks.js)
+/** 将旧任务字典迁移为管理字段 + 条目；不修改输入，也不重发奖励。 @param {any} input @returns {any} */
+function normalizeTasks(input) {
+  const record = value => value && typeof value === 'object' && !Array.isArray(value);
+  const source = record(input) ? input : {};
+  const entries = Object.fromEntries(Object.entries(source).filter(([key, value]) =>
+    !['聚焦任务', '已完成任务', '条目'].includes(key) && record(value)));
+  if (record(source.条目)) Object.assign(entries, source.条目);
+  const completed = Array.isArray(source.已完成任务)
+    ? [...new Set(source.已完成任务.filter(name => typeof name === 'string').map(name => name.trim()).filter(Boolean))]
+    : [];
+  const focused = typeof source.聚焦任务 === 'string' ? source.聚焦任务.trim() : '';
+  return {
+    聚焦任务: focused && Object.hasOwn(entries, focused) ? focused : null,
+    已完成任务: completed,
+    条目: entries,
+  };
+}
+// END CULTIVATION_TASKS
+
 
 // BEGIN CULTIVATION_CALENDAR (源: 前端 util/cultivation-calendar.js)
 // 修仙历兼容层：仅代码识别旧历输入；提示词和界面始终使用修仙历。
@@ -84,14 +104,23 @@ function normalizeCalendarState(input) {
     result.传闻 = { ...input.传闻 };
     if (input.传闻.上次世界推进时间点 != null) result.传闻.上次世界推进时间点 = normalizeOptional(input.传闻.上次世界推进时间点);
   }
-  if (input.任务) result.任务 = mapRecords(input.任务, raw => {
-    const task = { ...raw };
-    if (task.截止时间 != null) task.截止时间 = normalizeOptional(task.截止时间);
-    return task;
-  });
+  if (input.任务) {
+    const convertTask = raw => {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
+      const task = { ...raw };
+      if (task.截止时间 != null) task.截止时间 = normalizeOptional(task.截止时间);
+      return task;
+    };
+    result.任务 = Object.fromEntries(Object.entries(input.任务).map(([key, value]) => [key,
+      key === '条目' ? mapRecords(value || {}, convertTask)
+        : ['聚焦任务', '已完成任务'].includes(key) ? value : convertTask(value),
+    ]));
+  }
   if (input.固定资产) result.固定资产 = mapRecords(input.固定资产, raw => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
     const asset = { ...raw };
     if (asset.设施) asset.设施 = mapRecords(asset.设施, rawFacility => {
+      if (!rawFacility || typeof rawFacility !== 'object' || Array.isArray(rawFacility)) return rawFacility;
       const facility = { ...rawFacility };
       if (facility.上次收取日期 != null) facility.上次收取日期 = normalizeOptional(facility.上次收取日期);
       return facility;
@@ -838,10 +867,33 @@ function normalizeNamedRecord(input, fallbackName) {
   }));
 }
 
+// 旧设施曾将境界、品质写在“概况”中；只补元数据，保留原效果与产出。
+const normalizeFacilityMetadata = (value) => {
+  const effects = value.效果 ?? value.效用 ?? value.功能;
+  const summary =
+    typeof effects === 'string'
+      ? effects
+      : effects && typeof effects === 'object' && !Array.isArray(effects)
+        ? String(effects.概况 ?? '')
+        : '';
+  const realm =
+    String(value.境界 ?? '').trim() ||
+    summary.match(/境界\s*[:：=]\s*([^\s，,；;|/／]+)/)?.[1] ||
+    summary.match(/(?:凡人|炼气|练气|筑基|金丹|结丹|元婴|化神|返虚|合体|大乘|渡劫)(?:初期|前期|中期|后期|圆满|巅峰|期)?/)?.[0] ||
+    '未定';
+  const quality =
+    String(value.品质 ?? '').trim().match(/^([凡黄玄地天])(?:品|阶)?$/)?.[1] ||
+    summary.match(/品质\s*[:：=]\s*([凡黄玄地天])(?:品|阶)?/)?.[1] ||
+    summary.match(/([凡黄玄地天])(?:品|阶)/)?.[1] ||
+    '凡';
+  return { 境界: realm, 品质: quality };
+};
+
 function normalizeAssetFacility(input) {
-  if (typeof input === "string") return { 效果: input };
+  if (typeof input === "string") return { ...normalizeFacilityMetadata({ 效果: input }), 效果: input };
   if (!input || typeof input !== "object" || Array.isArray(input)) return {};
   return {
+    ...normalizeFacilityMetadata(input),
     效果: input.效果 ?? input.效用 ?? input.功能,
     每月产出: input.每月产出 ?? input.月产出 ?? input.产出,
     上次收取日期: input.上次收取日期 ?? input.上次收取 ?? input.收取日期,
@@ -852,6 +904,7 @@ function normalizeFixedAsset(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return {};
   return {
     类型: input.类型 ?? input.分类 ?? input.资产类型,
+    名气: input.名气 ?? input.声望,
     人员规模: input.人员规模 ?? input.人数 ?? input.规模,
     所在地: input.所在地 ?? input.地址 ?? input.位置,
     现状: input.现状 ?? input.状态 ?? input.当前状态,
@@ -875,7 +928,9 @@ const AssetTimeSchema = z.preprocess(normalizeAssetTime, TimeSchema.nullable()).
 const AssetFacilitySchema = z.preprocess(
   normalizeAssetFacility,
   z.object({
-    效果: StringRecordSchema.prefault({}),
+    境界: z.preprocess((input) => normalizeLooseString(input, "未定"), z.string()).prefault("未定"),
+    品质: QualityEnum.prefault("凡"),
+    效果: z.preprocess((input) => normalizeStringRecord(input) ?? {}, z.record(z.string(), z.string())).prefault({}),
     每月产出: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
     上次收取日期: AssetTimeSchema,
   }),
@@ -884,6 +939,7 @@ const FixedAssetSchema = z.preprocess(
   normalizeFixedAsset,
   z.object({
     类型: z.preprocess(normalizeAssetType, z.enum(["宗门", "店铺", "洞府"])).prefault("洞府"),
+    名气: z.preprocess(normalizeNonNegativeInteger, z.number().int().min(0)).prefault(0),
     人员规模: z.preprocess(normalizeNonNegativeInteger, z.number().int().min(0)).prefault(0),
     所在地: AssetLocationSchema,
     现状: z.preprocess((input) => normalizeLooseString(input, "正常"), z.string()).prefault("正常"),
@@ -897,7 +953,7 @@ const FixedAssetsSchema = z.preprocess(
 ).prefault({});
 
 // ===== 任务 Schema =====
-// 任务只保存尚未结束的条目；完成、失败或放弃后直接移除，不保留履历。
+// 条目保存未结束任务，已完成任务仅保留名称。
 const TaskSchema = z.object({
   状态: z.enum(["进行中", "待结算"]).prefault("进行中"),
   委托方: z.preprocess((input) => normalizeLooseString(input, "未知"), z.string()).prefault("未知"),
@@ -908,7 +964,11 @@ const TaskSchema = z.object({
   交付: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
   截止时间: AssetTimeSchema,
 });
-const TasksSchema = z.record(z.string(), TaskSchema).prefault({});
+const TasksSchema = z.preprocess(normalizeTasks, z.object({
+  聚焦任务: z.string().nullable().prefault(null),
+  已完成任务: z.array(z.string()).prefault([]),
+  条目: z.record(z.string(), TaskSchema).prefault({}),
+})).prefault({});
 
 // ===== 剧情事件 Schema =====
 // 事件字段早已存在于初始变量与更新规则中；此前漏注册到主 Schema，导致合法事件命令
@@ -1023,8 +1083,8 @@ const ITEM_FIELDS = new Set([
 const EQUIPMENT_FIELDS = new Set([
   "品质", "境界", "类型", "消耗", "五行", "标签", "效果", "描述", "位置",
 ]);
-const FIXED_ASSET_FIELDS = new Set(["类型", "人员规模", "所在地", "现状", "设施", "分配人物"]);
-const ASSET_FACILITY_FIELDS = new Set(["效果", "每月产出", "上次收取日期"]);
+const FIXED_ASSET_FIELDS = new Set(["类型", "名气", "人员规模", "所在地", "现状", "设施", "分配人物"]);
+const ASSET_FACILITY_FIELDS = new Set(["境界", "品质", "效果", "每月产出", "上次收取日期"]);
 const COMBAT_UNIT_FIELDS = new Set([
   "使用中", "品质", "境界", "五行", "标签", "描述", "资源池", "防御力", "技能",
 ]);
@@ -1236,6 +1296,7 @@ const TOP_LEVEL_ONLY_KEYS = new Set(["姓名", "固定资产", "任务", "地点
 const TOP_LEVEL_KEY_ALIASES = { 资产: "固定资产", 不动产: "固定资产", 产业: "固定资产" };
 const FIXED_ASSET_KEY_ALIASES = {
   分类: "类型", 资产类型: "类型",
+  声望: "名气",
   人数: "人员规模", 规模: "人员规模",
   地址: "所在地", 位置: "所在地",
   状态: "现状", 当前状态: "现状",
@@ -1274,7 +1335,7 @@ const TOP_LEVEL_CONTAINER_DEFAULTS = {
     遁速: 10,
   },
   固定资产: {},
-  任务: {},
+  任务: { 聚焦任务: null, 已完成任务: [], 条目: {} },
   地点: { 世界: "凡界", 地域: "中原", 具体地点: "荒野" },
   时间: { 年: 1, 月: 1, 日: 1, 时辰: "午时" },
   状态效果: {},
@@ -1318,6 +1379,7 @@ function fillMissingDefaults(target, defaults) {
 function repairMissingSchemaContainers(variables) {
   const statData = variables?.stat_data;
   if (!isPlainRecord(statData)) return;
+  statData.任务 = normalizeTasks(statData.任务);
   if (Array.isArray(statData.传闻)) {
     statData.传闻 = { 上次世界推进时间点: null, 条目: statData.传闻 };
   }
@@ -1420,13 +1482,17 @@ function fixPath(rawPath) {
 
   // B. 扫描中段是否有 top-level-only 键 (错误嵌套), 有则从该段截断
   for (let i = 1; i < segments.length; i++) {
-    if (segments[0] === '传闻' && segments[1] === '条目') break;
+    if (['传闻', '任务'].includes(segments[0]) && segments[1] === '条目') break;
+    if (segments[0] === '任务') break;
     if (TOP_LEVEL_ONLY_KEYS.has(segments[i])) {
       segments.splice(0, i);
       break;
     }
   }
 
+  if (segments[0] === '任务' && segments.length > 1 && !['聚焦任务', '已完成任务', '条目'].includes(segments[1])) {
+    segments.splice(1, 0, '条目');
+  }
   const fixed = joinPath(segments);
   if (fixed !== original || fixed !== rawPath) {
     console.warn(`[JSONPatch preprocessor] 规范路径: "${rawPath}" → "${fixed}"`);
@@ -1563,6 +1629,11 @@ function jsonPatchPreprocessor(_variables, commands) {
     // 1. 先修正路径(args[0] 是 path, 对 move 命令 args[1] 也是 path)
     if (cmd.args.length > 0) cmd.args[0] = fixPath(cmd.args[0]);
     if (cmd.type === "move" && cmd.args.length > 1) cmd.args[1] = fixPath(cmd.args[1]);
+    // 旧 _.insert('任务', '任务名', value) / _.delete('任务', '任务名') 兼容。
+    if (cmd.args[0] === '任务' && ['insert', 'delete'].includes(cmd.type) && cmd.args.length >= 2) {
+      const key = tryParseValue(cmd.args[1]);
+      if (typeof key === 'string' && !['聚焦任务', '已完成任务', '条目'].includes(key)) cmd.args[0] = '任务.条目';
+    }
     const targets = [splitPath(cmd.args[0])];
     if (cmd.type === 'insert') targets[0].push(String(tryParseValue(cmd.args[1])));
     if (cmd.type === 'move') targets.push(splitPath(cmd.args[1]));

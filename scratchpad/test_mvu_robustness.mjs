@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
-import lodash from "file:///D:/application/Tavern/settings/git/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/lodash/lodash.js";
-import YAML from "file:///D:/application/Tavern/settings/git/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/yaml/dist/index.js";
-import { z } from "file:///D:/application/Tavern/settings/git/%E4%B8%96%E7%95%8C%E4%B9%A6/tavern_helper_template-main/node_modules/zod/index.js";
+import { createRequire } from "node:module";
+const require = createRequire(new URL("../../tavern_helper_template-main/package.json", import.meta.url));
+const lodash = require("lodash");
+const YAML = require("yaml");
+const { z } = require("zod");
 
 const sourcePath = new URL("../脚本/变量结构.js", import.meta.url);
 const handlers = new Map();
@@ -129,6 +131,8 @@ assert.deepEqual(parsed.data.固定资产.百草阁.所在地, {
   具体地点: "临江坊市",
 });
 assert.deepEqual(parsed.data.固定资产.百草阁.设施.丹房, {
+  境界: "未定",
+  品质: "凡",
   效果: { 炼制效率: "+10%", 丹药品质: "+1" },
   每月产出: "聚气丹:10",
   上次收取日期: { 年: 7020, 月: 1, 日: 1, 时辰: "午时" },

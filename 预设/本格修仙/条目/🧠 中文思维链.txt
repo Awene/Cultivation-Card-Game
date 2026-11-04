@@ -16,6 +16,10 @@ const rules = [
     "生产制作=明确炼丹/炼器/制符/阵盘刻录/制傀儡等"
   ],
   [
+    "[宗门建设规则]",
+    "宗门建设=玩家为宗主且本轮建设/改造/拆除本宗设施；沿用资产字段记录实际成果"
+  ],
+  [
     "[修为获取规则]",
     "修为获取=明确修炼/服丹/双修/夺灵"
   ],
@@ -48,7 +52,7 @@ const rules = [
     "轮回转生=<user>死亡且无保命手段，或冥族主动投入轮回井"
   ]
 ];
-const visibleRules = rules.filter(([id]) => !hidden.includes(id) && (!advance || id === '[时间推进规则]'));
+const visibleRules = rules.filter(([id]) => !hidden.includes(id) && (id !== '[宗门建设规则]' || active.includes(id)) && (!advance || id === '[时间推进规则]'));
 const ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\n');
 _%>
 <recorder_audit_format>

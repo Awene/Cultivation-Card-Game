@@ -1,3 +1,23 @@
+// BEGIN CULTIVATION_TASKS (源: 前端 util/cultivation-tasks.js)
+/** 将旧任务字典迁移为管理字段 + 条目；不修改输入，也不重发奖励。 @param {any} input @returns {any} */
+function normalizeTasks(input) {
+  const record = value => value && typeof value === 'object' && !Array.isArray(value);
+  const source = record(input) ? input : {};
+  const entries = Object.fromEntries(Object.entries(source).filter(([key, value]) =>
+    !['聚焦任务', '已完成任务', '条目'].includes(key) && record(value)));
+  if (record(source.条目)) Object.assign(entries, source.条目);
+  const completed = Array.isArray(source.已完成任务)
+    ? [...new Set(source.已完成任务.filter(name => typeof name === 'string').map(name => name.trim()).filter(Boolean))]
+    : [];
+  const focused = typeof source.聚焦任务 === 'string' ? source.聚焦任务.trim() : '';
+  return {
+    聚焦任务: focused && Object.hasOwn(entries, focused) ? focused : null,
+    已完成任务: completed,
+    条目: entries,
+  };
+}
+// END CULTIVATION_TASKS
+
 /**
  * 【本格修仙】MVU核验
  * 每轮 MVU 更新结束后核验：
@@ -339,14 +359,23 @@ function normalizeCalendarState(input) {
     result.传闻 = { ...input.传闻 };
     if (input.传闻.上次世界推进时间点 != null) result.传闻.上次世界推进时间点 = normalizeOptional(input.传闻.上次世界推进时间点);
   }
-  if (input.任务) result.任务 = mapRecords(input.任务, raw => {
-    const task = { ...raw };
-    if (task.截止时间 != null) task.截止时间 = normalizeOptional(task.截止时间);
-    return task;
-  });
+  if (input.任务) {
+    const convertTask = raw => {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
+      const task = { ...raw };
+      if (task.截止时间 != null) task.截止时间 = normalizeOptional(task.截止时间);
+      return task;
+    };
+    result.任务 = Object.fromEntries(Object.entries(input.任务).map(([key, value]) => [key,
+      key === '条目' ? mapRecords(value || {}, convertTask)
+        : ['聚焦任务', '已完成任务'].includes(key) ? value : convertTask(value),
+    ]));
+  }
   if (input.固定资产) result.固定资产 = mapRecords(input.固定资产, raw => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
     const asset = { ...raw };
     if (asset.设施) asset.设施 = mapRecords(asset.设施, rawFacility => {
+      if (!rawFacility || typeof rawFacility !== 'object' || Array.isArray(rawFacility)) return rawFacility;
       const facility = { ...rawFacility };
       if (facility.上次收取日期 != null) facility.上次收取日期 = normalizeOptional(facility.上次收取日期);
       return facility;
@@ -388,8 +417,9 @@ function normalizeCalendarState(input) {
       sd.传闻.上次世界推进时间点 = { 年: Number(worldTime.年), 月: Number(worldTime.月), 日: Number(worldTime.日), 时辰: worldTime.时辰 };
       changed = true;
     }
-    if (!sd.任务 || typeof sd.任务 !== "object" || Array.isArray(sd.任务)) {
-      sd.任务 = {};
+    const tasks = normalizeTasks(sd.任务);
+    if (!_.isEqual(tasks, sd.任务)) {
+      sd.任务 = tasks;
       changed = true;
     }
     if (!sd.修炼进度 || typeof sd.修炼进度 !== "object") sd.修炼进度 = {};

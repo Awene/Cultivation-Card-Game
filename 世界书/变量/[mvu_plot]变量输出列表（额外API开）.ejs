@@ -4,6 +4,27 @@
 <%_ {
   const data = getMessageVar('stat_data', { defaults: {} });
   const cleanData = _.omit(_.cloneDeep(data), ['性器', '__custom_start__']);
+  // 提示词读取时兼容尚未迁移的旧存档，仅转换副本。
+  // BEGIN CULTIVATION_TASKS (源: 前端 util/cultivation-tasks.js)
+  /** 将旧任务字典迁移为管理字段 + 条目；不修改输入，也不重发奖励。 @param {any} input @returns {any} */
+  function normalizeTasks(input) {
+    const record = value => value && typeof value === 'object' && !Array.isArray(value);
+    const source = record(input) ? input : {};
+    const entries = Object.fromEntries(Object.entries(source).filter(([key, value]) =>
+      !['聚焦任务', '已完成任务', '条目'].includes(key) && record(value)));
+    if (record(source.条目)) Object.assign(entries, source.条目);
+    const completed = Array.isArray(source.已完成任务)
+      ? [...new Set(source.已完成任务.filter(name => typeof name === 'string').map(name => name.trim()).filter(Boolean))]
+      : [];
+    const focused = typeof source.聚焦任务 === 'string' ? source.聚焦任务.trim() : '';
+    return {
+      聚焦任务: focused && Object.hasOwn(entries, focused) ? focused : null,
+      已完成任务: completed,
+      条目: entries,
+    };
+  }
+  // END CULTIVATION_TASKS
+  cleanData.任务 = normalizeTasks(cleanData.任务);
   let active = []; try { active = JSON.parse(getvar('路由激活规则') || '[]'); } catch (_) {}
   const worldAdvance = Array.isArray(active) && active.includes('[时间推进规则]');
   // 生日与上次突破时间点只供本地 MVU 核验，不进入任何 AI 提示词。

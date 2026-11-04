@@ -4776,6 +4776,21 @@
       不可激活其他条目: true
     文件: 世界书\[生产制作规则]
 
+  - 名称: "[宗门建设规则]"
+    启用: true
+    激活策略:
+      类型: 蓝灯
+    插入位置:
+      类型: 指定深度
+      角色: 系统
+      深度: 2
+      顺序: 14
+    激活概率: 100
+    递归:
+      不可被其他条目激活: false
+      不可激活其他条目: true
+    文件: 世界书\[宗门建设规则]
+
   - 名称: "[compliance]"
     启用: true
     激活策略:
@@ -5174,8 +5189,7 @@
         id: 62138e20-9dc1-4c02-8caa-ac466e6ca3ba
         启用: true
         类型: 脚本
-        内容: import
-          'https://testingcf.jsdelivr.net/gh/MagicalAstrogy/MagVarUpdate/artifact/bundle.js';
+        文件: 脚本/MVU
         导出时携带:
           数据: true
           按钮: true

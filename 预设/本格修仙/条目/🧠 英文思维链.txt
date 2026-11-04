@@ -16,6 +16,10 @@ const rules = [
     "Production: explicit pill refining, artifact forging, talisman crafting, array-disc engraving, puppet crafting, etc."
   ],
   [
+    "[宗门建设规则]",
+    "Sect construction: the player leads the sect and builds, modifies, or removes its facilities this turn; record actual results in existing asset fields."
+  ],
+  [
     "[修为获取规则]",
     "Cultivation gain: explicit cultivation, pill consumption, dual cultivation, or spiritual-energy absorption."
   ],
@@ -48,7 +52,7 @@ const rules = [
     "Reincarnation: <user> dies without an effective life-saving measure, or a member of 冥族 voluntarily enters 轮回井."
   ]
 ];
-const visibleRules = rules.filter(([id]) => !hidden.includes(id) && (!advance || id === '[时间推进规则]'));
+const visibleRules = rules.filter(([id]) => !hidden.includes(id) && (id !== '[宗门建设规则]' || active.includes(id)) && (!advance || id === '[时间推进规则]'));
 const ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\n');
 _%>
 <recorder_audit_format>

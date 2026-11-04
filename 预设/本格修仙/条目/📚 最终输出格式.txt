@@ -9,4 +9,3 @@ ${叙事与按规则插入的面板}
 </now_plot>
 {{getvar::变量1}}
 </output_template>
-<|本格_正文结束|>

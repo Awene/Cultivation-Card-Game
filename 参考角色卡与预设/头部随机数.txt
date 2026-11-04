@@ -1,0 +1,9 @@
+打开你的预设管理（Prompt Manager），在头部新增一个条目（Role 选 system，位置放在最顶层）。
+在内容里填入动态生成的“垃圾/伪装标记”。例如：
+<!-- [NOISE_BUFFER_NONCE: {{roll 100000 999999}}-{{roll 100000 999999}}] -->
+<!-- [SYSTEM_JUNK_TRACE: {{pick::x89aF0::b712c9::990d1e::4a8b7f::c31d0a}}-{{pick::Alpha::Beta::Gamma::Delta}}::{{roll 100 999}}] -->
+<!-- [DYNAMIC_FILLER: {{pick::MEM_POOL_OK::CACHE_ALLOC_PASS::SYS_HEALTH_99::ROUTER_ACK_TRUE::TRACE_PASS}}] -->
+原理：
+{{roll 100000 999999}} 每次都会动态滚出一个 6 位随机数字。
+{{pick::A::B::C}} 每次会随机挑选一个预设的垃圾字符串。
+这些带有 HTML 注释 <!-- ... --> 的随机信息每次都完全不同，会彻底破坏平台对请求头部固定哈希（Hash）的抓取，且模型生成时默认会忽略 HTML 注释，不会影响角色扮演的正文输出。

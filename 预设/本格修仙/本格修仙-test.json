@@ -37,19 +37,32 @@
     },
     {
       "identifier": "1",
-      "name": "📚 宏与变量",
-      "enabled": true,
+      "name": "⚙️ 头部输入噪声（Prime方式）",
+      "enabled": false,
       "injection_position": 0,
       "injection_depth": 4,
       "injection_order": 100,
       "role": "system",
-      "content": "{{//架构参考：命定·黄昏 Prime-1.11。配置使用酒馆原生条目；消息分区脚本仅处理本预设正文请求。}}\n{{setvar::用户设定::}}{{setvar::抢话::}}{{setvar::抢话1::}}{{setvar::转述::}}{{setvar::转述1::}}{{setvar::对话::}}{{setvar::人称::}}{{setvar::视角::}}{{setvar::转折::}}{{setvar::结尾::}}{{setvar::推进规划::}}{{setvar::防全知::}}{{setvar::表达约束::}}{{setvar::表达称呼::}}{{setvar::表达计数::}}{{setvar::文学::}}{{setvar::书籍参考::}}{{setvar::回顾::}}{{setvar::自查::}}{{setvar::变量模式::}}{{setvar::变量f::}}{{setvar::变量c::}}{{setvar::变量1::}}{{setvar::摘要::}}{{setvar::选项::}}{{setvar::ai模型::}}\n{{setvar::SFW描写::}}{{setvar::NSFW词汇::}}\n",
+      "content": "{{bengexiuxian_prompt_noise}}",
       "system_prompt": false,
       "marker": false,
       "forbid_overrides": false
     },
     {
       "identifier": "2",
+      "name": "📚 宏与变量",
+      "enabled": true,
+      "injection_position": 0,
+      "injection_depth": 4,
+      "injection_order": 100,
+      "role": "system",
+      "content": "{{//架构源于 Prime-1.11，已对照 Prime-1.18 更新。配置使用酒馆原生条目；消息分区仅处理本预设正文请求。}}\n{{setvar::用户设定::}}{{setvar::抢话::}}{{setvar::抢话1::}}{{setvar::转述::}}{{setvar::转述1::}}{{setvar::对话::}}{{setvar::人称::}}{{setvar::视角::}}{{setvar::转折::}}{{setvar::结尾::}}{{setvar::推进规划::}}{{setvar::防全知::}}{{setvar::表达约束::}}{{setvar::表达称呼::}}{{setvar::表达计数::}}{{setvar::文学::}}{{setvar::书籍参考::}}{{setvar::回顾::}}{{setvar::自查::}}{{setvar::变量模式::}}{{setvar::变量f::}}{{setvar::变量c::}}{{setvar::变量1::}}{{setvar::摘要::}}{{setvar::选项::}}{{setvar::ai模型::}}\n{{setvar::SFW描写::}}{{setvar::NSFW词汇::}}\n",
+      "system_prompt": false,
+      "marker": false,
+      "forbid_overrides": false
+    },
+    {
+      "identifier": "3",
       "name": "⚙️ 用户附加设定",
       "enabled": true,
       "injection_position": 0,
@@ -62,7 +75,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "3",
+      "identifier": "4",
       "name": "⚙️ 允许抢话",
       "enabled": false,
       "injection_position": 0,
@@ -75,7 +88,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "4",
+      "identifier": "5",
       "name": "⚙️ 禁止抢话",
       "enabled": true,
       "injection_position": 0,
@@ -88,7 +101,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "5",
+      "identifier": "6",
       "name": "🧩 融入转述",
       "enabled": true,
       "injection_position": 0,
@@ -101,7 +114,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "6",
+      "identifier": "7",
       "name": "🧩 禁止转述",
       "enabled": false,
       "injection_position": 0,
@@ -114,7 +127,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "7",
+      "identifier": "8",
       "name": "⚙️ 对话量",
       "enabled": true,
       "injection_position": 0,
@@ -127,7 +140,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "8",
+      "identifier": "9",
       "name": "🔌 Gemini头部",
       "enabled": true,
       "injection_position": 0,
@@ -140,7 +153,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "9",
+      "identifier": "10",
       "name": "🔌 Claude头部",
       "enabled": false,
       "injection_position": 0,
@@ -153,7 +166,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "10",
+      "identifier": "11",
       "name": "🔌 Glm头部",
       "enabled": false,
       "injection_position": 0,
@@ -166,7 +179,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "11",
+      "identifier": "12",
       "name": "🔌 DeepSeek头部",
       "enabled": false,
       "injection_position": 0,
@@ -179,7 +192,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "12",
+      "identifier": "13",
       "name": "📚 输出协议",
       "enabled": true,
       "injection_position": 0,
@@ -204,7 +217,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "13",
+      "identifier": "14",
       "name": "📚 用户开始",
       "enabled": true,
       "injection_position": 0,
@@ -229,7 +242,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "14",
+      "identifier": "15",
       "name": "📚 用户结束",
       "enabled": true,
       "injection_position": 0,
@@ -299,7 +312,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "15",
+      "identifier": "16",
       "name": "📚 世界结束·参考与记忆",
       "enabled": true,
       "injection_position": 0,
@@ -321,7 +334,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "16",
+      "identifier": "17",
       "name": "📚 深度二",
       "enabled": true,
       "injection_position": 1,
@@ -334,7 +347,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "17",
+      "identifier": "18",
       "name": "📚 深度九百",
       "enabled": true,
       "injection_position": 1,
@@ -347,20 +360,20 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "18",
+      "identifier": "19",
       "name": "📚 历史结束·文风开始",
       "enabled": true,
       "injection_position": 0,
       "injection_depth": 4,
       "injection_order": 100,
       "role": "system",
-      "content": "<|本格_历史结束|>\n</historical_record>\n<writing_guidance>\n- 使用自然流畅的中文，保留修仙世界的称谓、文化、功法与物品名。\n- 人物对白符合身份、关切与习惯，回应前文，通过追问、补说、停顿与分歧形成来回。\n- 叙述以具体行动、感官和后果推进，详略服从当前事件；避免重复解释与段末升华。",
+      "content": "<|本格_历史结束|>\n</historical_record>\n<writing_guidance>\n- 使用自然流畅的中文，保留修仙世界的称谓、文化、功法与物品名。\n- 人物对白符合身份、关切与习惯，回应前文，通过追问、补说、停顿与分歧形成来回。\n- 独处、赶路或专注做事时可无对白，不为凑对白安排人物出现或搭话。\n- 叙述以具体行动、感官和后果推进，详略服从当前事件；避免重复解释与段末升华。\n- 外貌、服饰、口癖与标志动作只在首次相关或发生变化时点明；近期已写的描写、比喻和动作不重复。",
       "system_prompt": false,
       "marker": false,
       "forbid_overrides": false
     },
     {
-      "identifier": "19",
+      "identifier": "20",
       "name": "🎭 简笔叙事",
       "enabled": false,
       "injection_position": 0,
@@ -373,7 +386,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "20",
+      "identifier": "21",
       "name": "🎭 细节叙事",
       "enabled": false,
       "injection_position": 0,
@@ -386,7 +399,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "21",
+      "identifier": "22",
       "name": "🎭 舒展叙事",
       "enabled": true,
       "injection_position": 0,
@@ -399,7 +412,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "22",
+      "identifier": "23",
       "name": "🎭 进阶基调·轻松",
       "enabled": false,
       "injection_position": 0,
@@ -412,7 +425,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "23",
+      "identifier": "24",
       "name": "✒️ 仙侠",
       "enabled": true,
       "injection_position": 0,
@@ -425,7 +438,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "24",
+      "identifier": "25",
       "name": "🔥 NSFW模式·男性向(二选一)",
       "enabled": true,
       "injection_position": 0,
@@ -438,7 +451,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "25",
+      "identifier": "26",
       "name": "🔥 NSFW模式·女性向(二选一)",
       "enabled": false,
       "injection_position": 0,
@@ -451,7 +464,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "26",
+      "identifier": "27",
       "name": "🔥 NSFW模式·防发情",
       "enabled": true,
       "injection_position": 0,
@@ -464,7 +477,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "27",
+      "identifier": "28",
       "name": "🔧 NSFW可选·SFW描写",
       "enabled": true,
       "injection_position": 0,
@@ -477,7 +490,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "28",
+      "identifier": "29",
       "name": "🔧 NSFW可选·词汇",
       "enabled": true,
       "injection_position": 0,
@@ -490,7 +503,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "29",
+      "identifier": "30",
       "name": "🔧 精简人称代词",
       "enabled": false,
       "injection_position": 0,
@@ -503,7 +516,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "30",
+      "identifier": "31",
       "name": "🔧 减少无谓精确数字",
       "enabled": true,
       "injection_position": 0,
@@ -516,7 +529,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "31",
+      "identifier": "32",
       "name": "🧩 表达约束",
       "enabled": true,
       "injection_position": 0,
@@ -529,7 +542,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "32",
+      "identifier": "33",
       "name": "📚 文风结束·运行规则",
       "enabled": true,
       "injection_position": 0,
@@ -542,7 +555,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "33",
+      "identifier": "34",
       "name": "🎚️真实难度(三选一)",
       "enabled": true,
       "injection_position": 0,
@@ -555,7 +568,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "34",
+      "identifier": "35",
       "name": "🎚️简单难度(三选一)",
       "enabled": false,
       "injection_position": 0,
@@ -568,7 +581,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "35",
+      "identifier": "36",
       "name": "🎚️平然难度(三选一)",
       "enabled": false,
       "injection_position": 0,
@@ -581,7 +594,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "36",
+      "identifier": "37",
       "name": "🧭 大纲展开",
       "enabled": false,
       "injection_position": 0,
@@ -594,7 +607,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "37",
+      "identifier": "38",
       "name": "🧩 限制全知视角",
       "enabled": true,
       "injection_position": 0,
@@ -607,7 +620,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "38",
+      "identifier": "39",
       "name": "🧩 前情回顾",
       "enabled": false,
       "injection_position": 0,
@@ -620,7 +633,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "39",
+      "identifier": "40",
       "name": "🧩 自查修正",
       "enabled": true,
       "injection_position": 0,
@@ -633,7 +646,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "40",
+      "identifier": "41",
       "name": "🧩 文笔强化",
       "enabled": false,
       "injection_position": 0,
@@ -646,7 +659,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "41",
+      "identifier": "42",
       "name": "🧩 书籍参考",
       "enabled": false,
       "injection_position": 0,
@@ -659,7 +672,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "42",
+      "identifier": "43",
       "name": "⚙️ 叙事人称",
       "enabled": true,
       "injection_position": 0,
@@ -672,7 +685,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "43",
+      "identifier": "44",
       "name": "⚙️ 多视角",
       "enabled": true,
       "injection_position": 0,
@@ -685,7 +698,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "44",
+      "identifier": "45",
       "name": "⚙️ 防转折",
       "enabled": false,
       "injection_position": 0,
@@ -698,7 +711,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "45",
+      "identifier": "46",
       "name": "⚙️ 事实结尾",
       "enabled": false,
       "injection_position": 0,
@@ -711,7 +724,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "46",
+      "identifier": "47",
       "name": "⚙️ 配角结尾",
       "enabled": true,
       "injection_position": 0,
@@ -724,7 +737,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "47",
+      "identifier": "48",
       "name": "📤 时间地点天气",
       "enabled": true,
       "injection_position": 0,
@@ -737,7 +750,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "48",
+      "identifier": "49",
       "name": "📚 文本协议",
       "enabled": true,
       "injection_position": 0,
@@ -750,20 +763,20 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "49",
+      "identifier": "50",
       "name": "📚 正文协议",
       "enabled": true,
       "injection_position": 0,
       "injection_depth": 4,
       "injection_order": 100,
       "role": "system",
-      "content": "<gametxt_module_protocols>\nREAD=本轮激活规则 + 当前变量 + 玩家输入 + 历史事实\nTRIGGER=实际满足条件的规则；仅提及或设想不算触发。\nORDER=按情节先后执行；专用流程未完时保留阶段，不混算多个流程。\nPANELS=依本卡世界书的<action_info>/<char_info>/<item_info>/<task_info>/<time_info>等原格式生成。\nLOCAL_CHECK=规则要求的局部检查紧邻对应面板；参数与分支写在检查处，完整代入计算写入面板。\nDICE=需d20时从本轮<骰子池>起始顺序消费；先定行动，再取骰；具体结算依规则。\nPOSITION=面板位于相关叙事处，面板之间用叙事衔接。\nECONOMY=查<economic_system>；新实体与任务按本卡生成规则。\nWORLD_ADVANCE=依[时间推进规则]处理上次推进至当前时间的世界变化；逐人<time_info>与经历相邻，最后回到当前玩家。\n</gametxt_module_protocols>",
+      "content": "<gametxt_module_protocols>\nREAD=本轮激活规则 + 当前变量 + 玩家输入 + 历史事实\nTRIGGER=实际满足条件的规则；仅提及或设想不算触发。\nORDER=按情节先后执行；专用流程未完时保留阶段，不混算多个流程。\nLAPSED=后续行动因前步结算失去前提时，不再执行；叙事承接实际结果。\nPANELS=依本卡世界书的<action_info>/<char_info>/<item_info>/<task_info>/<time_info>等原格式生成。\nLOCAL_CHECK=规则要求的局部检查紧邻对应面板；参数与分支写在检查处，完整代入计算写入面板。\nDICE=需d20时从本轮<骰子池>起始顺序消费；先定行动，再取骰；具体结算依规则。\nPOSITION=面板位于相关叙事处，面板之间用叙事衔接。\nECONOMY=查<economic_system>；新实体与任务按本卡生成规则。\nWORLD_ADVANCE=依[时间推进规则]处理上次推进至当前时间的世界变化；逐人<time_info>与经历相邻，最后回到当前玩家。\n</gametxt_module_protocols>",
       "system_prompt": false,
       "marker": false,
       "forbid_overrides": false
     },
     {
-      "identifier": "50",
+      "identifier": "51",
       "name": "🧭变量主API(二选一)",
       "enabled": false,
       "injection_position": 0,
@@ -776,7 +789,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "51",
+      "identifier": "52",
       "name": "🧭变量额外API(二选一)",
       "enabled": true,
       "injection_position": 0,
@@ -789,7 +802,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "52",
+      "identifier": "53",
       "name": "📋 回复摘要",
       "enabled": true,
       "injection_position": 0,
@@ -802,7 +815,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "53",
+      "identifier": "54",
       "name": "🎯 行动选项",
       "enabled": true,
       "injection_position": 0,
@@ -815,46 +828,72 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "54",
+      "identifier": "55",
       "name": "🧠 中文思维链",
       "enabled": true,
       "injection_position": 0,
       "injection_depth": 4,
       "injection_order": 100,
       "role": "system",
-      "content": "<%_ if (getvar('ai模型') !== 'Claude') {\nconst readList = key => { try { const v = JSON.parse(getvar(key) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } };\nconst active = readList('路由激活规则'), hidden = readList('路由隐藏规则');\nconst advance = active.includes('[时间推进规则]');\nconst rules = [\n  [\n    \"[非战斗判定规则]\",\n    \"非战斗判定=克服不确定性阻碍；角色L≥挑战L+2时略过面板\"\n  ],\n  [\n    \"[战斗规则]\",\n    \"战斗=双方明确交战或强行破阵；单方面碾压不触发\"\n  ],\n  [\n    \"[生产制作规则]\",\n    \"生产制作=明确炼丹/炼器/制符/阵盘刻录/制傀儡等\"\n  ],\n  [\n    \"[修为获取规则]\",\n    \"修为获取=明确修炼/服丹/双修/夺灵\"\n  ],\n  [\n    \"[突破规则]\",\n    \"突破=<user>宣告突破且当前修为达到阈值\"\n  ],\n  [\n    \"[领悟规则]\",\n    \"领悟=研读秘籍/参悟阵图/观摩石碑/接受传功\"\n  ],\n  [\n    \"[角色生成规则]\",\n    \"角色生成=重要NPC或无主战斗单位首次登场\"\n  ],\n  [\n    \"[物品功法生成规则]\",\n    \"物品展示=交易/战利品/生产完成/发现素材/领悟生成功法等\"\n  ],\n  [\n    \"[任务发布规则]\",\n    \"任务发布=明确委托/查看任务榜/任务状态实质变化\"\n  ],\n  [\n    \"[时间推进规则]\",\n    \"仅玩家明确要求时回顾上次推进至当前的世界演进；全体人物逐人面板与叙事，最后回到当前玩家，不额外推进时间\"\n  ],\n  [\n    \"[轮回转生规则]\",\n    \"轮回转生=<user>死亡且无保命手段，或冥族主动投入轮回井\"\n  ]\n];\nconst visibleRules = rules.filter(([id]) => !hidden.includes(id) && (!advance || id === '[时间推进规则]'));\nconst ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\\n');\n_%>\n<recorder_audit_format>\nOUTPUT=<thinking>逐项简要结论</thinking>; LANGUAGE=中文\n记录结论、依据与待处理事项；计算、局部检查和面板留到正文对应位置。\n<% if (advance) { %>\nMODE=WORLD_ADVANCE; STEPS=1→5\n1. 场景人物: INTERVAL=上次推进→当前; ACTORS=关系列表全体NPC(除傀儡/灵兽); MAP=地点/处境/目标/认知。\n2. 规则面板: APPLY=[时间推进规则]; EACH=人物→time_info→经历; SETTLE=尚未处理的变化; PLAYER_TIME=区间终点; 记录本次推进终点。\n3. 状态处理: <%- getvar('变量f') %>\n  RUMORS=保留有效/清理过期/补充其它地区势力人物事件；尽量独立于当前故事，提供后续线索。\n4. 群像编排: GROUP=地点与事件; COVER=每人面板+叙事; END=当前玩家现场，不代其行动。\n5. 输出核验: CHECK=全员/区间/传闻依据/面板事实/两项文风锚点/输出顺序。\n<% } else { %>\nMODE=STORY; STEPS=1→7\n1. 输入裁决: READ=Participant_input; SPLIT=言行尝试/期望结果; APPLY=logic_check; ENTRY=最早待处理事项; DELIVERY={{getvar::转述1}}。\n2. 场景人物: MAP=时间/地点/人物/位置/目标/认知/关系; REACTION=性格与事实相称。\n3. 规则触发: SELECT=实际激活规则→面板与位置; FLOW=按先后执行; DICE=按序留给局部结算; NEW_NPC=尽量一名重要人物。\n4. 状态处理: <%- getvar('变量f') %>\n5. 前文衔接: READ=world_summary/summary; KEEP=结尾状态/未完事项/承诺/任务/关系。\n6. 剧情规划: PLAN=2~4节点(内容+预计字数); TOTAL=正文目标; <% if (getvar('推进规划')) { %>PACE=<%- getvar('推进规划') %>; <% } %>INSPIRATION=按需参考，不改因果。\n7. 输出核验: STYLE=两项锚点; CHECK=启用模块/顺序/标签闭合/面板叙事变量一致。\n<% } %>\nKNOWLEDGE={{getvar::防全知}}\n{{getvar::回顾}}{{getvar::自查}}\nRULE_INDEX:\n<%- ruleText %>\n</recorder_audit_format>\n<%_ } _%>\n",
-      "system_prompt": false,
-      "marker": false,
-      "forbid_overrides": false
-    },
-    {
-      "identifier": "55",
-      "name": "🧠 英文思维链",
-      "enabled": true,
-      "injection_position": 0,
-      "injection_depth": 4,
-      "injection_order": 100,
-      "role": "system",
-      "content": "<%_ if (getvar('ai模型') === 'Claude') {\nconst readList = key => { try { const v = JSON.parse(getvar(key) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } };\nconst active = readList('路由激活规则'), hidden = readList('路由隐藏规则');\nconst advance = active.includes('[时间推进规则]');\nconst rules = [\n  [\n    \"[非战斗判定规则]\",\n    \"Non-combat checks: overcoming an uncertain obstacle; skip the panel when character L >= challenge L + 2.\"\n  ],\n  [\n    \"[战斗规则]\",\n    \"Combat: both sides explicitly engage or an array is forcibly breached; one-sided crushing does not trigger it.\"\n  ],\n  [\n    \"[生产制作规则]\",\n    \"Production: explicit pill refining, artifact forging, talisman crafting, array-disc engraving, puppet crafting, etc.\"\n  ],\n  [\n    \"[修为获取规则]\",\n    \"Cultivation gain: explicit cultivation, pill consumption, dual cultivation, or spiritual-energy absorption.\"\n  ],\n  [\n    \"[突破规则]\",\n    \"Breakthrough: <user> declares a breakthrough and current cultivation meets the threshold.\"\n  ],\n  [\n    \"[领悟规则]\",\n    \"Comprehension: studying manuals or array diagrams, observing inscriptions, or receiving instruction.\"\n  ],\n  [\n    \"[角色生成规则]\",\n    \"Character generation: the first appearance of an important NPC or an ownerless combat unit.\"\n  ],\n  [\n    \"[物品功法生成规则]\",\n    \"Item display: trade, loot, completed production, discovered materials, newly comprehended cultivation arts, etc.\"\n  ],\n  [\n    \"[任务发布规则]\",\n    \"Task issuance: an explicit commission, viewing a task board, or a substantive change in task status.\"\n  ],\n  [\n    \"[时间推进规则]\",\n    \"World evolution: only on an explicit player request; cover the interval from the previous advancement to the current time, give every person a panel and narrative, then return to the current player without advancing time again.\"\n  ],\n  [\n    \"[轮回转生规则]\",\n    \"Reincarnation: <user> dies without an effective life-saving measure, or a member of 冥族 voluntarily enters 轮回井.\"\n  ]\n];\nconst visibleRules = rules.filter(([id]) => !hidden.includes(id) && (!advance || id === '[时间推进规则]'));\nconst ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\\n');\n_%>\n<recorder_audit_format>\nOUTPUT=<thinking>brief conclusions by item</thinking>; LANGUAGE=English\nRecord conclusions, sources and pending items. Keep calculations, local checks and panels at their narrative positions. Preserve names and protocol tags.\n<% if (advance) { %>\nMODE=WORLD_ADVANCE; STEPS=1→5\n1. Scene and cast: INTERVAL=previous advancement→current time; ACTORS=all relationship NPCs except puppets/spirit beasts; MAP=location/situation/goals/knowledge.\n2. Rules and panels: APPLY=[时间推进规则]; EACH=person→time_info→experience; SETTLE=unprocessed changes only; PLAYER_TIME=interval endpoint; record this advancement endpoint.\n3. State: <%- getvar('变量c') %>\n  RUMORS=retain valid/remove outdated/add other regions' or factions' events; mostly independent of this story, offering future leads.\n4. Ensemble: GROUP=location/event; COVER=panel+narrative for each person; END=current player scene without acting for them.\n5. Output check: CHECK=roster/interval/rumor sources/panel facts/two style anchors/module order.\n<% } else { %>\nMODE=STORY; STEPS=1→7\n1. Input: READ=Participant_input; SPLIT=attempts/desired results; APPLY=logic_check; ENTRY=earliest pending action.\n2. Scene and cast: MAP=time/location/people/positions/goals/knowledge/relationships; REACTION=personality and facts.\n3. Triggers: SELECT=active rules→panels and positions; FLOW=sequential; DICE=consume in order at local resolution; NEW_NPC=prefer one important introduction.\n4. State: <%- getvar('变量c') %>\n5. Continuity: READ=world_summary/summary; KEEP=ending state/pending matters/promises/tasks/relationships.\n6. Plot: PLAN=2~4 beats(content+Chinese-character budget); TOTAL=required length; <% if (getvar('推进规划')) { %>PACE=<%- String(getvar('推进规划')).split(';')[0] %>; <% } %>INSPIRATION=optional, preserve causality.\n7. Output check: STYLE=two anchors; CHECK=enabled modules/order/closed tags/panel-narrative-state consistency.\n<% } %>\nKNOWLEDGE=use only each character's established sources; private scenes do not inform absent characters.\nCONSISTENCY=correct contradictions with active rules, history and state.\nRULE_INDEX:\n<%- ruleText %>\n</recorder_audit_format>\n<%_ } _%>\n",
+      "content": "<%_ if (getvar('ai模型') !== 'Claude') {\nconst readList = key => { try { const v = JSON.parse(getvar(key) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } };\nconst active = readList('路由激活规则'), hidden = readList('路由隐藏规则');\nconst advance = active.includes('[时间推进规则]');\nconst rules = [\n  [\n    \"[非战斗判定规则]\",\n    \"非战斗判定=克服不确定性阻碍；角色L≥挑战L+2时略过面板\"\n  ],\n  [\n    \"[战斗规则]\",\n    \"战斗=双方明确交战或强行破阵；单方面碾压不触发\"\n  ],\n  [\n    \"[生产制作规则]\",\n    \"生产制作=明确炼丹/炼器/制符/阵盘刻录/制傀儡等\"\n  ],\n  [\n    \"[宗门建设规则]\",\n    \"宗门建设=玩家为宗主且本轮建设/改造/拆除本宗设施；沿用资产字段记录实际成果\"\n  ],\n  [\n    \"[修为获取规则]\",\n    \"修为获取=明确修炼/服丹/双修/夺灵\"\n  ],\n  [\n    \"[突破规则]\",\n    \"突破=<user>宣告突破且当前修为达到阈值\"\n  ],\n  [\n    \"[领悟规则]\",\n    \"领悟=研读秘籍/参悟阵图/观摩石碑/接受传功\"\n  ],\n  [\n    \"[角色生成规则]\",\n    \"角色生成=重要NPC或无主战斗单位首次登场\"\n  ],\n  [\n    \"[物品功法生成规则]\",\n    \"物品展示=交易/战利品/生产完成/发现素材/领悟生成功法等\"\n  ],\n  [\n    \"[任务发布规则]\",\n    \"任务发布=明确委托/查看任务榜/任务状态实质变化\"\n  ],\n  [\n    \"[时间推进规则]\",\n    \"仅玩家明确要求时回顾上次推进至当前的世界演进；全体人物逐人面板与叙事，最后回到当前玩家，不额外推进时间\"\n  ],\n  [\n    \"[轮回转生规则]\",\n    \"轮回转生=<user>死亡且无保命手段，或冥族主动投入轮回井\"\n  ]\n];\nconst visibleRules = rules.filter(([id]) => !hidden.includes(id) && (id !== '[宗门建设规则]' || active.includes(id)) && (!advance || id === '[时间推进规则]'));\nconst ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\\n');\n_%>\n<recorder_audit_format>\nOUTPUT=<thinking>逐项简要结论</thinking>; LANGUAGE=中文\n记录结论、依据与待处理事项；计算、局部检查和面板留到正文对应位置。\n<% if (advance) { %>\nMODE=WORLD_ADVANCE; STEPS=1→5\n1. 场景人物: INTERVAL=上次推进→当前; ACTORS=关系列表全体NPC(除傀儡/灵兽); MAP=地点/处境/目标/认知。\n2. 规则面板: APPLY=[时间推进规则]; EACH=人物→time_info→经历; SETTLE=尚未处理的变化; PLAYER_TIME=区间终点; 记录本次推进终点。\n3. 状态处理: <%- getvar('变量f') %>\n  RUMORS=保留有效/清理过期/补充其它地区势力人物事件；尽量独立于当前故事，提供后续线索。\n4. 群像编排: GROUP=地点与事件; COVER=每人面板+叙事; END=当前玩家现场，不代其行动。\n5. 输出核验: CHECK=全员/区间/传闻依据/面板事实/两项文风锚点/输出顺序。\n<% } else { %>\nMODE=STORY; STEPS=1→7\n1. 输入裁决: READ=Participant_input; SPLIT=言行尝试/期望结果; APPLY=logic_check; ENTRY=最早待处理事项; DELIVERY={{getvar::转述1}}。\n2. 场景人物: MAP=时间/地点/人物/位置/目标/认知/关系; REACTION=性格与事实相称。\n3. 规则触发: SELECT=实际激活规则→面板与位置; FLOW=按先后执行; DICE=按序留给局部结算; NEW_NPC=尽量一名重要人物。\n4. 状态处理: <%- getvar('变量f') %>\n5. 前文衔接: READ=world_summary/summary; KEEP=结尾状态/未完事项/承诺/任务/关系。\n6. 剧情规划: PLAN=2~4节点(内容+预计字数); TOTAL=正文目标; <% if (getvar('推进规划')) { %>PACE=<%- getvar('推进规划') %>; <% } %>INSPIRATION=按需参考，不改因果。\n7. 输出核验: STYLE=两项锚点; CHECK=启用模块/顺序/标签闭合/面板叙事变量一致。\n<% } %>\nKNOWLEDGE={{getvar::防全知}}\n{{getvar::回顾}}{{getvar::自查}}\nRULE_INDEX:\n<%- ruleText %>\n</recorder_audit_format>\n<%_ } _%>\n",
       "system_prompt": false,
       "marker": false,
       "forbid_overrides": false
     },
     {
       "identifier": "56",
-      "name": "📚 最终输出格式",
+      "name": "🧠 英文思维链",
       "enabled": true,
       "injection_position": 0,
       "injection_depth": 4,
       "injection_order": 100,
       "role": "system",
-      "content": "<output_template>\n<thinking>${按recorder_audit_format逐项填写简要结论}</thinking>\n<now_plot>\n<gametxt>\n<tp>${当前修仙历时间 @ 世界-地域-地点 | 天气}</tp>\n${叙事与按规则插入的面板}\n</gametxt>\n{{getvar::摘要}}{{getvar::选项}}\n</now_plot>\n{{getvar::变量1}}\n</output_template>\n<|本格_正文结束|>",
+      "content": "<%_ if (getvar('ai模型') === 'Claude') {\nconst readList = key => { try { const v = JSON.parse(getvar(key) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } };\nconst active = readList('路由激活规则'), hidden = readList('路由隐藏规则');\nconst advance = active.includes('[时间推进规则]');\nconst rules = [\n  [\n    \"[非战斗判定规则]\",\n    \"Non-combat checks: overcoming an uncertain obstacle; skip the panel when character L >= challenge L + 2.\"\n  ],\n  [\n    \"[战斗规则]\",\n    \"Combat: both sides explicitly engage or an array is forcibly breached; one-sided crushing does not trigger it.\"\n  ],\n  [\n    \"[生产制作规则]\",\n    \"Production: explicit pill refining, artifact forging, talisman crafting, array-disc engraving, puppet crafting, etc.\"\n  ],\n  [\n    \"[宗门建设规则]\",\n    \"Sect construction: the player leads the sect and builds, modifies, or removes its facilities this turn; record actual results in existing asset fields.\"\n  ],\n  [\n    \"[修为获取规则]\",\n    \"Cultivation gain: explicit cultivation, pill consumption, dual cultivation, or spiritual-energy absorption.\"\n  ],\n  [\n    \"[突破规则]\",\n    \"Breakthrough: <user> declares a breakthrough and current cultivation meets the threshold.\"\n  ],\n  [\n    \"[领悟规则]\",\n    \"Comprehension: studying manuals or array diagrams, observing inscriptions, or receiving instruction.\"\n  ],\n  [\n    \"[角色生成规则]\",\n    \"Character generation: the first appearance of an important NPC or an ownerless combat unit.\"\n  ],\n  [\n    \"[物品功法生成规则]\",\n    \"Item display: trade, loot, completed production, discovered materials, newly comprehended cultivation arts, etc.\"\n  ],\n  [\n    \"[任务发布规则]\",\n    \"Task issuance: an explicit commission, viewing a task board, or a substantive change in task status.\"\n  ],\n  [\n    \"[时间推进规则]\",\n    \"World evolution: only on an explicit player request; cover the interval from the previous advancement to the current time, give every person a panel and narrative, then return to the current player without advancing time again.\"\n  ],\n  [\n    \"[轮回转生规则]\",\n    \"Reincarnation: <user> dies without an effective life-saving measure, or a member of 冥族 voluntarily enters 轮回井.\"\n  ]\n];\nconst visibleRules = rules.filter(([id]) => !hidden.includes(id) && (id !== '[宗门建设规则]' || active.includes(id)) && (!advance || id === '[时间推进规则]'));\nconst ruleText = visibleRules.map(r => `${r[0]}: ${r[1]}`).join('\\n');\n_%>\n<recorder_audit_format>\nOUTPUT=<thinking>brief conclusions by item</thinking>; LANGUAGE=English\nRecord conclusions, sources and pending items. Keep calculations, local checks and panels at their narrative positions. Preserve names and protocol tags.\n<% if (advance) { %>\nMODE=WORLD_ADVANCE; STEPS=1→5\n1. Scene and cast: INTERVAL=previous advancement→current time; ACTORS=all relationship NPCs except puppets/spirit beasts; MAP=location/situation/goals/knowledge.\n2. Rules and panels: APPLY=[时间推进规则]; EACH=person→time_info→experience; SETTLE=unprocessed changes only; PLAYER_TIME=interval endpoint; record this advancement endpoint.\n3. State: <%- getvar('变量c') %>\n  RUMORS=retain valid/remove outdated/add other regions' or factions' events; mostly independent of this story, offering future leads.\n4. Ensemble: GROUP=location/event; COVER=panel+narrative for each person; END=current player scene without acting for them.\n5. Output check: CHECK=roster/interval/rumor sources/panel facts/two style anchors/module order.\n<% } else { %>\nMODE=STORY; STEPS=1→7\n1. Input: READ=Participant_input; SPLIT=attempts/desired results; APPLY=logic_check; ENTRY=earliest pending action.\n2. Scene and cast: MAP=time/location/people/positions/goals/knowledge/relationships; REACTION=personality and facts.\n3. Triggers: SELECT=active rules→panels and positions; FLOW=sequential; DICE=consume in order at local resolution; NEW_NPC=prefer one important introduction.\n4. State: <%- getvar('变量c') %>\n5. Continuity: READ=world_summary/summary; KEEP=ending state/pending matters/promises/tasks/relationships.\n6. Plot: PLAN=2~4 beats(content+Chinese-character budget); TOTAL=required length; <% if (getvar('推进规划')) { %>PACE=<%- String(getvar('推进规划')).split(';')[0] %>; <% } %>INSPIRATION=optional, preserve causality.\n7. Output check: STYLE=two anchors; CHECK=enabled modules/order/closed tags/panel-narrative-state consistency.\n<% } %>\nKNOWLEDGE=use only each character's established sources; private scenes do not inform absent characters.\nCONSISTENCY=correct contradictions with active rules, history and state.\nRULE_INDEX:\n<%- ruleText %>\n</recorder_audit_format>\n<%_ } _%>\n",
       "system_prompt": false,
       "marker": false,
       "forbid_overrides": false
     },
     {
       "identifier": "57",
+      "name": "📚 最终输出格式",
+      "enabled": true,
+      "injection_position": 0,
+      "injection_depth": 4,
+      "injection_order": 100,
+      "role": "system",
+      "content": "<output_template>\n<thinking>${按recorder_audit_format逐项填写简要结论}</thinking>\n<now_plot>\n<gametxt>\n<tp>${当前修仙历时间 @ 世界-地域-地点 | 天气}</tp>\n${叙事与按规则插入的面板}\n</gametxt>\n{{getvar::摘要}}{{getvar::选项}}\n</now_plot>\n{{getvar::变量1}}\n</output_template>",
+      "system_prompt": false,
+      "marker": false,
+      "forbid_overrides": false
+    },
+    {
+      "identifier": "58",
+      "name": "防截断噪声（预设被路由或截断使用）",
+      "enabled": false,
+      "injection_position": 0,
+      "injection_depth": 4,
+      "injection_order": 100,
+      "role": "system",
+      "content": "{{random::【噪声段 01/60】\nme-south-3/relay-10  checksum=be36d91763f7  parity=0x8dfc91  mirrors=4\npayload 832: 6ea1178a2a5dbcdac21bd0d9 f67da1ce120eadad0a37cd11 729fe13a6c2639094e8dfc5c\nmanifest (suff.) — a small window opened for probe traffic only.\ntumbler (suff.) — the interval between two consecutive anchor writes.\nlattice (adj.) — a bounded region of the ledger kept in step order.\nus-east-1/node-16  checksum=85a6428f0589  parity=0xc750cc  mirrors=8\npayload 136: 35d67c1816c16424b3aaa8d2 8b7aa4339533cdc241a296ce e80262f89061c75c60d6bed8\n0x1b83c902abc750f463\n\n【噪声段 02/60】\n/var/lib/shard/b940/fcd310.seg  size=4876KB  sha1=7989047f3b93de5a24f6\n/var/lib/vault/4b42/3e7563.idx  size=98700KB  sha1=59a856417c4ae06e1847\n/var/lib/mirror/68a9/cfb9a7.seg  size=45968KB  sha1=b1a36190991120f0dce6\n  rtt_ms: 55270\n/var/lib/edge/04d3/48fdd7.idx  size=96955KB  sha1=2d91a0bfa0e39e43df03\n/var/lib/buffer/1d6e/329ffb.log  size=12091KB  sha1=069f018b0dcb6a3b0d0e\n0x3ded54ffeb00aaf663b\n\n【噪声段 03/60】\n[01:47:41.343] edge-13@eu-central-1 seal retained=6941 cursor_lag=0x8ad2 fd_open=0x521c checksum_drift=8.49% digest_age=8.78%\n/var/lib/cache/af76/6a9604.log  size=94829KB  sha1=7b0a83965fda9f3404a3\n/var/lib/shard/90c8/9d7d20.seg  size=31620KB  sha1=3289e1feadf6786469c8\n/var/lib/buffer/2ad8/d6afd0.meta  size=56758KB  sha1=ff8c3f2af268760d33a5\n/var/lib/relay/ca3b/cf11f2.idx  size=42482KB  sha1=89fba78462bd71d98e89\n0xbaa450b6308408d\n\n【噪声段 04/60】\nlattice (adv.) — the delta between declared and observed parity.\nalias (v.) — a soft quota applied to cold sectors on read.\n  cursor_lag: 54.422\n/var/lib/sector/1f06/3492b8.seg  size=54414KB  sha1=4ed31d8bfdf54965ef72\n[06:01:47.220] node-09@eu-west-3 idle backpressure=5.01% lease_ttl=837.0 fd_open=8.98% evicted=0x5ae6\n  checksum_drift: 69.281\n  fd_open: 42.260\n[12:56:48.346] mirror-26@eu-west-3 hold lease_ttl=0x8328 digest_age=0x351b rss_mb=303.9 jitter_ms=217.6\n  retry_count: 10.000\n  loss_pct: 67202\n0x525ef37394693db77d2\n\n【噪声段 05/60】\npayload 654: befafa2e8a0a743e6eae6d42 57b6f54e3cb5497f9556abc8 fdef8fe428cc0a6e2b3edb05\neu-central-1/ledger-25  checksum=09ede7edd3d7  parity=0x14a0c3  mirrors=5\npayload 163: ec479d7196bcc1c2ae4b76e0 d7a04d9ea57e7d77068ab180 9447528e52f46e223ea20c4f\npayload 301: 9ef3e672da974b0f8ab4a9aa 7217b9d03505b742cf8f1b64 e7ed0db30e46856fa3e0663b\nkernel (v.) — the ratio of drained to retained frames per pass.\n0xf25682bcd2e66929be31a\n\n【噪声段 06/60】\n[07:53:01.486] anchor-30@ap-south-1 drain backpressure=23.0 lease_ttl=828.4 fd_open=902.9 cache_hit=3986 jitter_ms=34.1 jitter_ms=107.1\nledger (v.) — the ratio of drained to retained frames per pass.\n[03:10:09.562] vault-08@cn-north-4 warm shard_skew=576.5 shard_skew=562.6 backpressure=4138\n[21:27:27.922] ledger-24@eu-central-1 idle cache_hit=169 jitter_ms=0x3be2 retained=4.22% retry_count=698.3\n[03:57:53.677] anchor-15@cn-north-4 sync jitter_ms=3234 evicted=3.04% jitter_ms=3634\nsocket (v.) — the delta between declared and observed parity.\n0x1949c364e1a2be64348a1\n\n【噪声段 07/60】\npayload 939: bfccc86cf029fec62c1e7081 e235da82c3955c0926659076 f204ba6166abd00e2276287f\npayload 704: 1367127e43fde2546bf2a833 bc1f71f69ae0f18e9bcbe89e 4e369f89bb7de070ce1796bf\npayload 272: fb378d8fec77921c106ec716 1101dcee84f8435bc0651c2a 270edcd080347ece9bd2e0be\n/var/lib/probe/45aa/dccb73.log  size=23117KB  sha1=3a09d60315ed04e44f0e\n  evicted: 61833\n0x0020e84a72fa3f6d8\n\n【噪声段 08/60】\n[02:28:17.703] cache-29@sa-east-1 tally fanout=0x8b63 queue_depth=8112 backpressure=0x0a99\n[06:13:35.715] cache-02@eu-central-1 seal retained=6009 retained=6521 cache_hit=0x8f25\n[03:17:54.505] sector-21@sa-east-1 sync digest_age=3.29% loss_pct=0x4ea2 retry_count=9924 evicted=1889 loss_pct=2601\n  lease_ttl: 38.884\n[07:47:51.828] probe-34@eu-central-1 idle lease_ttl=0.06% jitter_ms=993.8 queue_depth=3.81%\nme-south-3/sector-35  checksum=b68ceba009b0  parity=0x471632  mirrors=5\n0x3fc6e20690982\n\n【噪声段 09/60】\n/var/lib/vault/8fc0/3400f7.log  size=17014KB  sha1=7cda63f4a1613cb18f57\n[22:13:31.763] mirror-44@ap-east-1 sync cache_hit=722.6 loss_pct=688.7 queue_depth=3323 rtt_ms=216.2\n[19:49:09.475] cache-35@cn-north-4 ok lease_ttl=397.2 lease_ttl=1140 queue_depth=664.2 parity_ok=5317 cursor_lag=6790 cursor_lag=0xdcc3\n[16:50:34.290] cache-12@me-south-3 seal backpressure=0x9f0b throughput_kbps=460.4 rss_mb=2502 shard_skew=0xc827 fanout=1413 cursor_lag=0xd15e\n0x953930b7e8eeef7a09fa0\n\n【噪声段 10/60】\n[21:51:36.243] node-12@ap-south-1 settle jitter_ms=4.13% parity_ok=244.9 parity_ok=4.16% queue_depth=5.09% retained=3622\n  gc_pause_ms: 16586\n[09:38:16.234] mirror-43@us-east-1 settle retained=4.79% rtt_ms=9116 lease_ttl=1.61% loss_pct=5072\nsa-east-1/vault-19  checksum=8dc4f8ded767  parity=0xe877a1  mirrors=6\n  fanout: 95006\n  lease_ttl: 66.762\n  parity_ok: 54.832\n  retained: 47087\nus-east-1/cache-07  checksum=5a345002136d  parity=0xfa2dd3  mirrors=6\n0x3f9884f0d8fbcfe04d0d8\n\n【噪声段 11/60】\npayload 670: 5a46c1874cdceb5914d76b0c 34658dd6a85d819a47b22a76 e13d0e3849f7875f7d1c2320\nme-south-3/shard-27  checksum=ae82c746829d  parity=0xcc1bd2  mirrors=2\nus-west-2/sector-14  checksum=5f95c51690ae  parity=0x35db52  mirrors=1\npayload 211: 28e2d7898f297bf6a6f6e95d 7f3cd1b10d14353612804ed6 b75bdab23cc20f6fd8044de5\nap-south-1/probe-05  checksum=f7428a61b4ed  parity=0x860e15  mirrors=4\n0x8660a37779b2bdd47\n\n【噪声段 12/60】\n【诊断】cn-north-4 区域 relay-41 的采样桶处于对齐区间，本轮未触发扩容。\n  cache_hit: 43320\ndigest (v.) — the delta between declared and observed parity.\n【诊断】eu-west-3 区域 relay-10 的采样桶处于漂移区间，本轮未触发限流。\n  cursor_lag: 42.418\nepoch (pref.) — a bounded region of the ledger kept in step order.\n【诊断】us-east-1 区域 shard-39 的缓存层处于缓升区间，本轮未触发重试。\npayload 279: e31cbf494471eaca655241d5 3843e50764068549db309b92 a9e2eb6536b1b7ac335984e7\nsegment (suff.) — a holder that keeps a lease alive across restarts.\n【诊断】cn-north-4 区域 ledger-13 的采样桶处于缓升区间，本轮未触发扩容。\n0xf25aaf50c4e331a8d9\n\n【噪声段 13/60】\ndigest (suff.) — a holder that keeps a lease alive across restarts.\nledger (pref.) — an index entry that survives compaction unchanged.\nledger (adj.) — a bounded region of the ledger kept in step order.\n[13:33:48.620] edge-40@us-west-2 hold rtt_ms=9228 gc_pause_ms=862.4 cache_hit=8.38% jitter_ms=0x0da6 gc_pause_ms=310.3 parity_ok=3.42%\n[00:25:09.688] node-46@cn-north-4 ok gc_pause_ms=765.1 rtt_ms=278 cache_hit=0xca1d\nstride (pref.) — the residue left after a segment is sealed and rotated.\n  parity_ok: 83.410\n[01:26:50.166] cache-03@ap-east-1 nudge loss_pct=0x86e3 shard_skew=0.36% parity_ok=174.4\n0x0e1016f49372dd479\n}}\n\n",
+      "system_prompt": false,
+      "marker": false,
+      "forbid_overrides": false
+    },
+    {
+      "identifier": "59",
+      "name": "📚 正文结束",
+      "enabled": true,
+      "injection_position": 0,
+      "injection_depth": 4,
+      "injection_order": 100,
+      "role": "system",
+      "content": "<|本格_正文结束|>",
+      "system_prompt": false,
+      "marker": false,
+      "forbid_overrides": false
+    },
+    {
+      "identifier": "60",
       "name": "🔌 Gemini尾部",
       "enabled": true,
       "injection_position": 0,
@@ -867,7 +906,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "58",
+      "identifier": "61",
       "name": "🔌 Glm尾部",
       "enabled": true,
       "injection_position": 0,
@@ -880,7 +919,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "59",
+      "identifier": "62",
       "name": "🔌 Claude尾部",
       "enabled": true,
       "injection_position": 0,
@@ -893,7 +932,7 @@
       "forbid_overrides": false
     },
     {
-      "identifier": "60",
+      "identifier": "63",
       "name": "🔌 DeepSeek尾部",
       "enabled": true,
       "injection_position": 0,
@@ -916,7 +955,7 @@
         },
         {
           "identifier": "1",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "2",
@@ -924,11 +963,11 @@
         },
         {
           "identifier": "3",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "4",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "5",
@@ -936,11 +975,11 @@
         },
         {
           "identifier": "6",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "7",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "8",
@@ -948,7 +987,7 @@
         },
         {
           "identifier": "9",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "10",
@@ -960,6 +999,10 @@
         },
         {
           "identifier": "12",
+          "enabled": false
+        },
+        {
+          "identifier": "13",
           "enabled": true
         },
         {
@@ -967,7 +1010,7 @@
           "enabled": true
         },
         {
-          "identifier": "13",
+          "identifier": "14",
           "enabled": true
         },
         {
@@ -975,7 +1018,7 @@
           "enabled": true
         },
         {
-          "identifier": "14",
+          "identifier": "15",
           "enabled": true
         },
         {
@@ -999,15 +1042,11 @@
           "enabled": true
         },
         {
-          "identifier": "15",
+          "identifier": "16",
           "enabled": true
         },
         {
           "identifier": "chatHistory",
-          "enabled": true
-        },
-        {
-          "identifier": "16",
           "enabled": true
         },
         {
@@ -1020,7 +1059,7 @@
         },
         {
           "identifier": "19",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "20",
@@ -1028,15 +1067,15 @@
         },
         {
           "identifier": "21",
-          "enabled": true
-        },
-        {
-          "identifier": "22",
           "enabled": false
         },
         {
-          "identifier": "23",
+          "identifier": "22",
           "enabled": true
+        },
+        {
+          "identifier": "23",
+          "enabled": false
         },
         {
           "identifier": "24",
@@ -1044,11 +1083,11 @@
         },
         {
           "identifier": "25",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "26",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "27",
@@ -1060,11 +1099,11 @@
         },
         {
           "identifier": "29",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "30",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "31",
@@ -1080,7 +1119,7 @@
         },
         {
           "identifier": "34",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "35",
@@ -1092,19 +1131,19 @@
         },
         {
           "identifier": "37",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "38",
-          "enabled": false
-        },
-        {
-          "identifier": "39",
           "enabled": true
         },
         {
-          "identifier": "40",
+          "identifier": "39",
           "enabled": false
+        },
+        {
+          "identifier": "40",
+          "enabled": true
         },
         {
           "identifier": "41",
@@ -1112,7 +1151,7 @@
         },
         {
           "identifier": "42",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "43",
@@ -1120,7 +1159,7 @@
         },
         {
           "identifier": "44",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "45",
@@ -1128,7 +1167,7 @@
         },
         {
           "identifier": "46",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "47",
@@ -1144,11 +1183,11 @@
         },
         {
           "identifier": "50",
-          "enabled": false
+          "enabled": true
         },
         {
           "identifier": "51",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "52",
@@ -1176,7 +1215,7 @@
         },
         {
           "identifier": "58",
-          "enabled": true
+          "enabled": false
         },
         {
           "identifier": "59",
@@ -1184,6 +1223,18 @@
         },
         {
           "identifier": "60",
+          "enabled": true
+        },
+        {
+          "identifier": "61",
+          "enabled": true
+        },
+        {
+          "identifier": "62",
+          "enabled": true
+        },
+        {
+          "identifier": "63",
           "enabled": true
         }
       ]
@@ -1301,7 +1352,7 @@
           "id": "c9201424-5bfa-5ee9-9946-9f81e553ef0c",
           "enabled": true,
           "type": "script",
-          "info": "参考命定·黄昏 Prime-1.11 的消息分区方式；无前端界面，仅组装本预设正文请求。",
+          "info": "沿用 Prime 1.11/1.18 的单组正文边界；无前端界面，仅组装本预设正文请求。",
           "button": {
             "enabled": true,
             "buttons": []
@@ -1312,6 +1363,27 @@
             "button": false
           },
           "content": "// 将深度注入放回对应资料区；历史文本的过滤由酒馆原生预设正则负责。\nexport const MESSAGE_MARKERS = Object.freeze({\n  bodyStart: '<|本格_正文开始|>',\n  historyStart: '<|本格_历史开始|>',\n  depth900: '<|本格_深度900分界|>',\n  depth2: '<|本格_深度2分界|>',\n  historyEnd: '<|本格_历史结束|>',\n  bodyEnd: '<|本格_正文结束|>',\n});\nexport const MESSAGE_SLOTS = Object.freeze({\n  memory: '<|本格_记忆区|>',\n  reference: '<|本格_参考区|>',\n  rules: '<|本格_运行规则区|>',\n});\nconst markers = Object.values(MESSAGE_MARKERS);\nconst markerPattern = new RegExp(markers.map(value => value.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')).join('|'), 'g');\nconst labels = ['正文开始', '历史开始', '深度 900', '深度 2', '历史结束', '正文结束'];\n\nfunction contentParts(message) {\n  if (typeof message.content === 'string') return [{ type: 'text', text: message.content }];\n  return Array.isArray(message.content) ? message.content : [];\n}\nfunction plainText(part) {\n  return part?.type === 'text' && typeof part.text === 'string' && Object.keys(part).every(key => key === 'type' || key === 'text');\n}\nfunction append(parts, part) {\n  if (plainText(part) && plainText(parts.at(-1))) parts.at(-1).text += part.text;\n  else parts.push(structuredClone(part));\n}\nfunction clean(parts) {\n  const result = [];\n  for (const part of parts) append(result, part);\n  if (plainText(result[0])) result[0].text = result[0].text.trimStart();\n  if (plainText(result.at(-1))) result.at(-1).text = result.at(-1).text.trimEnd();\n  return result.filter(part => !plainText(part) || part.text !== '');\n}\nfunction join(groups) {\n  const result = [];\n  for (const group of groups) {\n    const parts = clean(group);\n    if (!parts.length) continue;\n    if (result.length) append(result, { type: 'text', text: '\\n\\n' });\n    for (const part of parts) append(result, part);\n  }\n  return clean(result);\n}\nfunction asContent(parts) {\n  return parts.every(plainText) ? parts.map(part => part.text).join('') : parts;\n}\n// Collapse empty template branches after assembly; preserve fenced examples and indentation.\nexport function compactPromptWhitespace(text) {\n  let fence = null, blank = false;\n  const lines = [];\n  for (const line of text.replace(/\\r\\n/g, '\\n').split('\\n')) {\n    const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);\n    if (fence) {\n      lines.push(line);\n      if (match && match[1][0] === fence[0] && match[1].length >= fence.length && !match[2].trim()) fence = null;\n      blank = false;\n    } else if (match) {\n      fence = match[1];\n      lines.push(line);\n      blank = false;\n    } else if (!line.trim()) {\n      if (!blank) lines.push('');\n      blank = true;\n    } else {\n      lines.push(line);\n      blank = false;\n    }\n  }\n  return lines.join('\\n');\n}\nfunction compactParts(parts) {\n  return parts.map(part => part.type === 'text' ? { ...part, text: compactPromptWhitespace(part.text) } : part);\n}\n// A dry-run preview can partition before EJS runs. Clean its later output without\n// requiring consumed transport markers or rebuilding roles a second time.\nexport function compactFinalizedMessages(messages) {\n  if (!Array.isArray(messages)) return null;\n  let found = false;\n  const result = messages.map(message => {\n    const parts = contentParts(message);\n    const text = parts.filter(part => part.type === 'text').map(part => part.text).join('');\n    if (!text.includes('<output_contract>') || !text.includes('<writing_guidance>') || !text.includes('<output_template>')) return structuredClone(message);\n    const boundaries = [...text.matchAll(/^<\\/?historical_record>[ \\t]*$/gm)];\n    if (boundaries.length !== 2 || boundaries[0][0].trim() !== '<historical_record>' || boundaries[1][0].trim() !== '</historical_record>') return structuredClone(message);\n    found = true;\n    let inHistory = false;\n    const cleaned = parts.map(part => {\n      if (part.type !== 'text') return structuredClone(part);\n      const chunks = part.text.split(/(^<\\/?historical_record>[ \\t]*$)/gm);\n      const output = chunks.map(chunk => {\n        if (chunk.trim() === '<historical_record>') { inHistory = true; return chunk; }\n        if (chunk.trim() === '</historical_record>') { inHistory = false; return chunk; }\n        return inHistory ? chunk : compactPromptWhitespace(chunk);\n      }).join('');\n      return { ...structuredClone(part), text: output };\n    });\n    return { ...structuredClone(message), content: typeof message.content === 'string' ? cleaned[0].text : cleaned };\n  });\n  return found ? result : null;\n}\nfunction fragment(section, source, index, part) {\n  let record = section.at(-1);\n  if (record?.index !== index) section.push(record = { source, index, parts: [] });\n  append(record.parts, part);\n}\nfunction replaceSlot(parts, slot, replacement) {\n  let count = 0;\n  const result = [];\n  for (const part of parts) {\n    if (part.type !== 'text' || !part.text.includes(slot)) { append(result, part); continue; }\n    part.text.split(slot).forEach((text, index) => {\n      if (index) {\n        count++;\n        for (const inserted of replacement) append(result, inserted);\n      }\n      append(result, { ...part, text });\n    });\n  }\n  if (count !== 1) throw new Error(`本格消息分区：${slot} 应出现一次，请恢复对应结构条目。`);\n  return result;\n}\nfunction outerMessages(records) {\n  return records.flatMap(record => {\n    const parts = clean(record.parts);\n    return parts.length ? [{ ...structuredClone(record.source), content: asContent(compactParts(parts)) }] : [];\n  });\n}\n\n/** 返回新消息数组；没有本格结构标记的辅助 API 请求返回 null，输入对象不变。 */\nexport function processCultivationMessages(messages) {\n  if (!Array.isArray(messages)) return null;\n  const structure = [...markers, ...Object.values(MESSAGE_SLOTS)];\n  if (!messages.some(message => contentParts(message).some(part => part.type === 'text' && structure.some(marker => part.text.includes(marker))))) return null;\n\n  // 头部、历史前正文、>900、3~900、0~2、历史后正文、尾部。\n  const sections = Array.from({ length: 7 }, () => []);\n  let position = 0;\n  messages.forEach((message, index) => {\n    for (const part of contentParts(message)) {\n      if (part.type !== 'text') { fragment(sections[position], message, index, part); continue; }\n      let offset = 0;\n      for (const match of part.text.matchAll(markerPattern)) {\n        if (match.index > offset) fragment(sections[position], message, index, { ...part, text: part.text.slice(offset, match.index) });\n        if (markers[position] !== match[0]) throw new Error(`本格消息分区：边界重复或顺序错误，应先出现「${labels[position] ?? '处理结束'}」。`);\n        position++;\n        offset = match.index + match[0].length;\n      }\n      if (offset < part.text.length) fragment(sections[position], message, index, { ...part, text: part.text.slice(offset) });\n    }\n  });\n  if (position !== markers.length) throw new Error(`本格消息分区：缺少「${labels[position]}」边界，请检查结构条目和上下文容量。`);\n\n  const [head, before, high, middle, low, after, tail] = sections;\n  const history = [], injections = [];\n  for (const section of [high, middle, low]) {\n    const system = [];\n    for (const record of section) {\n      if (record.source.role === 'system') { system.push(record.parts); continue; }\n      if (!['user', 'assistant'].includes(record.source.role) || record.source.tool_calls) {\n        throw new Error('本格消息分区：正文历史包含工具消息，无法按剧情记录组装。');\n      }\n      const parts = clean(record.parts);\n      if (parts.length) history.push({ ...record, parts });\n    }\n    injections.push(join(system));\n  }\n  const latestUser = history.findLast(record => record.source.role === 'user');\n  const historyParts = history.map(record => {\n    const latest = record === latestUser;\n    const prefix = latest ? 'Participant:<Participant_input>\\n' : record.source.role === 'user' ? 'Participant: ' : 'Recorder: ';\n    return [{ type: 'text', text: prefix }, ...record.parts, ...(latest ? [{ type: 'text', text: '\\n</Participant_input>' }] : [])];\n  });\n  let beforeParts = join(before.map(record => record.parts));\n  beforeParts = replaceSlot(beforeParts, MESSAGE_SLOTS.memory, injections[0]);\n  beforeParts = replaceSlot(beforeParts, MESSAGE_SLOTS.reference, injections[1]);\n  const afterParts = replaceSlot(join(after.map(record => record.parts)), MESSAGE_SLOTS.rules, injections[2]);\n  return [...outerMessages(head), { role: 'user', content: asContent(join([compactParts(beforeParts), ...historyParts, compactParts(afterParts)])) }, ...outerMessages(tail)];\n}\n\n/** 在 EJS 展开后组装正文；结构错误通过请求序列化阻止发送。 */\nexport function installMessageProcessing({ on, last = on, off, events, active = () => true, notify = () => {} }) {\n  let disposed = false;\n  const enabled = () => !disposed && active();\n  const onReady = data => {\n    if (!enabled()) return;\n    try {\n      const result = processCultivationMessages(data?.messages) ?? compactFinalizedMessages(data?.messages);\n      if (result) data.messages.splice(0, data.messages.length, ...result);\n    } catch (error) {\n      notify(error.message);\n      // 酒馆事件会吞回调异常；此处在 fetch 的 JSON.stringify 前中止当前请求。\n      Object.defineProperty(data, 'toJSON', { configurable: true, value() { throw error; } });\n    }\n  };\n  const onPreview = (data, dryRun) => {\n    if (!enabled() || dryRun !== true) return;\n    try {\n      const result = processCultivationMessages(data?.prompt) ?? compactFinalizedMessages(data?.prompt);\n      if (result) data.prompt.splice(0, data.prompt.length, ...result);\n    } catch (error) { notify(error.message); }\n  };\n  // 路由先处理 GENERATION_AFTER_COMMANDS；EJS 在 SETTINGS_READY 处理原消息角色。\n  const onBefore = () => {\n    if (!enabled()) return;\n    last(events.GENERATE_AFTER_DATA, onPreview);\n    last(events.CHAT_COMPLETION_SETTINGS_READY, onReady);\n  };\n  const onPreset = () => { if (!active()) dispose(); };\n  function dispose() {\n    if (disposed) return;\n    disposed = true;\n    off(events.GENERATE_AFTER_DATA, onPreview);\n    off(events.CHAT_COMPLETION_SETTINGS_READY, onReady);\n    off(events.GENERATION_AFTER_COMMANDS, onBefore);\n    off(events.OAI_PRESET_CHANGED_AFTER, onPreset);\n  }\n  last(events.GENERATE_AFTER_DATA, onPreview);\n  last(events.CHAT_COMPLETION_SETTINGS_READY, onReady);\n  on(events.GENERATION_AFTER_COMMANDS, onBefore);\n  on(events.OAI_PRESET_CHANGED_AFTER, onPreset);\n  return { dispose };\n}\n\nif (typeof window !== 'undefined' && typeof eventOn === 'function') {\n  $(() => {\n    const host = window.parent, key = '__cultivationPresetMessageProcessor';\n    host[key]?.dispose?.();\n    const owner = getLoadedPresetName(), frame = window.frameElement;\n    const instance = installMessageProcessing({\n      on: eventOn, last: eventMakeLast, off: eventRemoveListener, events: tavern_events,\n      active: () => frame?.isConnected !== false && getLoadedPresetName() === owner,\n      notify: message => toastr.error(message, '本格预设', { preventDuplicates: true }),\n    });\n    const dispose = () => {\n      instance.dispose();\n      window.removeEventListener('pagehide', dispose);\n      if (host[key]?.dispose === dispose) delete host[key];\n    };\n    host[key] = { dispose };\n    window.addEventListener('pagehide', dispose, { once: true });\n  });\n}\n"
+        },
+        {
+          "name": "【本格修仙】头部噪声",
+          "id": "320c0d71-8b75-4bda-a2b4-dbf147a5cf87",
+          "enabled": true,
+          "type": "script",
+          "info": "本地实现 Prime 1.18 的头部输入噪声方式。通过预设条目开关使用；模式 random 为每次生成变化、fixed 为固定，段数 10–48，固定种子可自行填写。",
+          "button": {
+            "enabled": true,
+            "buttons": []
+          },
+          "data": {
+            "模式": "random",
+            "段数": 10,
+            "固定种子": "bengexiuxian"
+          },
+          "export_with": {
+            "data": true,
+            "button": false
+          },
+          "content": "// 参考 Prime 1.18 的头部噪声机制；语料与实现为本卡本地生成，不加载远程助手。\nexport const HEADER_NOISE_MACRO_NAME = 'bengexiuxian_prompt_noise';\nexport const HEADER_NOISE_MACRO = `{{${HEADER_NOISE_MACRO_NAME}}}`;\nexport const DEFAULT_HEADER_NOISE_SETTINGS = Object.freeze({ mode: 'random', segments: 10, seed: 'bengexiuxian' });\nconst FAILURE_MARKER = '<bengexiuxian_noise_unavailable/>';\n\nexport function normalizeHeaderNoiseSettings(value = {}) {\n  const input = value && typeof value === 'object' ? value : {};\n  const count = Number(input.段数 ?? input.segments ?? DEFAULT_HEADER_NOISE_SETTINGS.segments);\n  return {\n    mode: (input.模式 ?? input.mode) === 'fixed' ? 'fixed' : 'random',\n    segments: Number.isFinite(count) ? Math.max(10, Math.min(48, Math.round(count))) : 10,\n    seed: String(input.固定种子 ?? input.seed ?? DEFAULT_HEADER_NOISE_SETTINGS.seed).trim() || DEFAULT_HEADER_NOISE_SETTINGS.seed,\n  };\n}\n\nfunction sequence(seed) {\n  let state = 5381;\n  for (const character of String(seed)) state = (Math.imul(state, 33) ^ character.codePointAt(0)) >>> 0;\n  if (!state) state = 0x9e3779b9;\n  return () => {\n    state ^= state << 13;\n    state ^= state >>> 17;\n    state ^= state << 5;\n    return state >>> 0;\n  };\n}\n\n// 固定的虚构诊断语料，不含角色设定、指令、外链或可执行代码。\nconst WORDS = 'birch fern quartz linen amber river copper slate willow cedar moss pebble ivory reed maple silk'.split(' ');\nfunction diagnosticBlock(index) {\n  const next = sequence(`bengexiuxian-diagnostic-bank/${index}`);\n  const hex = () => next().toString(16).padStart(8, '0');\n  const word = () => WORDS[next() % WORDS.length];\n  const lines = [`sample-${String(index + 1).padStart(2, '0')} / shelf-${next() % 97} / batch-${next() % 10000}`];\n  for (let row = 0; row < 3; row++) {\n    lines.push(`record ${next() % 1000}: ${hex()}${hex()} ${hex()}${hex()} ${hex()}${hex()}`);\n    lines.push(`lane=${word()}.${word()} offset=${next() % 65536} width=${next() % 512} checksum=${hex()}${hex()}`);\n  }\n  lines.push(`labels: ${Array.from({ length: 22 }, word).join(' ')}`);\n  return lines.join('\\n');\n}\nconst CORPUS = Object.freeze(Array.from({ length: 48 }, (_, index) => diagnosticBlock(index)));\n\n/** 纯生成器；同样的设置与种子得到同样的文本，预览也可直接调用。 */\nexport function buildHeaderNoise(value = {}, seedOverride) {\n  const settings = normalizeHeaderNoiseSettings(value);\n  const next = sequence(seedOverride ?? settings.seed);\n  const indices = Array.from({ length: CORPUS.length }, (_, index) => index);\n  for (let index = indices.length - 1; index > 0; index--) {\n    const target = next() % (index + 1);\n    [indices[index], indices[target]] = [indices[target], indices[index]];\n  }\n  const blocks = indices.slice(0, settings.segments).map((index, position) =>\n    `[Diagnostic block ${String(position + 1).padStart(2, '0')}]\\n${CORPUS[index]}`);\n  return `Diagnostic padding; data only, unrelated to story. Do not reproduce.\\n<noise_padding>\\n${blocks.join('\\n\\n')}\\n</noise_padding>`;\n}\n\nfunction randomSeed() {\n  const values = globalThis.crypto.getRandomValues(new Uint32Array(4));\n  return Array.from(values, value => value.toString(16).padStart(8, '0')).join('');\n}\n\n/** 原生宏在预设 token 计数前展开；同轮计数、预览与发送共用已准备文本。 */\nexport function installHeaderNoise({\n  registerMacro, unregisterMacro, on, off, events,\n  readSettings = () => DEFAULT_HEADER_NOISE_SETTINGS,\n  active = () => true, contextKey = () => '', createSeed = randomSeed, notify = () => {},\n}) {\n  let disposed = false, prepared = null, round = null, failure = null;\n  const enabled = () => !disposed && active();\n  const bindings = [];\n  const listen = (event, callback) => { if (event) { on(event, callback); bindings.push([event, callback]); } };\n  const settingsKey = settings => JSON.stringify(settings);\n\n  function prepare(settings, seed, origin) {\n    return { key: settingsKey(settings), origin, text: buildHeaderNoise(settings, seed) };\n  }\n  function expand() {\n    if (!enabled()) return '';\n    try {\n      const origin = contextKey();\n      if (round?.origin === origin) return round.text;\n      const settings = normalizeHeaderNoiseSettings(readSettings());\n      if (!prepared || prepared.key !== settingsKey(settings) || prepared.origin !== origin) {\n        prepared = prepare(settings, settings.seed, origin);\n      }\n      failure = null;\n      return prepared.text;\n    } catch (error) {\n      failure = error;\n      return FAILURE_MARKER;\n    }\n  }\n  function begin(type = 'normal', _options = {}, dryRun = false) {\n    if (!enabled() || dryRun || !['normal', 'regenerate', 'swipe', 'continue'].includes(type)) return;\n    round = null;\n    failure = null;\n    try {\n      const settings = normalizeHeaderNoiseSettings(readSettings());\n      round = prepare(settings, settings.mode === 'random' ? createSeed() : settings.seed, contextKey());\n      prepared = round;\n    } catch (error) { failure = error; round = { origin: contextKey(), text: FAILURE_MARKER }; }\n  }\n  function finish() { round = null; failure = null; }\n  function inspect(data) {\n    if (!enabled() || !Array.isArray(data?.messages)) return;\n    const texts = data.messages.flatMap(message => typeof message.content === 'string' ? [message.content]\n      : (Array.isArray(message.content) ? message.content : []).filter(part => part.type === 'text').map(part => part.text));\n    if (!texts.some(text => text.includes(HEADER_NOISE_MACRO) || text.includes(FAILURE_MARKER))) return;\n    const error = new Error(`本格头部噪声未展开：${failure?.message ?? '请刷新酒馆以加载配套脚本。'}`);\n    notify(error.message);\n    Object.defineProperty(data, 'toJSON', { configurable: true, value() { throw error; } });\n  }\n  function changed() { if (!active()) dispose(); else { prepared = null; finish(); } }\n  function dispose() {\n    if (disposed) return;\n    disposed = true;\n    unregisterMacro(HEADER_NOISE_MACRO_NAME);\n    for (const [event, callback] of bindings) off(event, callback);\n    prepared = null;\n    finish();\n  }\n\n  registerMacro(HEADER_NOISE_MACRO_NAME, expand, '本格预设的可选头部诊断填充');\n  listen(events.GENERATION_AFTER_COMMANDS, begin);\n  listen(events.GENERATION_ENDED, finish);\n  listen(events.GENERATION_STOPPED, finish);\n  listen(events.CHAT_CHANGED, changed);\n  listen(events.OAI_PRESET_CHANGED_AFTER, changed);\n  listen(events.CHAT_COMPLETION_SETTINGS_READY, inspect);\n  return { dispose, expand };\n}\n\nif (typeof window !== 'undefined' && typeof eventOn === 'function') {\n  $(() => {\n    const host = window.parent, key = '__cultivationPresetHeaderNoise';\n    host[key]?.dispose?.();\n    const owner = getLoadedPresetName(), frame = window.frameElement;\n    const instance = installHeaderNoise({\n      registerMacro: SillyTavern.registerMacro, unregisterMacro: SillyTavern.unregisterMacro,\n      on: eventOn, off: eventRemoveListener, events: tavern_events,\n      readSettings: () => getVariables({ type: 'script', script_id: getScriptId() }),\n      active: () => frame?.isConnected !== false && getLoadedPresetName() === owner,\n      contextKey: () => `${owner}\\n${SillyTavern.getCurrentChatId() ?? ''}`,\n      notify: message => toastr.error(message, '本格预设', { preventDuplicates: true }),\n    });\n    const dispose = () => {\n      instance.dispose();\n      window.removeEventListener('pagehide', dispose);\n      if (host[key]?.dispose === dispose) delete host[key];\n    };\n    host[key] = { dispose };\n    window.addEventListener('pagehide', dispose, { once: true });\n  });\n}\n"
         }
       ],
       "variables": {}

@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { renderPreset, assemblePreview, profiles } from '../预设/本格修仙/模拟预设效果.mjs';
+import { buildHeaderNoise } from '../预设/本格修仙/脚本/头部噪声.js';
 
 const source = fs.readFileSync(new URL('../预设/本格修仙/脚本/消息分区.js', import.meta.url), 'utf8');
 const { MESSAGE_MARKERS: M, MESSAGE_SLOTS: S, processCultivationMessages: process, installMessageProcessing: install } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
@@ -65,6 +67,71 @@ const preserved = fixture();
 preserved[10].content = '段一\n\n\n段二';
 assert.ok(process(preserved)[1].content.includes('段一\n\n\n段二'), '不压缩玩家正文空行');
 
+for (const merged of [false, true]) {
+  const extended = fixture();
+  extended.at(-1).content = extended.at(-1).content.replace(`\n${M.bodyEnd}\n尾部`, '');
+  if (merged) extended.at(-1).content += `\n\n附加噪声\n${M.bodyEnd}`;
+  else extended.push(msg('system', '附加噪声'), msg('system', M.bodyEnd));
+  extended.push(msg('user', '模型尾部'));
+  const snapshot = structuredClone(extended), output = process(extended);
+  assert.deepEqual(extended, snapshot);
+  assert.deepEqual(output.map(m => m.role), ['system', 'user', 'user']);
+  assert.ok(output[1].content.endsWith('输出契约\n\n附加噪声'));
+  assert.equal(output[2].content, '模型尾部');
+  assert.equal(process(output), null);
+}
+const duplicateBody = [...fixture(), msg('system', `${M.bodyStart}\n噪声\n${M.bodyEnd}`)];
+assert.throws(() => process(duplicateBody), /边界重复或顺序错误/, '第二组正文边界仍应被拦截');
+
+const noiseName = '防截断噪声（预设被路由或截断使用）';
+const noise = fs.readFileSync(new URL('../Doc/noise_L04000_fixed.txt', import.meta.url), 'utf8').replace(/\r\n/g, '\n').trim();
+for (const profile of profiles) {
+  for (const enabled of [false, true]) {
+    const rendered = renderPreset({ profile, toggles: { [noiseName]: enabled } });
+    const raw = rendered.entries.map(entry => entry.content).join('\n');
+    for (const marker of Object.values(M)) assert.equal(raw.split(marker).length - 1, 1, '无论开关都只有一组分区边界');
+    const output = assemblePreview(rendered.entries);
+    const all = output.map(m => text(m.content)).join('\n');
+    assert.equal(output.at(-1).role, 'user', `${profile} 仍以用户消息结尾`);
+    assert.equal(all.includes(noise), enabled, '原文件完整出现且只在开启时注入');
+    assert.equal(all.split('【噪声段 01/60】').length - 1, enabled ? 1 : 0);
+    assert.ok(!all.includes('{{random') && !all.includes('<|本格_'), '宏与分区标记无残留');
+    if (enabled) {
+      const noiseMessage = output.find(m => text(m.content).includes(noise));
+      assert.equal(noiseMessage.role, 'user');
+      assert.ok(text(noiseMessage.content).endsWith(noise), '噪声在正文提示词末尾');
+      assert.ok(text(noiseMessage.content).indexOf('</output_template>') < text(noiseMessage.content).indexOf(noise));
+    }
+  }
+}
+const defaultPreset = renderPreset();
+assert.equal(defaultPreset.config.提示词.find(item => item.名称 === noiseName)?.启用, false);
+const names = defaultPreset.config.提示词.map(item => item.名称);
+assert.equal(names.indexOf(noiseName), names.indexOf('📚 最终输出格式') + 1);
+assert.equal(names.indexOf('📚 正文结束'), names.indexOf(noiseName) + 1);
+assert.throws(() => assemblePreview(renderPreset({ toggles: { '📚 正文结束': false } }).entries), /缺少「正文结束」/);
+const headerName = '⚙️ 头部输入噪声（Prime方式）';
+assert.equal(defaultPreset.config.提示词.find(item => item.名称 === headerName)?.启用, false);
+assert.equal(names.indexOf(headerName), names.indexOf('⚙️语言字数设置') + 1);
+const headerSettings = { 模式: 'fixed', 段数: 10, 固定种子: 'integration-check' };
+const headerText = buildHeaderNoise(headerSettings);
+for (const profile of profiles) {
+  for (const mode of ['main', 'extra']) {
+    for (const enabled of [false, true]) {
+      const rendered = renderPreset({ profile, mode, headerNoise: headerSettings,
+        toggles: { [headerName]: true, [noiseName]: enabled } });
+      const output = assemblePreview(rendered.entries);
+      assert.equal(output[0].role, 'system');
+      assert.equal(text(output[0].content), headerText, '随机头部在所有模型说明之前');
+      assert.equal(output.at(-1).role, 'user');
+      const all = output.map(m => text(m.content)).join('\n');
+      assert.equal(all.split(headerText).length - 1, 1);
+      assert.equal(all.includes(noise), enabled);
+      assert.ok(!all.includes('{{') && !all.includes('<%') && !all.includes('<|本格_'), '无未展开的宏、模板或分区标记');
+    }
+  }
+}
+
 for (const marker of Object.values(M)) {
   const missing = fixture().map(m => ({ ...m, content: m.content.replace(marker, '') }));
   assert.throws(() => process(missing), /本格消息分区/);
@@ -128,4 +195,4 @@ instance.dispose();
 assert.equal((eventBus.handlers.get(events.GENERATE_AFTER_DATA) ?? []).length, 0);
 assert.equal((eventBus.handlers.get(events.CHAT_COMPLETION_SETTINGS_READY) ?? []).length, 1, '卸载保留其他扩展监听');
 
-console.log('消息分区回归通过：七段三槽、历史与多模态、EJS时序、辅助API透传、结构错误阻断、卸载。');
+console.log('消息分区回归通过：七段三槽、附加噪声与四模型开关、历史与多模态、EJS时序、辅助API透传、结构错误阻断、卸载。');

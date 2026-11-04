@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { processCultivationMessages } from './脚本/消息分区.js';
+import { HEADER_NOISE_MACRO, buildHeaderNoise } from './脚本/头部噪声.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(new URL('../../../tavern_helper_template-main/package.json', import.meta.url));
@@ -36,7 +37,13 @@ runInNewContext(`
   var variableMacros = getVariableMacros();
 `, variableRuntime);
 
-// Supported subset of evaluateMacros: legacy user → variables → trim → user → comment.
+const macroSource = readFileSync(new URL('../../../../../SillyTavern-1.16.0/public/scripts/macros.js', import.meta.url), 'utf8');
+const randomFunction = macroSource.match(/function getRandomReplaceMacro\(\) \{[\s\S]*?^\}/m)?.[0];
+if (!randomFunction) throw new Error('Cannot locate installed ST random macro');
+const randomRuntime = { seedrandom: () => Math.random };
+runInNewContext(`${randomFunction}\nvar randomMacro = getRandomReplaceMacro();`, randomRuntime);
+
+// Supported subset: legacy user → variables → trim → user → comment → random.
 // Exported so regressions can reproduce the malformed input before verifying the fix.
 export function expandPresetMacros(text, vars, user) {
   variableRuntime.vars = vars;
@@ -44,7 +51,8 @@ export function expandPresetMacros(text, vars, user) {
   for (const macro of variableRuntime.variableMacros) text = text.replace(macro.regex, macro.replace);
   text = text.replace(/(?:\r?\n)*{{trim}}(?:\r?\n)*/gi, '');
   text = text.replace(/{{user}}/gi, () => user);
-  return text.replace(/\{\{\/\/([\s\S]*?)\}\}/gm, '');
+  text = text.replace(/\{\{\/\/([\s\S]*?)\}\}/gm, '');
+  return text.replace(randomRuntime.randomMacro.regex, randomRuntime.randomMacro.replace);
 }
 
 // Use the installed template extension's actual EJS engine, without browser side effects.
@@ -52,11 +60,14 @@ function ejs(text, vars) {
   return templateRuntime.ejs.render(text, { getvar: key => vars[key] ?? '' });
 }
 
-export function renderPreset({ profile, mode, route = '[]', hidden = '[]', toggles = {}, user = '测试玩家', summary, options } = {}) {
+export function renderPreset({ profile, mode, route = '[]', hidden = '[]', toggles = {}, user = '测试玩家', summary, options, headerNoise } = {}) {
   const config = YAML.parse(readFileSync(resolve(root, 'index.yaml'), 'utf8'));
   if (profile && !profiles.includes(profile)) throw new Error(`Unknown model profile: ${profile}`);
   if (mode && !['main', 'extra'].includes(mode)) throw new Error(`Unknown variable mode: ${mode}`);
   const vars = { 路由激活规则: route, 路由隐藏规则: hidden };
+  const noiseSettings = headerNoise ?? config.扩展字段.酒馆助手.脚本库.find(script => script.名称 === '【本格修仙】头部噪声')?.数据;
+  // 预览固定同一种子便于比较；酒馆脚本在每次真实生成时更新 random 模式种子。
+  const headerNoiseText = buildHeaderNoise(noiseSettings);
   const entries = [];
   for (const item of config.提示词) {
     let enabled = item.启用 !== false;
@@ -72,7 +83,7 @@ export function renderPreset({ profile, mode, route = '[]', hidden = '[]', toggl
       role: { 系统: 'system', 用户: 'user', AI: 'assistant' }[item.角色] ?? 'system',
       depth: item.插入位置?.类型 === '聊天中' ? item.插入位置.深度 : undefined,
       marker: marker ? item.id : undefined,
-      content: expandPresetMacros(readEntry(item), vars, user),
+      content: expandPresetMacros(readEntry(item), vars, user).replaceAll(HEADER_NOISE_MACRO, headerNoiseText),
     });
   }
   // ST expands macros during assembly; its template extension evaluates EJS later.
