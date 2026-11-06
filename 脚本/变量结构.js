@@ -119,10 +119,21 @@ function normalizeCalendarState(input) {
   if (input.固定资产) result.固定资产 = mapRecords(input.固定资产, raw => {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
     const asset = { ...raw };
-    if (asset.设施) asset.设施 = mapRecords(asset.设施, rawFacility => {
-      if (!rawFacility || typeof rawFacility !== 'object' || Array.isArray(rawFacility)) return rawFacility;
-      const facility = { ...rawFacility };
-      if (facility.上次收取日期 != null) facility.上次收取日期 = normalizeOptional(facility.上次收取日期);
+    const facilities = asset.设施 ?? asset.建筑 ?? asset.功能区;
+    if (facilities) asset.设施 = mapRecords(facilities, rawFacility => {
+      const facility = rawFacility && typeof rawFacility === 'object' && !Array.isArray(rawFacility)
+        ? { ...rawFacility } : typeof rawFacility === 'string' ? { 效果: rawFacility } : {};
+      const dates = [facility.上次收取日期, facility.上次收取, facility.收取日期, facility.建造时间, facility.投产时间];
+      const effects = facility.效果 ?? facility.效用 ?? facility.功能;
+      const summary = typeof effects === 'string' ? effects : effects?.概况;
+      const recorded = typeof summary === 'string'
+        ? summary.match(/(?:建造|建成|投产)(?:时间)?[:：于\s]*([^；;，,]+)/)?.[1]?.trim() : undefined;
+      dates.push(recorded);
+      const date = dates.find(value => {
+        const parts = calendarParts(value);
+        return Number.isFinite(cultivationYear(parts.年 ?? parts.year, world));
+      });
+      facility.上次收取日期 = { ...result.时间, ...cultivationDate(date, world, result.时间) };
       return facility;
     });
     return asset;
@@ -792,7 +803,7 @@ const TimeSchema = z
 
 // ===== 固定资产 Schema (仅主角根级持有) =====
 // 分配人物仅保存实际在该资产工作的 NPC 姓名数组；人物详细资料仍统一维护在关系列表，避免双处存储发生冲突。
-// 所在地复用 LocationSchema；上次收取日期复用 TimeSchema，null 表示从未收取。
+// 所在地复用 LocationSchema；上次收取日期复用 TimeSchema，初始为建造时间。
 function normalizeLooseString(input, fallback) {
   if (input === undefined || input === null) return fallback;
   return typeof input === "string" ? input : String(input);
@@ -867,6 +878,34 @@ function normalizeNamedRecord(input, fallbackName) {
   }));
 }
 
+// 资产文本保留结构化误输入的内容，不执行其中的公式。
+function normalizeAssetText(input, fallback = '无') {
+  if (input == null || input === '') return fallback;
+  if (typeof input === 'string') {
+    const text = input.trim();
+    if (/^[{[]/.test(text)) {
+      try { return normalizeAssetText(JSON.parse(text), fallback); } catch { /* 普通文本按原文保留。 */ }
+    }
+    return text || fallback;
+  }
+  if (Array.isArray(input)) return input.map(value => normalizeAssetText(value, '')).filter(Boolean).join('；') || fallback;
+  if (typeof input === 'object') return Object.entries(input)
+    .map(([key, value]) => key + '：' + normalizeAssetText(value, '')).join('；') || fallback;
+  return String(input);
+}
+function normalizeAssetEffects(input) {
+  if (input == null || input === '') return {};
+  if (typeof input === 'string') {
+    try { return normalizeAssetEffects(JSON.parse(input)); } catch { /* 普通效果文本按原文保留。 */ }
+    return { 说明: input };
+  }
+  if (Array.isArray(input)) return Object.fromEntries(input.map((value, index) => [
+    '效果' + (index + 1), normalizeAssetText(value, ''),
+  ]));
+  if (typeof input !== 'object') return { 说明: String(input) };
+  return Object.fromEntries(Object.entries(input).map(([key, value]) => [key, normalizeAssetText(value, '')]));
+}
+
 // 旧设施曾将境界、品质写在“概况”中；只补元数据，保留原效果与产出。
 const normalizeFacilityMetadata = (value) => {
   const effects = value.效果 ?? value.效用 ?? value.功能;
@@ -877,12 +916,12 @@ const normalizeFacilityMetadata = (value) => {
         ? String(effects.概况 ?? '')
         : '';
   const realm =
-    String(value.境界 ?? '').trim() ||
+    normalizeAssetText(value.境界 ?? value.设施境界, '').trim() ||
     summary.match(/境界\s*[:：=]\s*([^\s，,；;|/／]+)/)?.[1] ||
     summary.match(/(?:凡人|炼气|练气|筑基|金丹|结丹|元婴|化神|返虚|合体|大乘|渡劫)(?:初期|前期|中期|后期|圆满|巅峰|期)?/)?.[0] ||
     '未定';
   const quality =
-    String(value.品质 ?? '').trim().match(/^([凡黄玄地天])(?:品|阶)?$/)?.[1] ||
+    String(value.品质 ?? value.品阶 ?? '').trim().match(/^([凡黄玄地天])(?:品|阶|级)?$/)?.[1] ||
     summary.match(/品质\s*[:：=]\s*([凡黄玄地天])(?:品|阶)?/)?.[1] ||
     summary.match(/([凡黄玄地天])(?:品|阶)/)?.[1] ||
     '凡';
@@ -930,9 +969,9 @@ const AssetFacilitySchema = z.preprocess(
   z.object({
     境界: z.preprocess((input) => normalizeLooseString(input, "未定"), z.string()).prefault("未定"),
     品质: QualityEnum.prefault("凡"),
-    效果: z.preprocess((input) => normalizeStringRecord(input) ?? {}, z.record(z.string(), z.string())).prefault({}),
-    每月产出: z.preprocess((input) => normalizeLooseString(input, "无"), z.string()).prefault("无"),
-    上次收取日期: AssetTimeSchema,
+    效果: z.preprocess(normalizeAssetEffects, z.record(z.string(), z.string())).prefault({}),
+    每月产出: z.preprocess(value => normalizeAssetText(value), z.string()).prefault("无"),
+    上次收取日期: z.preprocess(value => normalizeAssetTime(value) ?? {}, TimeSchema).prefault({}),
   }),
 );
 const FixedAssetSchema = z.preprocess(
@@ -1305,6 +1344,7 @@ const FIXED_ASSET_KEY_ALIASES = {
   人员: "分配人物", 归属人物: "分配人物", 成员: "分配人物",
 };
 const ASSET_FACILITY_KEY_ALIASES = {
+  设施境界: "境界", 品阶: "品质",
   效用: "效果", 功能: "效果",
   月产出: "每月产出", 产出: "每月产出",
   上次收取: "上次收取日期", 收取日期: "上次收取日期",
@@ -1380,6 +1420,9 @@ function repairMissingSchemaContainers(variables) {
   const statData = variables?.stat_data;
   if (!isPlainRecord(statData)) return;
   statData.任务 = normalizeTasks(statData.任务);
+  // 在增量命令执行前落地旧资产字段迁移，使新路径可以直接更新旧存档。
+  const assets = FixedAssetsSchema.safeParse(normalizeCalendarState(statData).固定资产);
+  if (assets.success) statData.固定资产 = assets.data;
   if (Array.isArray(statData.传闻)) {
     statData.传闻 = { 上次世界推进时间点: null, 条目: statData.传闻 };
   }
@@ -1562,7 +1605,7 @@ function normalizeTimeCommand(command, variables) {
     }
     command.args[index] = field === '时辰' ? JSON.stringify(parsed) : parsed;
   } else if (isTime(parts) && (!value || typeof value !== 'object' || Array.isArray(value))) {
-    if (value === null && parts.join('.') !== '时间') return true;
+    if (value === null && parts.join('.') === '传闻.上次世界推进时间点') return true;
     console.warn('[JSONPatch preprocessor] 无法识别时间对象，保留原值:', parts, value);
     return false;
   } else if (value && typeof value === 'object') {
@@ -1570,7 +1613,8 @@ function normalizeTimeCommand(command, variables) {
     const visit = (node, path) => {
       if (!node || typeof node !== 'object') return;
       if (isTime(path)) {
-        const old = _.get(variables?.stat_data, path) ?? {};
+        const old = _.get(variables?.stat_data, path)
+          ?? (path[0] === '固定资产' ? variables?.stat_data?.时间 : undefined) ?? {};
         for (const field of ['年','月','日','时辰']) {
           const parsed = field === '时辰' ? normalizeTimePeriod(node[field]) : field === '年' ? cultivationYear(node[field], value.地点?.世界 ?? variables?.stat_data?.地点?.世界) : parseCalendarNumber(node[field]);
           if (node[field] !== undefined && (parsed === undefined || (typeof parsed === 'number' && (!Number.isFinite(parsed) || parsed < 1))))
@@ -1641,6 +1685,10 @@ function jsonPatchPreprocessor(_variables, commands) {
       console.warn('[JSONPatch preprocessor] 忽略危险原型路径:', cmd.args[0]);
       commands.splice(ci,1); continue;
     }
+    if (cmd.type === 'delete' && targets[0][0] === '固定资产'
+      && targets[0][2] === '设施' && targets[0][4] === '上次收取日期') {
+      commands.splice(ci, 1); continue;
+    }
     if (!normalizeTimeCommand(cmd, _variables)) { commands.splice(ci,1); continue; }
     // 1.5 容错: 修正后路径根段仍不属于当前 schema 的合法顶级词条 → 指向不存在的字段。
     //     整批 JSONPatch 是原子应用的,留着它会令同批的正确命令(如新增 NPC)一并失败,
@@ -1687,6 +1735,26 @@ function jsonPatchPreprocessor(_variables, commands) {
         else if (pointsToFacility) cmd.args[valueIndex] = pickFields(normalizeAssetFacility(value), ASSET_FACILITY_FIELDS);
       }
     }
+  }
+  for (const cmd of commands) {
+    if (!['set', 'insert'].includes(cmd.type)) continue;
+    const parts = splitPath(cmd.args[0]);
+    if (cmd.type === 'insert') parts.push(String(tryParseValue(cmd.args[1])));
+    if (parts[0] !== '固定资产') continue;
+    const index = cmd.args.length - 1;
+    const value = tryParseValue(cmd.args[index]);
+    const visit = (node, path) => {
+      if (!node || typeof node !== 'object') return;
+      if (path.length === 4 && path[2] === '设施') {
+        const date = calendarParts(node.上次收取日期);
+        if (!Number.isFinite(cultivationYear(date.年 ?? date.year))) {
+          const previous = _.get(_variables.stat_data, [...path, '上次收取日期']);
+          if (previous) node.上次收取日期 = _.cloneDeep(previous);
+        }
+      } else for (const [key, child] of Object.entries(node)) visit(child, [...path, key]);
+    };
+    visit(value, parts);
+    cmd.args[index] = value;
   }
   dropHarmlessMissingDeletes(_variables, commands);
 }

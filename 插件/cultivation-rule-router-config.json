@@ -73,7 +73,7 @@
       },
       "[宗门建设规则]": {
         "enabled": true,
-        "condition": "玩家已是目标宗门宗主；玩家实施该宗门设施的新建、改造、修复或拆除",
+        "condition": "玩家已是目标宗门宗主；玩家实施该宗门设施的新建、改造或修复",
         "comment": "[宗门建设规则]",
         "linked": []
       },
@@ -177,11 +177,11 @@
   "configMetadata": {
     "本格数值化修仙": {
       "id": "bengexiuxian",
-      "version": "2026.10.22"
+      "version": "2026.11.06"
     },
     "本格修仙总结世界书_ms8bxqtju5j8": {
       "id": "bengexiuxian",
-      "version": "2026.10.22"
+      "version": "2026.11.06"
     }
   }
 }

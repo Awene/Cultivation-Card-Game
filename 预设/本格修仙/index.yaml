@@ -427,7 +427,7 @@
 扩展字段:
   cultivation_card:
     id: bengexiuxian
-    version: 2026.10.22
+    version: 2026.11.06
   正则:
   - 正则名称: 思维链引用标签转义
     id: 27cb54ca-593d-48f2-ac5c-035c7b3e88f0
